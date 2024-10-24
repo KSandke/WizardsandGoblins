@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		14101EDD2CCA066000BD8C7D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14101EDC2CCA066000BD8C7D /* Assets.xcassets */; };
+		14101F032CCA068300BD8C7D /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 14101F022CCA068300BD8C7D /* .gitignore */; };
+		14101F082CCA214A00BD8C7D /* GameContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14101F052CCA214A00BD8C7D /* GameContext.swift */; };
+		14101F092CCA214A00BD8C7D /* GameType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14101F072CCA214A00BD8C7D /* GameType.swift */; };
+		14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14101F062CCA214A00BD8C7D /* GameModeType.swift */; };
+		14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14101F042CCA214A00BD8C7D /* Dependencies.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		14101EE62CCA066100BD8C7D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -25,8 +34,14 @@
 
 /* Begin PBXFileReference section */
 		14101ED52CCA066000BD8C7D /* WizardsandGoblins.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WizardsandGoblins.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		14101EDC2CCA066000BD8C7D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		14101EE52CCA066100BD8C7D /* WizardsandGoblinsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WizardsandGoblinsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		14101EEF2CCA066100BD8C7D /* WizardsandGoblinsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WizardsandGoblinsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		14101F022CCA068300BD8C7D /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		14101F042CCA214A00BD8C7D /* Dependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dependencies.swift; sourceTree = "<group>"; };
+		14101F052CCA214A00BD8C7D /* GameContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContext.swift; sourceTree = "<group>"; };
+		14101F062CCA214A00BD8C7D /* GameModeType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModeType.swift; sourceTree = "<group>"; };
+		14101F072CCA214A00BD8C7D /* GameType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameType.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +90,10 @@
 		14101ECC2CCA066000BD8C7D = {
 			isa = PBXGroup;
 			children = (
+				14101F0E2CCA216600BD8C7D /* Base */,
+				14101F0D2CCA216100BD8C7D /* Assets */,
+				14101F0C2CCA215B00BD8C7D /* Code */,
+				14101F022CCA068300BD8C7D /* .gitignore */,
 				14101ED72CCA066000BD8C7D /* WizardsandGoblins */,
 				14101EE82CCA066100BD8C7D /* WizardsandGoblinsTests */,
 				14101EF22CCA066100BD8C7D /* WizardsandGoblinsUITests */,
@@ -90,6 +109,32 @@
 				14101EEF2CCA066100BD8C7D /* WizardsandGoblinsUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		14101F0C2CCA215B00BD8C7D /* Code */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Code;
+			sourceTree = "<group>";
+		};
+		14101F0D2CCA216100BD8C7D /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				14101EDC2CCA066000BD8C7D /* Assets.xcassets */,
+			);
+			path = Assets;
+			sourceTree = "<group>";
+		};
+		14101F0E2CCA216600BD8C7D /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				14101F052CCA214A00BD8C7D /* GameContext.swift */,
+				14101F042CCA214A00BD8C7D /* Dependencies.swift */,
+				14101F062CCA214A00BD8C7D /* GameModeType.swift */,
+				14101F072CCA214A00BD8C7D /* GameType.swift */,
+			);
+			path = Base;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -212,6 +257,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14101EDD2CCA066000BD8C7D /* Assets.xcassets in Resources */,
+				14101F032CCA068300BD8C7D /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -236,6 +283,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14101F082CCA214A00BD8C7D /* GameContext.swift in Sources */,
+				14101F092CCA214A00BD8C7D /* GameType.swift in Sources */,
+				14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */,
+				14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
