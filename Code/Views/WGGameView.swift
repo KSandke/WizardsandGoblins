@@ -21,4 +21,6 @@ struct GameView: View {
             .edgesIgnoringSafeArea(.all)
     }
 }
-
+#Preview {
+    GameView()
+}
