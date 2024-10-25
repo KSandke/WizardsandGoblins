@@ -13,6 +13,10 @@
 		14101F092CCA214A00BD8C7D /* GameType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14101F072CCA214A00BD8C7D /* GameType.swift */; };
 		14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14101F062CCA214A00BD8C7D /* GameModeType.swift */; };
 		14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14101F042CCA214A00BD8C7D /* Dependencies.swift */; };
+		145402852CCB60A400624AF9 /* WGMainMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145402842CCB609E00624AF9 /* WGMainMenu.swift */; };
+		145402872CCB60BA00624AF9 /* WGGameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145402862CCB60B700624AF9 /* WGGameScene.swift */; };
+		145402892CCB675200624AF9 /* WGMainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145402882CCB675200624AF9 /* WGMainMenuView.swift */; };
+		1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454028B2CCB67B300624AF9 /* WGGameView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +48,10 @@
 		14101F072CCA214A00BD8C7D /* GameType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameType.swift; sourceTree = "<group>"; };
 		14101F102CCAE61200BD8C7D /* WGGameInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGGameInfo.swift; sourceTree = "<group>"; };
 		14101F112CCAE64100BD8C7D /* WGLayoutInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGLayoutInfo.swift; sourceTree = "<group>"; };
+		145402842CCB609E00624AF9 /* WGMainMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGMainMenu.swift; sourceTree = "<group>"; };
+		145402862CCB60B700624AF9 /* WGGameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGGameScene.swift; sourceTree = "<group>"; };
+		145402882CCB675200624AF9 /* WGMainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WGMainMenuView.swift; path = Code/WGMainMenuView.swift; sourceTree = SOURCE_ROOT; };
+		1454028B2CCB67B300624AF9 /* WGGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGGameView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -115,7 +123,8 @@
 		14101F0C2CCA215B00BD8C7D /* Code */ = {
 			isa = PBXGroup;
 			children = (
-				14101F122CCAE6E000BD8C7D /* New Group */,
+				1454028A2CCB679E00624AF9 /* Views */,
+				145402812CCB604500624AF9 /* Scenes */,
 				14101F0F2CCAE60200BD8C7D /* Helper */,
 				14101F0E2CCA216600BD8C7D /* Base */,
 			);
@@ -150,11 +159,22 @@
 			path = Helper;
 			sourceTree = "<group>";
 		};
-		14101F122CCAE6E000BD8C7D /* New Group */ = {
+		145402812CCB604500624AF9 /* Scenes */ = {
 			isa = PBXGroup;
 			children = (
+				145402862CCB60B700624AF9 /* WGGameScene.swift */,
+				145402842CCB609E00624AF9 /* WGMainMenu.swift */,
 			);
-			path = "New Group";
+			path = Scenes;
+			sourceTree = "<group>";
+		};
+		1454028A2CCB679E00624AF9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				1454028B2CCB67B300624AF9 /* WGGameView.swift */,
+				145402882CCB675200624AF9 /* WGMainMenuView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -303,9 +323,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				145402852CCB60A400624AF9 /* WGMainMenu.swift in Sources */,
+				145402892CCB675200624AF9 /* WGMainMenuView.swift in Sources */,
+				145402872CCB60BA00624AF9 /* WGGameScene.swift in Sources */,
 				14101F082CCA214A00BD8C7D /* GameContext.swift in Sources */,
 				14101F092CCA214A00BD8C7D /* GameType.swift in Sources */,
 				14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */,
+				1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */,
 				14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

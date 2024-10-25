@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
+import SpriteKit
 
 struct ContentView: View {
     var body: some View {
         VStack {
-            Image(systemName: "happy")
+            Image(systemName: " ")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
             Text("Wizards and Goblins")
