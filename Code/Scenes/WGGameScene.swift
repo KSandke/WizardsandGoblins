@@ -496,9 +496,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func startNextWave() {
         isSpawningEnabled = false
-        
+        // Waits 5 seconds between waves
         let waitAction = SKAction.wait(forDuration: 5.0)
         let startWave = SKAction.run { [weak self] in
+            //These are all of the things that are run before the new wave
             guard let self = self else { return }
             self.currentWave += 1
             self.remainingGoblins = 10 + (self.currentWave - 1) * 5
