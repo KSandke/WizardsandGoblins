@@ -67,6 +67,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Add these properties near the top of the GameScene class
     var restartButton: SKLabelNode!
     var mainMenuButton: SKLabelNode!
+    var currentWave: Int = 1
+    var remainingGoblins: Int = 10
+    var waveLabel: SKLabelNode!
+    var goblinCountLabel: SKLabelNode!
     
     override func didMove(to view: SKView) {
         backgroundColor = .green
@@ -74,6 +78,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         castleSetup()
         wizardSetup()
         manaSetup()
+        waveSetup()
+        goblinCounterSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
             self?.regenerateMana()
@@ -116,6 +122,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     if health <= 0 {
                         goblin.removeFromParent()
                         goblins.removeAll(where: { $0 == goblin })
+                        
+                        // Only decrease if counter is greater than 0
+                        if remainingGoblins > 0 {
+                            remainingGoblins -= 1
+                            updateGoblinCounter()
+                            
+                            // Check if wave is complete when counter reaches 0
+                            if remainingGoblins == 0 {
+                                startNextWave()
+                            }
+                        }
                     } else {
                         goblin.userData?.setValue(health, forKey: "health")
                     }
@@ -263,6 +280,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func spawnGoblin(at position: CGPoint) {
+        // Only spawn if there are goblins remaining
+        if remainingGoblins <= 0 {
+            return
+        }
+        
         let goblin = SKSpriteNode(imageNamed: "Goblin1") // Add goblin image to assets
         goblin.size = CGSize(width: 50, height: 50)
         goblin.position = position
@@ -286,6 +308,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self?.castleTakeDamage(damage: self?.goblinDamage ?? 10)
             goblin.removeFromParent()
             self?.goblins.removeAll(where: { $0 == goblin })
+            
+            // Only decrease if counter is greater than 0
+            if let remainingGoblins = self?.remainingGoblins, remainingGoblins > 0 {
+                self?.remainingGoblins -= 1
+                self?.updateGoblinCounter()
+                
+                // Check if wave is complete when counter reaches 0
+                if self?.remainingGoblins == 0 {
+                    self?.startNextWave()
+                }
+            }
         }
         
         let sequence = SKAction.sequence([moveAction, damageAction])
@@ -380,11 +413,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerTwoMana = maxMana
         goblins.removeAll()
         
-        // Reinitialize the scene
+        // Reset wave and goblin counters
+        currentWave = 1
+        remainingGoblins = 10
+        
+        // Setup all components
         castleSetup()
         wizardSetup()
         manaSetup()
+        waveSetup()
+        goblinCounterSetup()
         
+        let regenerateMana = SKAction.run { [weak self] in
+            self?.regenerateMana()
+        }
+        let wait = SKAction.wait(forDuration: 1.0)
+        let regenSequence = SKAction.sequence([wait, regenerateMana])
+        run(SKAction.repeatForever(regenSequence))
+        
+        physicsWorld.gravity = .zero
+        physicsWorld.contactDelegate = self
         // Restart goblin spawning
         let spawnGoblin = SKAction.run { [weak self] in
             guard let self = self else { return }
@@ -403,5 +451,38 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             mainMenuScene.scaleMode = .aspectFill
             view?.presentScene(mainMenuScene, transition: SKTransition.fade(withDuration: 0.5))
         }
+    }
+    
+    // Add these new setup functions
+    func waveSetup() {
+        waveLabel = SKLabelNode(text: "Wave: \(currentWave)")
+        waveLabel.fontSize = 24
+        waveLabel.fontColor = .black
+        waveLabel.position = CGPoint(x: 80, y: size.height - 60)
+        addChild(waveLabel)
+    }
+    
+    func goblinCounterSetup() {
+        goblinCountLabel = SKLabelNode(text: "Goblins: \(remainingGoblins)")
+        goblinCountLabel.fontSize = 24
+        goblinCountLabel.fontColor = .black
+        goblinCountLabel.position = CGPoint(x: size.width - 100, y: size.height - 60)
+        addChild(goblinCountLabel)
+    }
+    
+    // Add these new functions
+    func updateWaveLabel() {
+        waveLabel.text = "Wave: \(currentWave)"
+    }
+    
+    func updateGoblinCounter() {
+        goblinCountLabel.text = "Goblins: \(remainingGoblins)"
+    }
+    
+    func startNextWave() {
+        currentWave += 1
+        remainingGoblins = 10 + (currentWave - 1) * 5
+        updateWaveLabel()
+        updateGoblinCounter()
     }
 }
