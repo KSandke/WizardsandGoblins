@@ -45,7 +45,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var playerTwoMana: CGFloat = 100
     let maxMana: CGFloat = 100
     let spellCost: CGFloat = 20
-    let manaRegenRate: CGFloat = 5
+    let manaRegenRate: CGFloat = 7.5
     
     // AOE Effect
     let aoeRadius: CGFloat = 50
@@ -76,6 +76,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var isSpawningEnabled = true
     var totalGoblinsSpawned = 0
     var maxGoblinsPerWave = 10
+    
+    //Goblin Healthbar
+    struct GoblinContainer{
+        let sprite: SKSpriteNode
+        let healthBar: SKShapeNode
+        let healthFill: SKShapeNode
+    }
+    var goblinContainers: [GoblinContainer] = []
     
     override func didMove(to view: SKView) {
         backgroundColor = .green
@@ -109,50 +117,55 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createAOEEffect(at position: CGPoint) {
-        // Create the AOE circle
-        let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius)
-        aoeCircle.fillColor = .orange
-        aoeCircle.strokeColor = .clear
-        aoeCircle.alpha = 0.5
-        aoeCircle.position = position
-        aoeCircle.zPosition = 1 // Ensure it appears above the background but below other elements
-        addChild(aoeCircle)
-        
-        // Damage goblins in AOE radius
-        goblins.forEach { goblin in
-            let distance = position.distance(to: goblin.position)
-            if distance <= aoeRadius {
-                if var health = goblin.userData?.value(forKey: "health") as? CGFloat {
-                    health -= 25 // Spell damage
-                    if health <= 0 {
-                        goblin.removeFromParent()
-                        goblins.removeAll(where: { $0 == goblin })
+            // Create the AOE circle
+            let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius)
+            aoeCircle.fillColor = .orange
+            aoeCircle.strokeColor = .clear
+            aoeCircle.alpha = 0.5
+            aoeCircle.position = position
+            aoeCircle.zPosition = 1
+            addChild(aoeCircle)
+            
+            // Damage goblins in AOE radius
+            goblinContainers.forEach { container in
+                let distance = position.distance(to: container.sprite.position)
+                if distance <= aoeRadius {
+                    if var health = container.sprite.userData?.value(forKey: "health") as? CGFloat {
+                        health -= 25 // Spell damage
                         
-                        // Only decrease if counter is greater than 0
-                        if remainingGoblins > 0 {
-                            remainingGoblins -= 1
-                            updateGoblinCounter()
+                        // Update health bar
+                        container.healthFill.xScale = health / goblinHealth
+                        
+                        if health <= 0 {
+                            // Remove from containers array first
+                            goblinContainers.removeAll(where: { $0.sprite == container.sprite })
+                            container.sprite.removeFromParent()
                             
-                            // Check if wave is complete when counter reaches 0
-                            if remainingGoblins == 0 {
-                                startNextWave()
+                            // Only decrease if counter is greater than 0
+                            if remainingGoblins > 0 {
+                                remainingGoblins -= 1
+                                updateGoblinCounter()
+                                
+                                // Check if wave is complete when counter reaches 0
+                                if remainingGoblins == 0 {
+                                    startNextWave()
+                                }
                             }
+                        } else {
+                            container.sprite.userData?.setValue(health, forKey: "health")
                         }
-                    } else {
-                        goblin.userData?.setValue(health, forKey: "health")
                     }
                 }
             }
+            
+            // Create fade out and remove sequence
+            let fadeOut = SKAction.fadeOut(withDuration: aoeDuration)
+            let remove = SKAction.removeFromParent()
+            let sequence = SKAction.sequence([fadeOut, remove])
+            
+            // Run the sequence
+            aoeCircle.run(sequence)
         }
-        
-        // Create fade out and remove sequence
-        let fadeOut = SKAction.fadeOut(withDuration: aoeDuration)
-        let remove = SKAction.removeFromParent()
-        let sequence = SKAction.sequence([fadeOut, remove])
-        
-        // Run the sequence
-        aoeCircle.run(sequence)
-    }
     
     func castleSetup() {
         // Create castle as grey rectangle
@@ -296,10 +309,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         totalGoblinsSpawned += 1
         
-        let goblin = SKSpriteNode(imageNamed: "Goblin1") // Add goblin image to assets
+        let goblin = SKSpriteNode(imageNamed: "Goblin1")
         goblin.size = CGSize(width: 50, height: 50)
         goblin.position = position
         goblin.name = "goblin"
+        
+        // Create health bar background
+        let healthBarWidth: CGFloat = 40
+        let healthBarHeight: CGFloat = 5
+        let healthBar = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
+        healthBar.fillColor = .gray
+        healthBar.strokeColor = .black
+        healthBar.position = CGPoint(x: 0, y: goblin.size.height/2 + 5)
+        
+        // Create health bar fill
+        let healthFill = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
+        healthFill.fillColor = .green
+        healthFill.strokeColor = .clear
+        healthFill.position = healthBar.position
+        
+        // Add health bars as children of goblin
+        goblin.addChild(healthBar)
+        goblin.addChild(healthFill)
         
         let physicsBody = SKPhysicsBody(rectangleOf: goblin.size)
         physicsBody.isDynamic = true
@@ -312,13 +343,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         goblin.userData?.setValue(goblinHealth, forKey: "health")
         
         addChild(goblin)
-        goblins.append(goblin)
+        
+        // Create container and store it
+        let container = GoblinContainer(sprite: goblin, healthBar: healthBar, healthFill: healthFill)
+        goblinContainers.append(container)
         
         let moveAction = SKAction.move(to: castle.position, duration: TimeInterval(position.distance(to: castle.position) / goblinSpeed))
         let damageAction = SKAction.run { [weak self] in
             self?.castleTakeDamage(damage: self?.goblinDamage ?? 10)
+            
+            // Remove from containers array
+            self?.goblinContainers.removeAll(where: { $0.sprite == goblin })
             goblin.removeFromParent()
-            self?.goblins.removeAll(where: { $0 == goblin })
             
             // Only decrease if counter is greater than 0
             if let remainingGoblins = self?.remainingGoblins, remainingGoblins > 0 {
