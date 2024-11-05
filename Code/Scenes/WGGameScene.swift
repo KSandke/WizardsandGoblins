@@ -9,7 +9,7 @@ import SpriteKit
 import GameplayKit
 import Foundation
 
-extension CGVector{
+extension CGVector {
     func normalized() -> CGVector {
         let length = sqrt(dx * dx + dy * dy)
         return length > 0 ? CGVector(dx: dx / length, dy: dy / length) : .zero
@@ -22,6 +22,15 @@ class GameScene: SKScene {
     var playerOne: SKSpriteNode!
     var playerTwo: SKSpriteNode!
     
+    // Castle
+    var castle: SKSpriteNode!
+    var castleHealth: CGFloat = 100
+    let maxCastleHealth: CGFloat = 100
+    
+    // Castle Health Bar
+    var castleHealthBar: SKShapeNode!
+    var castleHealthFill: SKShapeNode!
+    
     // Mana Info
     var playerOneMana: CGFloat = 100
     var playerTwoMana: CGFloat = 100
@@ -29,7 +38,11 @@ class GameScene: SKScene {
     let spellCost: CGFloat = 20
     let manaRegenRate: CGFloat = 5
     
-    //Mana bars
+    // AOE Effect
+    let aoeRadius: CGFloat = 50
+    let aoeDuration: TimeInterval = 1.0
+    
+    // Mana bars
     var playerOneManaBar: SKShapeNode!
     var playerTwoManaBar: SKShapeNode!
     var playerOneManaFill: SKShapeNode!
@@ -38,30 +51,70 @@ class GameScene: SKScene {
     override func didMove(to view: SKView) {
         backgroundColor = .green
         
+        castleSetup()
         wizardSetup()
         manaSetup()
         
-        let regenerateMana = SKAction.run {
-            [weak self] in self?.regenerateMana()
+        let regenerateMana = SKAction.run { [weak self] in
+            self?.regenerateMana()
         }
         let wait = SKAction.wait(forDuration: 1.0)
         let regenSequence = SKAction.sequence([wait, regenerateMana])
         run(SKAction.repeatForever(regenSequence))
     }
     
+    func createAOEEffect(at position: CGPoint) {
+        // Create the AOE circle
+        let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius)
+        aoeCircle.fillColor = .orange
+        aoeCircle.strokeColor = .clear
+        aoeCircle.alpha = 0.5
+        aoeCircle.position = position
+        aoeCircle.zPosition = 1 // Ensure it appears above the background but below other elements
+        addChild(aoeCircle)
+        
+        // Create fade out and remove sequence
+        let fadeOut = SKAction.fadeOut(withDuration: aoeDuration)
+        let remove = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([fadeOut, remove])
+        
+        // Run the sequence
+        aoeCircle.run(sequence)
+    }
+    
+    func castleSetup() {
+        // Create castle as grey rectangle
+        castle = SKSpriteNode(color: .gray, size: CGSize(width: size.width, height: 100))
+        castle.position = CGPoint(x: size.width/2, y: 50) // Position at bottom
+        addChild(castle)
+        
+        // Castle Health Bar
+        castleHealthBar = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
+        castleHealthBar.fillColor = .gray
+        castleHealthBar.strokeColor = .black
+        castleHealthBar.position = CGPoint(x: size.width/2, y: 20)
+        addChild(castleHealthBar)
+        
+        castleHealthFill = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
+        castleHealthFill.fillColor = .red
+        castleHealthFill.strokeColor = .clear
+        castleHealthFill.position = castleHealthBar.position
+        addChild(castleHealthFill)
+        
+        updateCastleHealthBar()
+    }
     
     func wizardSetup() {
-        
-        // Left Wizard
+        // Left Wizard - on castle
         playerOne = SKSpriteNode(imageNamed: "Wizard1")
         playerOne.size = CGSize(width: 75, height: 75)
-        playerOne.position = CGPoint(x: size.width * 0.25, y: 50)
+        playerOne.position = CGPoint(x: size.width * 0.25, y: 100) // Position on top of castle
         addChild(playerOne)
         
-        //Right Wizard
+        // Right Wizard - on castle
         playerTwo = SKSpriteNode(imageNamed: "Wizard2")
         playerTwo.size = CGSize(width: 75, height: 75)
-        playerTwo.position = CGPoint(x: size.width * 0.75, y: 50)
+        playerTwo.position = CGPoint(x: size.width * 0.75, y: 100) // Position on top of castle
         addChild(playerTwo)
     }
     
@@ -96,6 +149,7 @@ class GameScene: SKScene {
         
         updateManaBars()
     }
+    
     func regenerateMana() {
         playerOneMana = min(maxMana, playerOneMana + manaRegenRate)
         playerTwoMana = min(maxMana, playerTwoMana + manaRegenRate)
@@ -103,9 +157,12 @@ class GameScene: SKScene {
     }
     
     func updateManaBars() {
-        // Update the width of the mana fill bars based on current mana
         playerOneManaFill.xScale = playerOneMana / maxMana
         playerTwoManaFill.xScale = playerTwoMana / maxMana
+    }
+    
+    func updateCastleHealthBar() {
+        castleHealthFill.xScale = castleHealth / maxCastleHealth
     }
     
     func castSpell(from castingPlayer: SKSpriteNode, to location: CGPoint) -> Bool {
@@ -136,14 +193,19 @@ class GameScene: SKScene {
         
         // Calculate rotation angle (in radians)
         let angle = atan2(dy, dx)
-        let angleDegrees = angle * (180 / .pi)
         
         // Rotate spell to face movement direction
         spell.zRotation = angle + .pi/2 + .pi
         
-        // Move spell
-        let moveAction = SKAction.move(by: CGVector(dx: dx, dy: dy), duration: 1.0)
-        spell.run(SKAction.sequence([moveAction, SKAction.removeFromParent()]))
+        // Create completion handler for when spell reaches target
+        let createAOE = SKAction.run { [weak self] in
+            self?.createAOEEffect(at: location)
+        }
+        
+        // Move spell and create AOE
+        let moveAction = SKAction.move(to: location, duration: 1.0)
+        let sequence = SKAction.sequence([moveAction, createAOE, SKAction.removeFromParent()])
+        spell.run(sequence)
         
         // Update mana display
         updateManaBars()
