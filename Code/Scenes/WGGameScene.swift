@@ -269,13 +269,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Rotate spell to face movement direction
         spell.zRotation = angle + .pi/2 + .pi
         
+        // Calculate distance and scale duration
+        let distance = castingPlayer.position.distance(to: location)
+        let baseSpeed: CGFloat = 400 // pixels per second
+        let duration = TimeInterval(distance / baseSpeed)
+        
         // Create completion handler for when spell reaches target
         let createAOE = SKAction.run { [weak self] in
             self?.createAOEEffect(at: location)
         }
-        
         // Move spell and create AOE
-        let moveAction = SKAction.move(to: location, duration: 1.0)
+        let moveAction = SKAction.move(to: location, duration: duration)
         let sequence = SKAction.sequence([moveAction, createAOE, SKAction.removeFromParent()])
         spell.run(sequence)
         
