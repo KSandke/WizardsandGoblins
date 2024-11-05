@@ -8,6 +8,7 @@
 import SpriteKit
 import GameplayKit
 import Foundation
+import CoreGraphics
 
 extension CGVector {
     func normalized() -> CGVector {
@@ -16,7 +17,15 @@ extension CGVector {
     }
 }
 
-class GameScene: SKScene {
+extension CGPoint {
+    func distance(to point: CGPoint) -> CGFloat {
+        let dx = self.x - point.x
+        let dy = self.y - point.y
+        return sqrt(dx * dx + dy * dy)
+    }
+}
+
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Wizards
     var playerOne: SKSpriteNode!
@@ -48,6 +57,17 @@ class GameScene: SKScene {
     var playerOneManaFill: SKShapeNode!
     var playerTwoManaFill: SKShapeNode!
     
+    // Goblin Properties
+    var goblins: [SKSpriteNode] = []
+    let goblinSpeed: CGFloat = 100
+    let goblinDamage: CGFloat = 10
+    let goblinSpawnInterval: TimeInterval = 2.0
+    let goblinHealth: CGFloat = 50
+    
+    // Add these properties near the top of the GameScene class
+    var restartButton: SKLabelNode!
+    var mainMenuButton: SKLabelNode!
+    
     override func didMove(to view: SKView) {
         backgroundColor = .green
         
@@ -61,6 +81,20 @@ class GameScene: SKScene {
         let wait = SKAction.wait(forDuration: 1.0)
         let regenSequence = SKAction.sequence([wait, regenerateMana])
         run(SKAction.repeatForever(regenSequence))
+        
+        physicsWorld.gravity = .zero
+        physicsWorld.contactDelegate = self
+        
+        // Setup goblin spawning
+        let spawnGoblin = SKAction.run { [weak self] in
+            guard let self = self else { return }
+            let randomX = CGFloat.random(in: 0...self.size.width)
+            let spawnPosition = CGPoint(x: randomX, y: self.size.height + 50)
+            self.spawnGoblin(at: spawnPosition)
+        }
+        let waitForNextSpawn = SKAction.wait(forDuration: goblinSpawnInterval)
+        let spawnSequence = SKAction.sequence([waitForNextSpawn, spawnGoblin])
+        run(SKAction.repeatForever(spawnSequence))
     }
     
     func createAOEEffect(at position: CGPoint) {
@@ -72,6 +106,22 @@ class GameScene: SKScene {
         aoeCircle.position = position
         aoeCircle.zPosition = 1 // Ensure it appears above the background but below other elements
         addChild(aoeCircle)
+        
+        // Damage goblins in AOE radius
+        goblins.forEach { goblin in
+            let distance = position.distance(to: goblin.position)
+            if distance <= aoeRadius {
+                if var health = goblin.userData?.value(forKey: "health") as? CGFloat {
+                    health -= 25 // Spell damage
+                    if health <= 0 {
+                        goblin.removeFromParent()
+                        goblins.removeAll(where: { $0 == goblin })
+                    } else {
+                        goblin.userData?.setValue(health, forKey: "health")
+                    }
+                }
+            }
+        }
         
         // Create fade out and remove sequence
         let fadeOut = SKAction.fadeOut(withDuration: aoeDuration)
@@ -212,12 +262,93 @@ class GameScene: SKScene {
         return true
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first,
-              let p1 = playerOne,
-              let p2 = playerTwo else { return }
+    func spawnGoblin(at position: CGPoint) {
+        let goblin = SKSpriteNode(imageNamed: "Goblin1") // Add goblin image to assets
+        goblin.size = CGSize(width: 50, height: 50)
+        goblin.position = position
+        goblin.name = "goblin"
         
+        let physicsBody = SKPhysicsBody(rectangleOf: goblin.size)
+        physicsBody.isDynamic = true
+        physicsBody.affectedByGravity = false
+        physicsBody.categoryBitMask = 1
+        physicsBody.contactTestBitMask = 2
+        goblin.physicsBody = physicsBody
+        
+        goblin.userData = NSMutableDictionary()
+        goblin.userData?.setValue(goblinHealth, forKey: "health")
+        
+        addChild(goblin)
+        goblins.append(goblin)
+        
+        let moveAction = SKAction.move(to: castle.position, duration: TimeInterval(position.distance(to: castle.position) / goblinSpeed))
+        let damageAction = SKAction.run { [weak self] in
+            self?.castleTakeDamage(damage: self?.goblinDamage ?? 10)
+            goblin.removeFromParent()
+            self?.goblins.removeAll(where: { $0 == goblin })
+        }
+        
+        let sequence = SKAction.sequence([moveAction, damageAction])
+        goblin.run(sequence)
+    }
+    
+    func castleTakeDamage(damage: CGFloat) {
+        castleHealth = max(0, castleHealth - damage)
+        updateCastleHealthBar()
+        
+        if castleHealth <= 0 {
+            gameOver()
+        }
+    }
+    
+    func gameOver() {
+        removeAllActions()
+        
+        let gameOverLabel = SKLabelNode(text: "Game Over!")
+        gameOverLabel.fontSize = 50
+        gameOverLabel.fontColor = .red
+        gameOverLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        addChild(gameOverLabel)
+        
+        // Add Restart Button
+        restartButton = SKLabelNode(text: "Restart")
+        restartButton.fontSize = 30
+        restartButton.fontColor = .white
+        restartButton.position = CGPoint(x: size.width/2, y: size.height/2 - 50)
+        restartButton.name = "restartButton"
+        addChild(restartButton)
+        
+        // Add Main Menu Button
+        mainMenuButton = SKLabelNode(text: "Main Menu")
+        mainMenuButton.fontSize = 30
+        mainMenuButton.fontColor = .white
+        mainMenuButton.position = CGPoint(x: size.width/2, y: size.height/2 - 100)
+        mainMenuButton.name = "mainMenuButton"
+        addChild(mainMenuButton)
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
         let touchLocation = touch.location(in: self)
+        let touchedNode = nodes(at: touchLocation).first
+        
+        // Handle button taps
+        if let name = touchedNode?.name {
+            switch name {
+            case "restartButton":
+                restartGame()
+                return
+            case "mainMenuButton":
+                goToMainMenu()
+                return
+            default:
+                break
+            }
+        }
+        
+        // Existing spell casting logic
+        guard let p1 = playerOne,
+              let p2 = playerTwo else { return }
         
         // Calculate distances to each wizard
         let dx1 = touchLocation.x - p1.position.x
@@ -235,6 +366,42 @@ class GameScene: SKScene {
         // Try to cast with primary caster, if fails try backup caster
         if !castSpell(from: primaryCaster, to: touchLocation) {
             _ = castSpell(from: backupCaster, to: touchLocation)
+        }
+    }
+    
+    func restartGame() {
+        // Remove all nodes and reset the scene
+        removeAllChildren()
+        removeAllActions()
+        
+        // Reset properties
+        castleHealth = maxCastleHealth
+        playerOneMana = maxMana
+        playerTwoMana = maxMana
+        goblins.removeAll()
+        
+        // Reinitialize the scene
+        castleSetup()
+        wizardSetup()
+        manaSetup()
+        
+        // Restart goblin spawning
+        let spawnGoblin = SKAction.run { [weak self] in
+            guard let self = self else { return }
+            let randomX = CGFloat.random(in: 0...self.size.width)
+            let spawnPosition = CGPoint(x: randomX, y: self.size.height + 50)
+            self.spawnGoblin(at: spawnPosition)
+        }
+        let waitForNextSpawn = SKAction.wait(forDuration: goblinSpawnInterval)
+        let spawnSequence = SKAction.sequence([waitForNextSpawn, spawnGoblin])
+        run(SKAction.repeatForever(spawnSequence))
+    }
+    
+    func goToMainMenu() {
+        // Assuming you have a main menu scene called WGMainMenuScene
+        if let mainMenuScene = SKScene(fileNamed: "WGMainMenuScene") {
+            mainMenuScene.scaleMode = .aspectFill
+            view?.presentScene(mainMenuScene, transition: SKTransition.fade(withDuration: 0.5))
         }
     }
 }
