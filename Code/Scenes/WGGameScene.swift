@@ -26,7 +26,8 @@ extension CGPoint {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-    
+    // Background
+    var background: SKSpriteNode!
     // Wizards
     var playerOne: SKSpriteNode!
     var playerTwo: SKSpriteNode!
@@ -77,6 +78,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var totalGoblinsSpawned = 0
     var maxGoblinsPerWave = 10
     
+    //Score Properties
+    var score: Int = 0
+    var scoreLabel: SKLabelNode!
+    
     //Goblin Healthbar
     struct GoblinContainer{
         let sprite: SKSpriteNode
@@ -86,13 +91,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var goblinContainers: [GoblinContainer] = []
     
     override func didMove(to view: SKView) {
-        backgroundColor = .green
+        setupBackground()
         
         castleSetup()
         wizardSetup()
         manaSetup()
         waveSetup()
         goblinCounterSetup()
+        scoreSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
             self?.regenerateMana()
@@ -116,6 +122,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         run(SKAction.repeatForever(spawnSequence))
     }
     
+    func setupBackground() {
+        background = SKSpriteNode(imageNamed: "Image")
+        background.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        background.size = self.size
+        background.zPosition = -1
+        addChild(background)
+    }
+    
+    func scoreSetup() {
+        scoreLabel = SKLabelNode(text: "Score: 0")
+        scoreLabel.fontSize = 24
+        scoreLabel.fontColor = .black
+        scoreLabel.position = CGPoint(x: size.width - 100, y: size.height - 90)
+        addChild(scoreLabel)
+    }
+    
+    func updateScore(points: Int = 10){
+        score += points
+        scoreLabel.text = "Score: \(score)"
+    }
+    
     func createAOEEffect(at position: CGPoint) {
             // Create the AOE circle
             let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius)
@@ -137,6 +164,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                         container.healthFill.xScale = health / goblinHealth
                         
                         if health <= 0 {
+                            // Add points when goblin is eliminated
+                            updateScore()
                             // Remove from containers array first
                             goblinContainers.removeAll(where: { $0.sprite == container.sprite })
                             container.sprite.removeFromParent()
@@ -324,7 +353,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Create health bar fill
         let healthFill = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
-        healthFill.fillColor = .green
+        healthFill.fillColor = .red
         healthFill.strokeColor = .clear
         healthFill.position = healthBar.position
         
@@ -387,8 +416,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let gameOverLabel = SKLabelNode(text: "Game Over!")
         gameOverLabel.fontSize = 50
         gameOverLabel.fontColor = .red
-        gameOverLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        gameOverLabel.position = CGPoint(x: size.width/2, y: size.height * 0.7)
         addChild(gameOverLabel)
+        
+        // Add final score label
+        let finalScoreLabel = SKLabelNode(text: "Final Score: \(score)")
+        finalScoreLabel.fontSize = 40
+        finalScoreLabel.fontColor = .white
+        finalScoreLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        addChild(finalScoreLabel)
         
         // Add Restart Button
         restartButton = SKLabelNode(text: "Restart")
@@ -459,6 +495,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerOneMana = maxMana
         playerTwoMana = maxMana
         goblins.removeAll()
+        score = 0
         
         // Reset wave and goblin counters
         currentWave = 1
@@ -469,11 +506,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         totalGoblinsSpawned = 0
         
         // Setup all components
+        setupBackground()
         castleSetup()
         wizardSetup()
         manaSetup()
         waveSetup()
         goblinCounterSetup()
+        scoreSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
             self?.regenerateMana()
@@ -544,6 +583,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.isSpawningEnabled = true
             self.updateWaveLabel()
             self.updateGoblinCounter()
+            playerOneMana = 100
+            playerTwoMana = 100
         }
         
         run(SKAction.sequence([waitAction, startWave]))
