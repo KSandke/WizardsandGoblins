@@ -7,7 +7,7 @@
 
 import SpriteKit
 
-class MainMenuScene: SKScene {
+class WGMainMenu: SKScene {
     
     override func didMove(to view: SKView) {
         // Set up background color

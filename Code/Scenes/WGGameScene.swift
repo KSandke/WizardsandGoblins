@@ -536,11 +536,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func goToMainMenu() {
-        // Assuming you have a main menu scene called WGMainMenuScene
-        if let mainMenuScene = SKScene(fileNamed: "WGMainMenuScene") {
-            mainMenuScene.scaleMode = .aspectFill
-            view?.presentScene(mainMenuScene, transition: SKTransition.fade(withDuration: 0.5))
-        }
+        let mainMenuScene = WGMainMenu(size: self.size)
+        mainMenuScene.scaleMode = SKSceneScaleMode.aspectFill
+        view?.presentScene(mainMenuScene, transition: SKTransition.fade(withDuration: 0.5))
     }
     
     // Add these new setup functions
@@ -568,7 +566,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func updateGoblinCounter() {
         goblinCountLabel.text = "Goblins: \(remainingGoblins)"
     }
-    
+    /*
     func startNextWave() {
         isSpawningEnabled = false
         // Waits 5 seconds between waves
@@ -588,5 +586,47 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         run(SKAction.sequence([waitAction, startWave]))
+    }*/
+    func startNextWave() {
+        isSpawningEnabled = false
+        
+        // Create countdown label
+        let countdownLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        countdownLabel.fontSize = 72
+        countdownLabel.position = CGPoint(x: frame.midX, y: frame.midY)
+        countdownLabel.zPosition = 100 // Ensure it appears above other nodes
+        addChild(countdownLabel)
+        
+        // Create countdown sequence
+        var actions: [SKAction] = []
+        
+        // Add actions for each number (5 to 1)
+        for i in (1...5).reversed() {
+            let showNumber = SKAction.run { countdownLabel.text = "\(i)" }
+            let wait = SKAction.wait(forDuration: 1.0)
+            actions.append(contentsOf: [showNumber, wait])
+        }
+        
+        // Add final actions
+        let removeLabel = SKAction.run { countdownLabel.removeFromParent() }
+        let startWave = SKAction.run { [weak self] in
+            guard let self = self else { return }
+            self.currentWave += 1
+            self.remainingGoblins = 10 + (self.currentWave - 1) * 5
+            self.maxGoblinsPerWave = self.remainingGoblins
+            self.totalGoblinsSpawned = 0
+            self.isSpawningEnabled = true
+            self.updateWaveLabel()
+            self.updateGoblinCounter()
+            playerOneMana = 100
+            playerTwoMana = 100
+        }
+        
+        // Add the remove label and start wave actions to the sequence
+        actions.append(removeLabel)
+        actions.append(startWave)
+        
+        // Run the complete sequence
+        run(SKAction.sequence(actions))
     }
 }
