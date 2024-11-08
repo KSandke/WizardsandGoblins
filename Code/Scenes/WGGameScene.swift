@@ -26,6 +26,7 @@ extension CGPoint {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
+    
     // Background
     var background: SKSpriteNode!
     // Wizards
@@ -82,6 +83,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var score: Int = 0
     var scoreLabel: SKLabelNode!
     
+    //Coins
+    var coins: Int = 0
+    var coinLabel: SKLabelNode!
+    var coinsPerKill: Int = 5
+    
     //Goblin Healthbar
     struct GoblinContainer{
         let sprite: SKSpriteNode
@@ -99,6 +105,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         waveSetup()
         goblinCounterSetup()
         scoreSetup()
+        coinSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
             self?.regenerateMana()
@@ -123,7 +130,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func setupBackground() {
-        background = SKSpriteNode(imageNamed: "Image")
+        background = SKSpriteNode(imageNamed: "Background")
         background.position = CGPoint(x: size.width / 2, y: size.height / 2)
         background.size = self.size
         background.zPosition = -1
@@ -143,6 +150,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.text = "Score: \(score)"
     }
     
+    func coinSetup() {
+        coinLabel = SKLabelNode(text: "Coins: 0")
+        coinLabel.fontSize = 24
+        coinLabel.fontColor = .black
+        coinLabel.position = CGPoint(x: size.width - 100, y: size.height - 120)
+        addChild(coinLabel)
+    }
+    
+    func updateCoins(){
+        coins += coinsPerKill
+        coinLabel.text = "Coins: \(coins)"
+    }
     func createAOEEffect(at position: CGPoint) {
             // Create the AOE circle
             let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius)
@@ -164,12 +183,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                         container.healthFill.xScale = health / goblinHealth
                         
                         if health <= 0 {
+                            //Add coins when goblin is killed
+                            updateCoins()
                             // Add points when goblin is eliminated
                             updateScore()
                             // Remove from containers array first
                             goblinContainers.removeAll(where: { $0.sprite == container.sprite })
                             container.sprite.removeFromParent()
-                            
+                            // Create coin particle effect
+                            createCoinEffect(at: container.sprite.position)
                             // Only decrease if counter is greater than 0
                             if remainingGoblins > 0 {
                                 remainingGoblins -= 1
@@ -196,6 +218,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             aoeCircle.run(sequence)
         }
     
+    // Add function to create coin particle effect
+    func createCoinEffect(at position: CGPoint) {
+        let coinSprite = SKSpriteNode(imageNamed: "coin") // Make sure to add a coin image to assets
+        coinSprite.size = CGSize(width: 20, height: 20)
+        coinSprite.position = position
+        addChild(coinSprite)
+        
+        let moveUp = SKAction.moveBy(x: 0, y: 50, duration: 0.5)
+        let fade = SKAction.fadeOut(withDuration: 0.3)
+        let remove = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([moveUp, fade, remove])
+        
+        coinSprite.run(sequence)
+    }
     func castleSetup() {
         // Create castle as grey rectangle
         castle = SKSpriteNode(color: .gray, size: CGSize(width: size.width, height: 100))
@@ -426,6 +462,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         finalScoreLabel.position = CGPoint(x: size.width/2, y: size.height/2)
         addChild(finalScoreLabel)
         
+        // Add final coins label
+        let finalCoinsLabel = SKLabelNode(text: "Total Coins: \(coins)")
+        finalCoinsLabel.fontSize = 40
+        finalCoinsLabel.fontColor = .yellow
+        finalCoinsLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        addChild(finalCoinsLabel)
+        
         // Add Restart Button
         restartButton = SKLabelNode(text: "Restart")
         restartButton.fontSize = 30
@@ -496,6 +539,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerTwoMana = maxMana
         goblins.removeAll()
         score = 0
+        coins = 0
         
         // Reset wave and goblin counters
         currentWave = 1
@@ -513,6 +557,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         waveSetup()
         goblinCounterSetup()
         scoreSetup()
+        coinSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
             self?.regenerateMana()
