@@ -29,6 +29,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Background
     var background: SKSpriteNode!
+    
     // Wizards
     var playerOne: SKSpriteNode!
     var playerTwo: SKSpriteNode!
@@ -66,7 +67,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let goblinSpawnInterval: TimeInterval = 2.0
     let goblinHealth: CGFloat = 50
     
-    // Add these properties near the top of the GameScene class
+    // Game over properties
     var restartButton: SKLabelNode!
     var mainMenuButton: SKLabelNode!
     var currentWave: Int = 1
@@ -74,7 +75,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var waveLabel: SKLabelNode!
     var goblinCountLabel: SKLabelNode!
     
-    // Add these properties at the top of the class
     var isSpawningEnabled = true
     var totalGoblinsSpawned = 0
     var maxGoblinsPerWave = 10
@@ -87,6 +87,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var coins: Int = 0
     var coinLabel: SKLabelNode!
     var coinsPerKill: Int = 5
+    
+    //Mana potions
+    var manaPotions: [SKSpriteNode] = []
+    let manaPotionSpawnInterval: TimeInterval = 10.0  // Spawn rate
+    let manaPotionManaRestore: CGFloat = 60.0  // Amount of mana restored
+    let manaPotionDuration: TimeInterval = 10.0 //How long potions stay on the map
     
     //Goblin Healthbar
     struct GoblinContainer{
@@ -114,6 +120,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let regenSequence = SKAction.sequence([wait, regenerateMana])
         run(SKAction.repeatForever(regenSequence))
         
+        // Setup mana potion spawning
+        let spawnPotionAction = SKAction.sequence([
+            SKAction.wait(forDuration: manaPotionSpawnInterval),
+            SKAction.run { [weak self] in
+                self?.spawnManaPotion()
+            }
+        ])
+        run(SKAction.repeatForever(spawnPotionAction))
+        
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
         
@@ -129,6 +144,40 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         run(SKAction.repeatForever(spawnSequence))
     }
     
+    func spawnManaPotion() {
+        // Only spawn if the wave is active
+        guard isSpawningEnabled else { return }
+        
+        // Create random position within playable area
+        let randomX = CGFloat.random(in: 100...size.width-100)
+        let randomY = CGFloat.random(in: 200...size.height-100)
+        let position = CGPoint(x: randomX, y: randomY)
+        
+        // Create mana potion sprite
+        let potion = SKSpriteNode(color: .blue, size: CGSize(width: 30, height: 30))
+        potion.position = position
+        potion.name = "manaPotion"
+        
+        // Add some visual effects
+        potion.alpha = 0.8
+        let pulse = SKAction.sequence([
+            SKAction.scale(to: 1.2, duration: 0.5),
+            SKAction.scale(to: 1.0, duration: 0.5)
+        ])
+        potion.run(SKAction.repeatForever(pulse))
+        
+        // Add automatic removal after duration
+        let removeSequence = SKAction.sequence([
+            SKAction.wait(forDuration: manaPotionDuration),
+            SKAction.fadeOut(withDuration: 1.0),
+            SKAction.removeFromParent()
+        ])
+        potion.run(removeSequence)
+        
+        addChild(potion)
+        manaPotions.append(potion)
+    }
+    
     func setupBackground() {
         background = SKSpriteNode(imageNamed: "Background")
         background.position = CGPoint(x: size.width / 2, y: size.height / 2)
@@ -136,6 +185,56 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         background.zPosition = -1
         addChild(background)
     }
+    
+    func handlePotionHit(potion: SKSpriteNode, spellLocation: CGPoint) {
+            // Find the closest wizard to the spell location
+            let distanceToPlayerOne = spellLocation.distance(to: playerOne.position)
+            let distanceToPlayerTwo = spellLocation.distance(to: playerTwo.position)
+            
+            // Determine which wizard gets the mana
+            if distanceToPlayerOne < distanceToPlayerTwo {
+                playerOneMana = min(maxMana, playerOneMana + manaPotionManaRestore)
+            } else {
+                playerTwoMana = min(maxMana, playerTwoMana + manaPotionManaRestore)
+            }
+            
+            // Update mana bars
+            updateManaBars()
+            
+            // Create mana restore effect
+            createManaRestoreEffect(at: potion.position)
+            
+            // Remove the potion
+            if let index = manaPotions.firstIndex(of: potion) {
+                manaPotions.remove(at: index)
+            }
+            potion.removeFromParent()
+        }
+    
+    func createManaRestoreEffect(at position: CGPoint) {
+            // Create a visual effect for mana restoration
+            let effect = SKEmitterNode()
+            effect.particleTexture = SKTexture(imageNamed: "spark") // Add a spark image to assets
+            effect.position = position
+            effect.particleBirthRate = 100
+            effect.numParticlesToEmit = 50
+            effect.particleLifetime = 0.5
+            effect.particleColor = .blue
+            effect.particleColorBlendFactor = 1.0
+            effect.particleScale = 0.5
+            effect.particleScaleSpeed = -1.0
+            effect.emissionAngle = 0.0
+            effect.emissionAngleRange = .pi * 2
+            effect.particleSpeed = 100
+            effect.xAcceleration = 0
+            effect.yAcceleration = 0
+            addChild(effect)
+            
+            // Remove effect after duration
+            let wait = SKAction.wait(forDuration: 0.5)
+            let remove = SKAction.removeFromParent()
+            effect.run(SKAction.sequence([wait, remove]))
+        }
     
     func scoreSetup() {
         scoreLabel = SKLabelNode(text: "Score: 0")
@@ -354,8 +453,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Create completion handler for when spell reaches target
         let createAOE = SKAction.run { [weak self] in
-            self?.createAOEEffect(at: location)
+            guard let self = self else { return }
+            
+            // Check for potion hits
+            for potion in self.manaPotions {
+                if location.distance(to: potion.position) <= self.aoeRadius {
+                    self.handlePotionHit(potion: potion, spellLocation: location)
+                }
+            }
+            self.createAOEEffect(at: location)
         }
+    
         // Move spell and create AOE
         let moveAction = SKAction.move(to: location, duration: duration)
         let sequence = SKAction.sequence([moveAction, createAOE, SKAction.removeFromParent()])
@@ -364,6 +472,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Update mana display
         updateManaBars()
         return true
+        
+        
     }
     
     func spawnGoblin(at position: CGPoint) {
