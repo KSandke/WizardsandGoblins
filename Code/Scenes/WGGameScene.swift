@@ -576,7 +576,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let finalCoinsLabel = SKLabelNode(text: "Total Coins: \(coins)")
         finalCoinsLabel.fontSize = 40
         finalCoinsLabel.fontColor = .yellow
-        finalCoinsLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        finalCoinsLabel.position = CGPoint(x: size.width/2, y: size.height * 0.6)
         addChild(finalCoinsLabel)
         
         // Add Restart Button
