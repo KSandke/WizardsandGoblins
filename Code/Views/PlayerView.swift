@@ -120,11 +120,12 @@ class PlayerView {
     }
 
     private func setupScoreLabel() {
-    scoreLabel = SKLabelNode(text: "Score: 0")
-    scoreLabel.fontSize = 24
-    scoreLabel.fontColor = .black
-    scoreLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 90)
-    scene.addChild(scoreLabel)
+        guard let scene = parentScene else { return }
+        scoreLabel = SKLabelNode(text: "Score: 0")
+        scoreLabel.fontSize = 24
+        scoreLabel.fontColor = .black
+        scoreLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 90)
+        scene.addChild(scoreLabel)
     }
     
     private func updateCastleHealthBar(health: CGFloat) {
