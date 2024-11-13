@@ -12,7 +12,7 @@ struct ShopItem {
         ShopItem(
             name: "Max Health +20",
             description: "Increase maximum health by 20",
-            price: 100,
+            price: 5,
             icon: "health_upgrade",
             effect: { state in
                 state.maxHealth += 20
@@ -22,7 +22,7 @@ struct ShopItem {
         ShopItem(
             name: "Max Mana +30",
             description: "Increase maximum mana by 30",
-            price: 150,
+            price: 10,
             icon: "mana_upgrade",
             effect: { state in
                 state.maxMana += 30
@@ -31,7 +31,7 @@ struct ShopItem {
         ShopItem(
             name: "Mana Regen +2",
             description: "Increase mana regeneration",
-            price: 200,
+            price: 10,
             icon: "regen_upgrade",
             effect: { state in
                 state.manaRegenRate += 2
@@ -40,7 +40,7 @@ struct ShopItem {
         ShopItem(
             name: "Spell Power +10%",
             description: "Increase spell damage",
-            price: 250,
+            price: 5,
             icon: "power_upgrade",
             effect: { state in
                 state.spellPowerMultiplier *= 1.1
