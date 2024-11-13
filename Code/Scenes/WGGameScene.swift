@@ -45,6 +45,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // New variables for wave management
     var isInShop = false  // To track if the shop view is active
+    var isGameOver = false
     
     override func didMove(to view: SKView) {
         // Initialize Player State and View
@@ -224,7 +225,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func spawnGoblin(at position: CGPoint) {
-        if !isSpawningEnabled || totalGoblinsSpawned >= maxGoblinsPerWave {
+        if !isSpawningEnabled || totalGoblinsSpawned >= maxGoblinsPerWave || isGameOver {
             return
         }
         
@@ -248,13 +249,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func gameOver() {
+        // Stop all wave-related processes
+        endWave()
         removeAllActions()
+        isGameOver = true
+        
+        // Remove any remaining goblins and potions
+        normalGoblinManager.removeAllGoblins()
+        largeGoblinManager.removeAllGoblins()
+        smallGoblinManager.removeAllGoblins()
+        
+        for potion in manaPotions {
+            potion.removeFromParent()
+        }
+        manaPotions.removeAll()
+        
         
         let gameOverLabel = SKLabelNode(text: "Game Over!")
         gameOverLabel.fontSize = 50
         gameOverLabel.fontColor = .red
         gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.7)
         addChild(gameOverLabel)
+        // Remove all nodes and reset the scene
+        removeAllChildren()
         
         // Add final score label
         let finalScoreLabel = SKLabelNode(text: "Final Score: \(playerState.score)")
@@ -340,8 +357,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func castSpell(isPlayerOne: Bool, to location: CGPoint) -> Bool {
-        // Check if the wave is active
-        guard isSpawningEnabled else { return false }
+        // Check if the wave is active and game is not over
+        guard isSpawningEnabled && !isGameOver else { return false }
         // Get caster's position
         let casterPosition = isPlayerOne ? playerView.playerOnePosition : playerView.playerTwoPosition
         
@@ -393,6 +410,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func waveCompleted() {
+        // Add guard to prevent shop from showing if game is over
+        guard !isGameOver else { return }
+        
         endWave()
         showShopView()
     }
@@ -434,6 +454,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func restartGame() {
+        // Reset the game over flag
+        isGameOver = false
+        
         // Remove all nodes and reset the scene
         removeAllChildren()
         removeAllActions()
