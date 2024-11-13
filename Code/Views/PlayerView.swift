@@ -130,7 +130,18 @@ class PlayerView {
         scoreLabel = SKLabelNode(text: "Score: \(state.score)")
         scoreLabel.fontSize = 24
         scoreLabel.fontColor = .black
-        scoreLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 90)
+        scoreLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 100)
+        scoreLabel.fontName = "AvenirNext-Bold"
+        scoreLabel.horizontalAlignmentMode = .left
+        
+        let shadowLabel = SKLabelNode(text: scoreLabel.text)
+        shadowLabel.fontSize = scoreLabel.fontSize
+        shadowLabel.fontColor = .gray
+        shadowLabel.position = CGPoint(x: 2, y: -2)
+        shadowLabel.fontName = scoreLabel.fontName
+        shadowLabel.horizontalAlignmentMode = .left
+        scoreLabel.addChild(shadowLabel)
+        
         scene.addChild(scoreLabel)
     }
 
@@ -139,7 +150,18 @@ class PlayerView {
         coinLabel = SKLabelNode(text: "Coins: \(state.coins)")
         coinLabel.fontSize = 24
         coinLabel.fontColor = .black
-        coinLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 120)
+        coinLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 135)
+        coinLabel.fontName = "AvenirNext-Bold"
+        coinLabel.horizontalAlignmentMode = .left
+        
+        let shadowLabel = SKLabelNode(text: coinLabel.text)
+        shadowLabel.fontSize = coinLabel.fontSize
+        shadowLabel.fontColor = .gray
+        shadowLabel.position = CGPoint(x: 2, y: -2)
+        shadowLabel.fontName = coinLabel.fontName
+        shadowLabel.horizontalAlignmentMode = .left
+        coinLabel.addChild(shadowLabel)
+        
         scene.addChild(coinLabel)
     }
 
@@ -157,10 +179,16 @@ class PlayerView {
 
     private func updateScoreLabel(score: Int) {
         scoreLabel.text = "Score: \(score)"
+        if let shadowLabel = scoreLabel.children.first as? SKLabelNode {
+            shadowLabel.text = scoreLabel.text
+        }
     }
 
     private func updateCoinsLabel(coins: Int) {
         coinLabel.text = "Coins: \(coins)"
+        if let shadowLabel = coinLabel.children.first as? SKLabelNode {
+            shadowLabel.text = coinLabel.text
+        }
     }
     
     // Public accessors for positions
