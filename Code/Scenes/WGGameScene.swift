@@ -102,6 +102,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func setupWaves() {
         waveConfigs = [
+            -1: WaveConfig( // Default wave configuration
+                goblinTypeProbabilities: [.normal: 60.0, .small: 20.0, .large: 20.0],
+                maxGoblins: 7,  // Will be modified based on wave number
+                baseSpawnInterval: 2.0,  // Will be modified based on wave number
+                spawnPatterns: [
+                    SpawnPatternConfig(pattern: .single, probability: 70.0),
+                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
+                ]
+            ),
             1: WaveConfig(
                 goblinTypeProbabilities: [.normal: 100.0],
                 maxGoblins: 10,
@@ -200,26 +209,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Check if we have a custom config for this wave
         if let customConfig = waveConfigs[wave] {
             return customConfig
+        }else let defaultConfig = waveConfigs[-1] {
+            // Modify default config based on wave number
+            var modifiedConfig = defaultConfig
+            modifiedConfig.maxGoblins = 10 + (wave - 1) * 5
+            modifiedConfig.baseSpawnInterval = max(2.0 - 0.1 * Double(wave - 1), 0.5)
+            return modifiedConfig
         }
         
-        // Generate a default WaveConfig based on wave number
-        let normalProbability = max(70.0 - Double(wave - 1) * 5.0, 20.0)
-        let otherProbability = (100.0 - normalProbability) / 2.0
-
-        let goblinTypeProbabilities: [Goblin.GoblinType: Double] = [
-            .normal: normalProbability,
-            .large: otherProbability,
-            .small: otherProbability
-        ]
-        let maxGoblins = 10 + (wave - 1) * 5
-        let goblinSpawnInterval = max(2.0 - 0.1 * Double(wave - 1), 0.5)
-        
-        return WaveConfig(
-            goblinTypeProbabilities: goblinTypeProbabilities,
-            maxGoblins: maxGoblins,
-            baseSpawnInterval: goblinSpawnInterval,
-            spawnPatterns: []
-        )
     }
     
     func endWave() {
