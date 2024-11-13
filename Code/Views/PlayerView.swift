@@ -14,11 +14,12 @@ class PlayerView {
     private var playerOneManaFill: SKShapeNode
     private var playerTwoManaFill: SKShapeNode
     
+    private var scoreLabel: SKLabelNode!
+    private var coinLabel: SKLabelNode!
+    
     private weak var parentScene: SKScene?
     private var state: PlayerState
-
-    //score ui
-    private var scoreLabel: SKLabelNode!
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -53,9 +54,13 @@ class PlayerView {
         state.onPlayerTwoManaChanged = { [weak self] mana in
             self?.updatePlayerTwoManaBar(mana: mana)
         }
-        
+
         state.onScoreChanged = { [weak self] score in
             self?.updateScoreLabel(score: score)
+        }
+
+        state.onCoinsChanged = { [weak self] coins in
+            self?.updateCoinsLabel(coins: coins)
         }
     }
     
@@ -64,6 +69,7 @@ class PlayerView {
         setupWizards()
         setupManaBars()
         setupScoreLabel()
+        setupCoinsLabel()
     }
     
     private func setupCastle() {
@@ -120,13 +126,23 @@ class PlayerView {
     }
 
     private func setupScoreLabel() {
-    scoreLabel = SKLabelNode(text: "Score: 0")
-    scoreLabel.fontSize = 24
-    scoreLabel.fontColor = .black
-    scoreLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 90)
-    scene.addChild(scoreLabel)
+        guard let scene = parentScene else { return }
+        scoreLabel = SKLabelNode(text: "Score: \(state.score)")
+        scoreLabel.fontSize = 24
+        scoreLabel.fontColor = .black
+        scoreLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 90)
+        scene.addChild(scoreLabel)
     }
-    
+
+    private func setupCoinsLabel() {
+        guard let scene = parentScene else { return }
+        coinLabel = SKLabelNode(text: "Coins: \(state.coins)")
+        coinLabel.fontSize = 24
+        coinLabel.fontColor = .black
+        coinLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 120)
+        scene.addChild(coinLabel)
+    }
+
     private func updateCastleHealthBar(health: CGFloat) {
         castleHealthFill.xScale = health / state.maxCastleHealth
     }
@@ -140,7 +156,11 @@ class PlayerView {
     }
 
     private func updateScoreLabel(score: Int) {
-    scoreLabel.text = "Score: \(score)"
+        scoreLabel.text = "Score: \(score)"
+    }
+
+    private func updateCoinsLabel(coins: Int) {
+        coinLabel.text = "Coins: \(coins)"
     }
     
     // Public accessors for positions
