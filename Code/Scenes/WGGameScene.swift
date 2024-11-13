@@ -315,7 +315,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let healthBar = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
         healthBar.fillColor = .gray
         healthBar.strokeColor = .black
-        healthBar.position = CGPoint(x: 0, y: goblin.size.height / 2 + 5)
+        healthBar.position = CGPoint(x: 0, y: goblin.size.height/2 + 5)
         
         // Create health bar fill
         let healthFill = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
