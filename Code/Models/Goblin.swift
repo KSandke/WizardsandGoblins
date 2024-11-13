@@ -180,9 +180,9 @@ class Goblin {
         case .normal:
             return "Goblin1"
         case .large:
-            return "GoblinLarge"   // Update with the appropriate image asset
+            return "Goblin1"   // Update with the appropriate image asset
         case .small:
-            return "GoblinSmall"   // Update with the appropriate image asset
+            return "Goblin1"   // Update with the appropriate image asset
         }
     }
     

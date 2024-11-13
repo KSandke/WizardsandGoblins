@@ -101,8 +101,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func setupWaves() {
-        waveConfigs = [
-            -1: WaveConfig( // Default wave configuration
+        waveConfigs = [ // Default wave configuration
+            -1: WaveConfig( 
                 goblinTypeProbabilities: [.normal: 60.0, .small: 20.0, .large: 20.0],
                 maxGoblins: 7,  // Will be modified based on wave number
                 baseSpawnInterval: 2.0,  // Will be modified based on wave number
@@ -111,7 +111,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
                 ]
             ),
-            1: WaveConfig(
+            1: WaveConfig( //use this config for testing
+                goblinTypeProbabilities: [.normal: 100.0],
+                maxGoblins: 10,
+                baseSpawnInterval: 2.0,
+                spawnPatterns: [
+                    SpawnPatternConfig(pattern: .single, probability: 70.0),
+                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
+                ]
+            ),
+            2: WaveConfig(
                 goblinTypeProbabilities: [.normal: 100.0],
                 maxGoblins: 10,
                 baseSpawnInterval: 2.0,
@@ -214,7 +223,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Modify default config based on wave number
             print("Using default config for wave \(wave)")
             var modifiedConfig = defaultConfig
-            modifiedConfig.maxGoblins = 10 + (wave - 1) * 5
+            modifiedConfig.maxGoblins = (wave - 1) * 5
             modifiedConfig.baseSpawnInterval = max(2.0 - 0.1 * Double(wave - 1), 0.5)
             return modifiedConfig
         }
