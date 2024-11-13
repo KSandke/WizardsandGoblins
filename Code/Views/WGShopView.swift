@@ -16,12 +16,11 @@ struct ShopItem {
             icon: "health_upgrade",
             effect: { state in
                 state.maxHealth += 20
-                state.currentHealth = state.maxHealth
             }
         ),
         ShopItem(
             name: "Max Mana +30",
-            description: "Increase maximum mana by 30",
+            description: "Increase maximum mana by 20",
             price: 10,
             icon: "mana_upgrade",
             effect: { state in
