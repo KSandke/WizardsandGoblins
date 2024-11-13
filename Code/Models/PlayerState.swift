@@ -43,10 +43,10 @@ class PlayerState {
 
         playerTwoSpell = Spell(
             name: "IceSpell",
-            manaCost: 30,
+            manaCost: 20,
             aoeRadius: 50,
             duration: 1.0,
-            damage: 15,
+            damage: 20,
             specialEffect: { spell, container in
                 // Apply slowing effect
                 container.sprite.speed = 0.5 // Reduce speed
