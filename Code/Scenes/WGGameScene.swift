@@ -12,38 +12,16 @@ import CoreGraphics
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    // Player State and View
+    var playerState: PlayerState!
+    var playerView: PlayerView!
+    
     // Background
     var background: SKSpriteNode!
-    
-    // Wizards
-    var playerOne: SKSpriteNode!
-    var playerTwo: SKSpriteNode!
-    
-    // Castle
-    var castle: SKSpriteNode!
-    var castleHealth: CGFloat = 100
-    let maxCastleHealth: CGFloat = 100
-    
-    // Castle Health Bar
-    var castleHealthBar: SKShapeNode!
-    var castleHealthFill: SKShapeNode!
-    
-    // Mana Info
-    var playerOneMana: CGFloat = 100
-    var playerTwoMana: CGFloat = 100
-    let maxMana: CGFloat = 100
-    let spellCost: CGFloat = 20
-    let manaRegenRate: CGFloat = 7.5
     
     // AOE Effect
     let aoeRadius: CGFloat = 50
     let aoeDuration: TimeInterval = 1.0
-    
-    // Mana bars
-    var playerOneManaBar: SKShapeNode!
-    var playerTwoManaBar: SKShapeNode!
-    var playerOneManaFill: SKShapeNode!
-    var playerTwoManaFill: SKShapeNode!
     
     // Goblin Properties
     var goblins: [SKSpriteNode] = []
@@ -64,7 +42,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var totalGoblinsSpawned = 0
     var maxGoblinsPerWave = 10
     
-    //Score Properties
+    // Score Properties
     var score: Int = 0
     var scoreLabel: SKLabelNode!
     
@@ -88,18 +66,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var goblinContainers: [GoblinContainer] = []
     
     override func didMove(to view: SKView) {
+        // Initialize Player State and View
+        playerState = PlayerState()
+        playerView = PlayerView(scene: self, state: playerState)
+        
         setupBackground()
         
-        castleSetup()
-        wizardSetup()
-        manaSetup()
+        // Setup UI elements in PlayerView
+        // playerView.setupUI() // Already called in PlayerView's init
+        
         waveSetup()
         goblinCounterSetup()
         scoreSetup()
         coinSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
-            self?.regenerateMana()
+            self?.playerState.regenerateMana()
         }
         let wait = SKAction.wait(forDuration: 1.0)
         let regenSequence = SKAction.sequence([wait, regenerateMana])
@@ -172,29 +154,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func handlePotionHit(potion: SKSpriteNode, spellLocation: CGPoint) {
-            // Find the closest wizard to the spell location
-            let distanceToPlayerOne = spellLocation.distance(to: playerOne.position)
-            let distanceToPlayerTwo = spellLocation.distance(to: playerTwo.position)
-            
-            // Determine which wizard gets the mana
-            if distanceToPlayerOne < distanceToPlayerTwo {
-                playerOneMana = min(maxMana, playerOneMana + manaPotionManaRestore)
-            } else {
-                playerTwoMana = min(maxMana, playerTwoMana + manaPotionManaRestore)
-            }
-            
-            // Update mana bars
-            updateManaBars()
-            
-            // Create mana restore effect
-            createManaRestoreEffect(at: potion.position)
-            
-            // Remove the potion
-            if let index = manaPotions.firstIndex(of: potion) {
-                manaPotions.remove(at: index)
-            }
-            potion.removeFromParent()
+        // Find the closest wizard to the spell location
+        let distanceToPlayerOne = spellLocation.distance(to: playerView.playerOnePosition)
+        let distanceToPlayerTwo = spellLocation.distance(to: playerView.playerTwoPosition)
+        
+        // Determine which wizard gets the mana
+        if distanceToPlayerOne < distanceToPlayerTwo {
+            playerState.playerOneMana = min(playerState.maxMana, playerState.playerOneMana + manaPotionManaRestore)
+        } else {
+            playerState.playerTwoMana = min(playerState.maxMana, playerState.playerTwoMana + manaPotionManaRestore)
         }
+        
+        // Create mana restore effect
+        createManaRestoreEffect(at: potion.position)
+        
+        // Remove the potion
+        if let index = manaPotions.firstIndex(of: potion) {
+            manaPotions.remove(at: index)
+        }
+        potion.removeFromParent()
+    }
     
     func createManaRestoreEffect(at position: CGPoint) {
             // Create a visual effect for mana restoration
@@ -316,148 +295,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         coinSprite.run(sequence)
     }
-    func castleSetup() {
-        // Create castle as grey rectangle
-        castle = SKSpriteNode(color: .gray, size: CGSize(width: size.width, height: 100))
-        castle.position = CGPoint(x: size.width/2, y: 50) // Position at bottom
-        addChild(castle)
-        
-        // Castle Health Bar
-        castleHealthBar = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
-        castleHealthBar.fillColor = .gray
-        castleHealthBar.strokeColor = .black
-        castleHealthBar.position = CGPoint(x: size.width/2, y: 20)
-        addChild(castleHealthBar)
-        
-        castleHealthFill = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
-        castleHealthFill.fillColor = .red
-        castleHealthFill.strokeColor = .clear
-        castleHealthFill.position = castleHealthBar.position
-        addChild(castleHealthFill)
-        
-        castleHealthFill.xScale = castleHealth / maxCastleHealth
-    }
-    
-    func wizardSetup() {
-        // Left Wizard - on castle
-        playerOne = SKSpriteNode(imageNamed: "Wizard1")
-        playerOne.size = CGSize(width: 75, height: 75)
-        playerOne.position = CGPoint(x: size.width * 0.25, y: 100) // Position on top of castle
-        addChild(playerOne)
-        
-        // Right Wizard - on castle
-        playerTwo = SKSpriteNode(imageNamed: "Wizard2")
-        playerTwo.size = CGSize(width: 75, height: 75)
-        playerTwo.position = CGPoint(x: size.width * 0.75, y: 100) // Position on top of castle
-        addChild(playerTwo)
-    }
-    
-    func manaSetup() {
-        // Player One Mana Bar (Background)
-        playerOneManaBar = SKShapeNode(rectOf: CGSize(width: 100, height: 10))
-        playerOneManaBar.fillColor = .gray
-        playerOneManaBar.strokeColor = .black
-        playerOneManaBar.position = CGPoint(x: playerOne.position.x, y: playerOne.position.y - 50)
-        addChild(playerOneManaBar)
-        
-        // Player One Mana Fill
-        playerOneManaFill = SKShapeNode(rectOf: CGSize(width: 100, height: 10))
-        playerOneManaFill.fillColor = .blue
-        playerOneManaFill.strokeColor = .clear
-        playerOneManaFill.position = playerOneManaBar.position
-        addChild(playerOneManaFill)
-        
-        // Player Two Mana Bar (Background)
-        playerTwoManaBar = SKShapeNode(rectOf: CGSize(width: 100, height: 10))
-        playerTwoManaBar.fillColor = .gray
-        playerTwoManaBar.strokeColor = .black
-        playerTwoManaBar.position = CGPoint(x: playerTwo.position.x, y: playerTwo.position.y - 50)
-        addChild(playerTwoManaBar)
-        
-        // Player Two Mana Fill
-        playerTwoManaFill = SKShapeNode(rectOf: CGSize(width: 100, height: 10))
-        playerTwoManaFill.fillColor = .blue
-        playerTwoManaFill.strokeColor = .clear
-        playerTwoManaFill.position = playerTwoManaBar.position
-        addChild(playerTwoManaFill)
-        
-        updateManaBars()
-    }
-    
-    func regenerateMana() {
-        playerOneMana = min(maxMana, playerOneMana + manaRegenRate)
-        playerTwoMana = min(maxMana, playerTwoMana + manaRegenRate)
-        updateManaBars()
-    }
-    
-    func updateManaBars() {
-        playerOneManaFill.xScale = playerOneMana / maxMana
-        playerTwoManaFill.xScale = playerTwoMana / maxMana
-    }
-    
-
-    
-    func castSpell(from castingPlayer: SKSpriteNode, to location: CGPoint) -> Bool {
-        // Check which player is casting and get their mana
-        let playerMana = castingPlayer == playerOne ? playerOneMana : playerTwoMana
-        
-        // Check if enough mana
-        if playerMana < spellCost {
-            return false
-        }
-        
-        // Deduct mana
-        if castingPlayer == playerOne {
-            playerOneMana -= spellCost
-        } else {
-            playerTwoMana -= spellCost
-        }
-        
-        // Create spell
-        let spell = SKSpriteNode(imageNamed: "spell1")
-        spell.size = CGSize(width: 50, height: 50)
-        spell.position = castingPlayer.position
-        addChild(spell)
-        
-        // Calculate direction
-        let dx = location.x - castingPlayer.position.x
-        let dy = location.y - castingPlayer.position.y
-        
-        // Calculate rotation angle (in radians)
-        let angle = atan2(dy, dx)
-        
-        // Rotate spell to face movement direction
-        spell.zRotation = angle + .pi/2 + .pi
-        
-        // Calculate distance and scale duration
-        let distance = castingPlayer.position.distance(to: location)
-        let baseSpeed: CGFloat = 400 // pixels per second
-        let duration = TimeInterval(distance / baseSpeed)
-        
-        // Create completion handler for when spell reaches target
-        let createAOE = SKAction.run { [weak self] in
-            guard let self = self else { return }
-            
-            // Check for potion hits
-            for potion in self.manaPotions {
-                if location.distance(to: potion.position) <= self.aoeRadius {
-                    self.handlePotionHit(potion: potion, spellLocation: location)
-                }
-            }
-            self.createAOEEffect(at: location)
-        }
-    
-        // Move spell and create AOE
-        let moveAction = SKAction.move(to: location, duration: duration)
-        let sequence = SKAction.sequence([moveAction, createAOE, SKAction.removeFromParent()])
-        spell.run(sequence)
-        
-        // Update mana display
-        updateManaBars()
-        return true
-        
-        
-    }
     
     func spawnGoblin(at position: CGPoint) {
         // Only spawn if spawning is enabled and we haven't reached the wave's goblin limit
@@ -478,7 +315,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let healthBar = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
         healthBar.fillColor = .gray
         healthBar.strokeColor = .black
-        healthBar.position = CGPoint(x: 0, y: goblin.size.height/2 + 5)
+        healthBar.position = CGPoint(x: 0, y: goblin.size.height / 2 + 5)
         
         // Create health bar fill
         let healthFill = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
@@ -506,7 +343,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let container = GoblinContainer(sprite: goblin, healthBar: healthBar, healthFill: healthFill)
         goblinContainers.append(container)
         
-        let moveAction = SKAction.move(to: castle.position, duration: TimeInterval(position.distance(to: castle.position) / goblinSpeed))
+        let moveAction = SKAction.move(to: playerView.castlePosition, duration: TimeInterval(position.distance(to: playerView.castlePosition) / goblinSpeed))
         let damageAction = SKAction.run { [weak self] in
             self?.castleTakeDamage(damage: self?.goblinDamage ?? 10)
             
@@ -531,13 +368,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func castleTakeDamage(damage: CGFloat) {
-        castleHealth = max(0, castleHealth - damage)
-        castleHealthFill.xScale = castleHealth / maxCastleHealth
-    
-        
-        if castleHealth <= 0 {
-            gameOver()
-        }
+        playerState.takeDamage(damage)
     }
     
     func gameOver() {
@@ -546,28 +377,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let gameOverLabel = SKLabelNode(text: "Game Over!")
         gameOverLabel.fontSize = 50
         gameOverLabel.fontColor = .red
-        gameOverLabel.position = CGPoint(x: size.width/2, y: size.height * 0.7)
+        gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.7)
         addChild(gameOverLabel)
         
         // Add final score label
         let finalScoreLabel = SKLabelNode(text: "Final Score: \(score)")
         finalScoreLabel.fontSize = 40
         finalScoreLabel.fontColor = .white
-        finalScoreLabel.position = CGPoint(x: size.width/2, y: size.height/2)
+        finalScoreLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
         addChild(finalScoreLabel)
         
         // Add final coins label
         let finalCoinsLabel = SKLabelNode(text: "Total Coins: \(coins)")
         finalCoinsLabel.fontSize = 40
         finalCoinsLabel.fontColor = .yellow
-        finalCoinsLabel.position = CGPoint(x: size.width/2, y: size.height * 0.6)
+        finalCoinsLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.6)
         addChild(finalCoinsLabel)
         
         // Add Restart Button
         restartButton = SKLabelNode(text: "Restart")
         restartButton.fontSize = 30
         restartButton.fontColor = .white
-        restartButton.position = CGPoint(x: size.width/2, y: size.height/2 - 50)
+        restartButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 50)
         restartButton.name = "restartButton"
         addChild(restartButton)
         
@@ -575,7 +406,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         mainMenuButton = SKLabelNode(text: "Main Menu")
         mainMenuButton.fontSize = 30
         mainMenuButton.fontColor = .white
-        mainMenuButton.position = CGPoint(x: size.width/2, y: size.height/2 - 100)
+        mainMenuButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 100)
         mainMenuButton.name = "mainMenuButton"
         addChild(mainMenuButton)
     }
@@ -599,27 +430,74 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         
-        // Existing spell casting logic
-        guard let p1 = playerOne,
-              let p2 = playerTwo else { return }
+        // Determine which wizard is casting based on proximity
+        let p1Position = playerView.playerOnePosition
+        let p2Position = playerView.playerTwoPosition
         
         // Calculate distances to each wizard
-        let dx1 = touchLocation.x - p1.position.x
-        let dy1 = touchLocation.y - p1.position.y
-        let dx2 = touchLocation.x - p2.position.x
-        let dy2 = touchLocation.y - p2.position.y
-        
-        let distance1 = sqrt(dx1 * dx1 + dy1 * dy1)
-        let distance2 = sqrt(dx2 * dx2 + dy2 * dy2)
+        let distance1 = touchLocation.distance(to: p1Position)
+        let distance2 = touchLocation.distance(to: p2Position)
         
         // Determine primary and backup casters based on distance
-        let (primaryCaster, backupCaster) = distance1 < distance2 ?
-        (p1, p2) : (p2, p1)
+        let (isPlayerOnePrimary, _, _) = distance1 < distance2 ?
+            (true, p1Position, p2Position) :
+            (false, p2Position, p1Position)
         
         // Try to cast with primary caster, if fails try backup caster
-        if !castSpell(from: primaryCaster, to: touchLocation) {
-            _ = castSpell(from: backupCaster, to: touchLocation)
+        if !castSpell(isPlayerOne: isPlayerOnePrimary, to: touchLocation) {
+            _ = castSpell(isPlayerOne: !isPlayerOnePrimary, to: touchLocation)
         }
+    }
+    
+    func castSpell(isPlayerOne: Bool, to location: CGPoint) -> Bool {
+        // Try to use spell from playerState
+        if !playerState.useSpell(isPlayerOne: isPlayerOne) {
+            return false
+        }
+        
+        // Get caster's position
+        let casterPosition = isPlayerOne ? playerView.playerOnePosition : playerView.playerTwoPosition
+        
+        // Create spell
+        let spell = SKSpriteNode(imageNamed: "spell1")
+        spell.size = CGSize(width: 50, height: 50)
+        spell.position = casterPosition
+        addChild(spell)
+        
+        // Calculate direction
+        let dx = location.x - casterPosition.x
+        let dy = location.y - casterPosition.y
+        
+        // Calculate rotation angle (in radians)
+        let angle = atan2(dy, dx)
+        
+        // Rotate spell to face movement direction
+        spell.zRotation = angle + .pi / 2 + .pi
+        
+        // Calculate distance and scale duration
+        let distance = casterPosition.distance(to: location)
+        let baseSpeed: CGFloat = 400 // pixels per second
+        let duration = TimeInterval(distance / baseSpeed)
+        
+        // Create completion handler for when spell reaches target
+        let createAOE = SKAction.run { [weak self] in
+            guard let self = self else { return }
+            
+            // Check for potion hits
+            for potion in self.manaPotions {
+                if location.distance(to: potion.position) <= self.aoeRadius {
+                    self.handlePotionHit(potion: potion, spellLocation: location)
+                }
+            }
+            self.createAOEEffect(at: location)
+        }
+        
+        // Move spell and create AOE
+        let moveAction = SKAction.move(to: location, duration: duration)
+        let sequence = SKAction.sequence([moveAction, createAOE, SKAction.removeFromParent()])
+        spell.run(sequence)
+        
+        return true
     }
     
     func restartGame() {
@@ -628,9 +506,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         removeAllActions()
         
         // Reset properties
-        castleHealth = maxCastleHealth
-        playerOneMana = maxMana
-        playerTwoMana = maxMana
+        playerState.reset()
         goblins.removeAll()
         score = 0
         coins = 0
@@ -645,16 +521,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Setup all components
         setupBackground()
-        castleSetup()
-        wizardSetup()
-        manaSetup()
+        
+        // Re-initialize PlayerView with the reset state
+        playerView = PlayerView(scene: self, state: playerState)
+        
         waveSetup()
         goblinCounterSetup()
         scoreSetup()
         coinSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
-            self?.regenerateMana()
+            self?.playerState.regenerateMana()
         }
         let wait = SKAction.wait(forDuration: 1.0)
         let regenSequence = SKAction.sequence([wait, regenerateMana])
@@ -662,6 +539,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
+        
         // Restart goblin spawning
         let spawnGoblin = SKAction.run { [weak self] in
             guard let self = self else { return }
@@ -680,7 +558,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         view?.presentScene(mainMenuScene, transition: SKTransition.fade(withDuration: 0.5))
     }
     
-    // Add these new setup functions
     func waveSetup() {
         waveLabel = SKLabelNode(text: "Wave: \(currentWave)")
         waveLabel.fontSize = 24
@@ -697,7 +574,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(goblinCountLabel)
     }
     
-    // Add these new functions
     func updateWaveLabel() {
         waveLabel.text = "Wave: \(currentWave)"
     }
@@ -705,27 +581,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func updateGoblinCounter() {
         goblinCountLabel.text = "Goblins: \(remainingGoblins)"
     }
-    /*
-    func startNextWave() {
-        isSpawningEnabled = false
-        // Waits 5 seconds between waves
-        let waitAction = SKAction.wait(forDuration: 5.0)
-        let startWave = SKAction.run { [weak self] in
-            //These are all of the things that are run before the new wave
-            guard let self = self else { return }
-            self.currentWave += 1
-            self.remainingGoblins = 10 + (self.currentWave - 1) * 5
-            self.maxGoblinsPerWave = self.remainingGoblins
-            self.totalGoblinsSpawned = 0
-            self.isSpawningEnabled = true
-            self.updateWaveLabel()
-            self.updateGoblinCounter()
-            playerOneMana = 100
-            playerTwoMana = 100
-        }
-        
-        run(SKAction.sequence([waitAction, startWave]))
-    }*/
+    
     func startNextWave() {
         isSpawningEnabled = false
         
@@ -757,8 +613,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.isSpawningEnabled = true
             self.updateWaveLabel()
             self.updateGoblinCounter()
-            playerOneMana = 100
-            playerTwoMana = 100
+            self.playerState.playerOneMana = self.playerState.maxMana
+            self.playerState.playerTwoMana = self.playerState.maxMana
         }
         
         // Add the remove label and start wave actions to the sequence

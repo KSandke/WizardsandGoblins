@@ -2,20 +2,20 @@ import SpriteKit
 
 class PlayerView {
     // UI Components
-    private let castle: SKSpriteNode
-    private let castleHealthBar: SKShapeNode
-    private let castleHealthFill: SKShapeNode
+    private var castle: SKSpriteNode
+    private var castleHealthBar: SKShapeNode
+    private var castleHealthFill: SKShapeNode
     
-    private let playerOne: SKSpriteNode
-    private let playerTwo: SKSpriteNode
+    private var playerOne: SKSpriteNode
+    private var playerTwo: SKSpriteNode
     
-    private let playerOneManaBar: SKShapeNode
-    private let playerTwoManaBar: SKShapeNode
-    private let playerOneManaFill: SKShapeNode
-    private let playerTwoManaFill: SKShapeNode
+    private var playerOneManaBar: SKShapeNode
+    private var playerTwoManaBar: SKShapeNode
+    private var playerOneManaFill: SKShapeNode
+    private var playerTwoManaFill: SKShapeNode
     
     private weak var parentScene: SKScene?
-    private let state: PlayerState
+    private var state: PlayerState
     
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
