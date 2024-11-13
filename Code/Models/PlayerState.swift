@@ -30,6 +30,18 @@ class PlayerState {
     var onPlayerOneManaChanged: ((CGFloat) -> Void)?
     var onPlayerTwoManaChanged: ((CGFloat) -> Void)?
     
+    // Score state
+    var score: Int = 0 {
+        didSet {
+            onScoreChanged?(score)
+        }
+    }
+    var onScoreChanged: ((Int) -> Void)?
+    
+    func addScore(points: Int) {
+        score += points
+    }
+    
     func regenerateMana() {
         playerOneMana = min(maxMana, playerOneMana + manaRegenRate)
         playerTwoMana = min(maxMana, playerTwoMana + manaRegenRate)
@@ -44,6 +56,7 @@ class PlayerState {
         castleHealth = maxCastleHealth
         playerOneMana = maxMana
         playerTwoMana = maxMana
+        score = 0  // Reset score
     }
     
     func useSpell(isPlayerOne: Bool) -> Bool {

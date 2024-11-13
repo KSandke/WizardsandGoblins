@@ -16,7 +16,9 @@ class PlayerView {
     
     private weak var parentScene: SKScene?
     private var state: PlayerState
-    
+
+    //score ui
+    private var scoreLabel: SKLabelNode!
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -51,12 +53,17 @@ class PlayerView {
         state.onPlayerTwoManaChanged = { [weak self] mana in
             self?.updatePlayerTwoManaBar(mana: mana)
         }
+        
+        state.onScoreChanged = { [weak self] score in
+            self?.updateScoreLabel(score: score)
+        }
     }
     
     private func setupUI() {
         setupCastle()
         setupWizards()
         setupManaBars()
+        setupScoreLabel()
     }
     
     private func setupCastle() {
@@ -111,6 +118,14 @@ class PlayerView {
         fill.position = bar.position
         scene.addChild(fill)
     }
+
+    private func setupScoreLabel() {
+    scoreLabel = SKLabelNode(text: "Score: 0")
+    scoreLabel.fontSize = 24
+    scoreLabel.fontColor = .black
+    scoreLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 90)
+    scene.addChild(scoreLabel)
+    }
     
     private func updateCastleHealthBar(health: CGFloat) {
         castleHealthFill.xScale = health / state.maxCastleHealth
@@ -122,6 +137,10 @@ class PlayerView {
     
     private func updatePlayerTwoManaBar(mana: CGFloat) {
         playerTwoManaFill.xScale = mana / state.maxMana
+    }
+
+    private func updateScoreLabel(score: Int) {
+    scoreLabel.text = "Score: \(score)"
     }
     
     // Public accessors for positions

@@ -15,6 +15,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Player State and View
     var playerState: PlayerState!
     var playerView: PlayerView!
+    var scoreView: ScoreView!
     
     // Background
     var background: SKSpriteNode!
@@ -42,22 +43,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var totalGoblinsSpawned = 0
     var maxGoblinsPerWave = 10
     
-    // Score Properties
-    var score: Int = 0
-    var scoreLabel: SKLabelNode!
-    
-    //Coins
+    // Coins
     var coins: Int = 0
     var coinLabel: SKLabelNode!
     var coinsPerKill: Int = 5
     
-    //Mana potions
+    // Mana potions
     var manaPotions: [SKSpriteNode] = []
     let manaPotionSpawnInterval: TimeInterval = 10.0  // Spawn rate
     let manaPotionManaRestore: CGFloat = 60.0  // Amount of mana restored
-    let manaPotionDuration: TimeInterval = 10.0 //How long potions stay on the map
+    let manaPotionDuration: TimeInterval = 10.0 // How long potions stay on the map
     
-    //Goblin Healthbar
+    // Goblin Healthbar
     struct GoblinContainer{
         let sprite: SKSpriteNode
         let healthBar: SKShapeNode
@@ -71,13 +68,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerView = PlayerView(scene: self, state: playerState)
         
         setupBackground()
-        
-        // Setup UI elements in PlayerView
-        // playerView.setupUI() // Already called in PlayerView's init
-        
         waveSetup()
         goblinCounterSetup()
-        scoreSetup()
         coinSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
@@ -200,19 +192,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             effect.run(SKAction.sequence([wait, remove]))
         }
     
-    func scoreSetup() {
-        scoreLabel = SKLabelNode(text: "Score: 0")
-        scoreLabel.fontSize = 24
-        scoreLabel.fontColor = .black
-        scoreLabel.position = CGPoint(x: size.width - 100, y: size.height - 90)
-        addChild(scoreLabel)
-    }
-    
-    func updateScore(points: Int = 10){
-        score += points
-        scoreLabel.text = "Score: \(score)"
-    }
-    
     func coinSetup() {
         coinLabel = SKLabelNode(text: "Coins: 0")
         coinLabel.fontSize = 24
@@ -246,10 +225,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                         container.healthFill.xScale = health / goblinHealth
                         
                         if health <= 0 {
-                            //Add coins when goblin is killed
+                            // Add coins when goblin is killed
                             updateCoins()
                             // Add points when goblin is eliminated
-                            updateScore()
+                            playerState.addScore(points: 10)
+                            
                             // Remove from containers array first
                             goblinContainers.removeAll(where: { $0.sprite == container.sprite })
                             container.sprite.removeFromParent()
@@ -383,7 +363,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(gameOverLabel)
         
         // Add final score label
-        let finalScoreLabel = SKLabelNode(text: "Final Score: \(score)")
+        let finalScoreLabel = SKLabelNode(text: "Final Score: \(playerState.score)")
         finalScoreLabel.fontSize = 40
         finalScoreLabel.fontColor = .white
         finalScoreLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
@@ -510,7 +490,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Reset properties
         playerState.reset()
         goblins.removeAll()
-        score = 0
         coins = 0
         
         // Reset wave and goblin counters
@@ -529,7 +508,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         waveSetup()
         goblinCounterSetup()
-        scoreSetup()
         coinSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
