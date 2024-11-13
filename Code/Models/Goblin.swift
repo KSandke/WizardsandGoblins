@@ -8,13 +8,22 @@ class Goblin {
         case small
     }
     
-    struct GoblinContainer {
+    class GoblinContainer {
         let sprite: SKSpriteNode
         let healthBar: SKShapeNode
         let healthFill: SKShapeNode
         var health: CGFloat
         let damage: CGFloat
         let maxHealth: CGFloat
+        
+        init(sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat) {
+            self.sprite = sprite
+            self.healthBar = healthBar
+            self.healthFill = healthFill
+            self.health = health
+            self.damage = damage
+            self.maxHealth = maxHealth
+        }
     }
     
     let type: GoblinType
@@ -154,7 +163,9 @@ class Goblin {
     }
     
     func applySpell(_ spell: Spell, at position: CGPoint, in gameScene: GameScene) {
-        for (index, var container) in goblinContainers.enumerated() {
+        var containersToRemove: [GoblinContainer] = []
+        
+        for container in goblinContainers {
             let distance = position.distance(to: container.sprite.position)
             if distance <= spell.aoeRadius {
                 // Apply damage
@@ -162,18 +173,20 @@ class Goblin {
                 if container.health <= 0 {
                     // Goblin dies - pass goblinKilled = true since it was killed by a spell
                     gameScene.goblinDied(container: container, goblinKilled: true)
-                    removeGoblin(container: container)
+                    containersToRemove.append(container)
                 } else {
                     // Update health bar
                     let healthRatio = container.health / container.maxHealth
                     container.healthFill.xScale = healthRatio
                     // Apply special effects
                     spell.specialEffect?(spell, container)
-                    
-                    // Update container in the array
-                    goblinContainers[index] = container
                 }
             }
+        }
+        
+        // Remove goblins after the loop
+        for container in containersToRemove {
+            removeGoblin(container: container)
         }
     }
 } 
