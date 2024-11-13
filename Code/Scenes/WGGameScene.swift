@@ -255,9 +255,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         isGameOver = true
         
         // Remove any remaining goblins and potions
-        normalGoblinManager.removeAllGoblins()
-        largeGoblinManager.removeAllGoblins()
-        smallGoblinManager.removeAllGoblins()
+        normalGoblinManager.removeAllGoblins(in: self)
+        largeGoblinManager.removeAllGoblins(in: self)
+        smallGoblinManager.removeAllGoblins(in: self)
         
         for potion in manaPotions {
             potion.removeFromParent()

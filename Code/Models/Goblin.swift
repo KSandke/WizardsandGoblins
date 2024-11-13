@@ -14,7 +14,7 @@ class Goblin {
         let healthFill: SKShapeNode
         var health: CGFloat
         let damage: CGFloat
-        let maxHealth: CGFloat
+        let maxHealth: CGFloat 
                 
         init(sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat) {
             self.sprite = sprite
@@ -190,7 +190,7 @@ class Goblin {
         }
     }
 
-    func removeAllGoblins() {
+    func removeAllGoblins(in gameScene: GameScene) {
         var containersToRemove: [GoblinContainer] = []
         for container in goblinContainers {
             gameScene.goblinDied(container: container, goblinKilled: false)
