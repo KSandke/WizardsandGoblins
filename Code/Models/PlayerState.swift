@@ -23,11 +23,22 @@ class PlayerState {
         }
     }
     let maxMana: CGFloat = 100
-    let manaRegenRate: CGFloat = 7.5
+    private(set) var manaRegenRate: CGFloat = 7.5
     
     // Spell slots
     var playerOneSpell: Spell
     var playerTwoSpell: Spell
+    
+    // New properties for upgrades
+    var maxHealth: CGFloat = 100 {
+        didSet {
+            // When maxHealth increases, increase current health proportionally
+            let healthPercentage = castleHealth / oldValue
+            castleHealth = maxHealth * healthPercentage
+        }
+    }
+    
+    var spellPowerMultiplier: CGFloat = 1.0
     
     // Constructor
     init() {
@@ -57,6 +68,9 @@ class PlayerState {
                 container.sprite.run(SKAction.sequence([wait, resetSpeed]))
             }
         )
+        
+        // Initialize maxHealth to match castleHealth
+        maxHealth = maxCastleHealth
     }
     
     // Callbacks for binding
@@ -99,12 +113,14 @@ class PlayerState {
     }
     
     func reset() {
-        castleHealth = maxCastleHealth
+        maxHealth = maxCastleHealth  // Reset max health
+        castleHealth = maxHealth
         playerOneMana = maxMana
         playerTwoMana = maxMana
-        score = 0  // Reset score
-        coins = 0  // Reset coins
-        // Reset spells if needed
+        score = 0
+        coins = 0
+        spellPowerMultiplier = 1.0  // Reset spell power
+        manaRegenRate = 7.5  // Reset mana regen
     }
     
     func useSpell(isPlayerOne: Bool, cost: CGFloat) -> Bool {

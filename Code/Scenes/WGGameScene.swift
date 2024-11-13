@@ -307,21 +307,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let touchLocation = touch.location(in: self)
-        let touchedNode = nodes(at: touchLocation).first
         
         if isInShop {
-            // Handle shop interactions
-            if let nodeName = touchedNode?.name {
-                switch nodeName {
-                case "closeShopButton":
-                    closeShopView()
-                    return
-                // Add other shop interactions here
-                default:
-                    break
-                }
+            // Forward touch to shop view if it exists
+            if let shopView = self.children.first(where: { $0 is ShopView }) as? ShopView {
+                shopView.handleTap(at: touchLocation)
             }
-            // Don't process other touches while in shop
             return
         }
         
@@ -418,38 +409,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func showShopView() {
-        // Create a simple overlay for the shop
-        let shopOverlay = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.8), size: self.size)
-        shopOverlay.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
-        shopOverlay.zPosition = 200
-        shopOverlay.name = "shopOverlay"
-        addChild(shopOverlay)
-        
-        // Add a label
-        let shopLabel = SKLabelNode(text: "Shop")
-        shopLabel.fontSize = 50
-        shopLabel.fontColor = .white
-        shopLabel.position = CGPoint(x: 0, y: 100)
-        shopOverlay.addChild(shopLabel)
-        
-        // Add a close button
-        let closeButton = SKLabelNode(text: "Close")
-        closeButton.fontSize = 30
-        closeButton.fontColor = .white
-        closeButton.position = CGPoint(x: 0, y: -100)
-        closeButton.name = "closeShopButton"
-        shopOverlay.addChild(closeButton)
-        
+        let shopView = ShopView(size: self.size, playerState: playerState) { [weak self] in
+            self?.closeShopView()
+        }
+        shopView.zPosition = 200
+        addChild(shopView)
         isInShop = true
     }
     
     func closeShopView() {
-        if let shopOverlay = self.childNode(withName: "shopOverlay") {
-            shopOverlay.removeFromParent()
+        if let shopView = self.children.first(where: { $0 is ShopView }) {
+            shopView.removeFromParent()
         }
         isInShop = false
-        
-        // Start the countdown to next wave
         startNextWave()
     }
     

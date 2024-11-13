@@ -58,7 +58,7 @@ class Spell {
     func applyEffect(at position: CGPoint, in scene: SKScene) {
         // Create the AOE circle
         let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius)
-        aoeCircle.fillColor = .orange // Customize color per spell
+        aoeCircle.fillColor = .orange
         aoeCircle.strokeColor = .clear
         aoeCircle.alpha = 0.5
         aoeCircle.position = position
@@ -67,7 +67,16 @@ class Spell {
         
         // Apply effects to goblins using Goblin class
         if let gameScene = scene as? GameScene {
-            gameScene.applySpell(self, at: position)
+            // Apply damage with spell power multiplier
+            let modifiedSpell = Spell(
+                name: self.name,
+                manaCost: self.manaCost,
+                aoeRadius: self.aoeRadius,
+                duration: self.duration,
+                damage: self.damage * gameScene.playerState.spellPowerMultiplier,
+                specialEffect: self.specialEffect
+            )
+            gameScene.applySpell(modifiedSpell, at: position)
         }
         
         // Create fade out and remove sequence
