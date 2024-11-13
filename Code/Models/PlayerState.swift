@@ -1,5 +1,6 @@
 import Foundation
 import CoreGraphics
+import SpriteKit
 
 class PlayerState {
     // Castle state
@@ -32,7 +33,7 @@ class PlayerState {
     init() {
         // Initialize default spells
         playerOneSpell = Spell(
-            name: "Fireball",
+            name: "spell1",
             manaCost: 20,
             aoeRadius: 50,
             duration: 1.0,
