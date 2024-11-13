@@ -22,7 +22,15 @@ class PlayerState {
             onPlayerTwoManaChanged?(playerTwoMana)
         }
     }
-    let maxMana: CGFloat = 100
+    var maxMana: CGFloat = 100 {
+        didSet {
+            // When maxMana increases, increase current mana proportionally
+            let manaPercentageP1 = playerOneMana / oldValue
+            let manaPercentageP2 = playerTwoMana / oldValue
+            playerOneMana = maxMana * manaPercentageP1
+            playerTwoMana = maxMana * manaPercentageP2
+        }
+    }
     private(set) var manaRegenRate: CGFloat = 7.5
     
     // Spell slots
@@ -115,6 +123,7 @@ class PlayerState {
     func reset() {
         maxHealth = maxCastleHealth  // Reset max health
         castleHealth = maxHealth
+        maxMana = 100  // Reset max mana to initial value
         playerOneMana = maxMana
         playerTwoMana = maxMana
         score = 0
