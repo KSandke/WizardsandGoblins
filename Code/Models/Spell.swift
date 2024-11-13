@@ -78,21 +78,22 @@ class Spell {
         aoeCircle.run(sequence)
     }
     
-    func applyToGoblin(container: Goblin.GoblinContainer, in scene: SKScene) {
-        // Apply damage or effects to the goblin
-        let damageAmount: CGFloat = self.damage
-        if let health = container.sprite.userData?["health"] as? CGFloat {
-            var newHealth = health - damageAmount
-            if newHealth < 0 { newHealth = 0 }
-            container.sprite.userData?["health"] = newHealth
+    func applyToGoblin(container: GameScene.GoblinContainer, in scene: GameScene) {
+        // Apply damage
+        if var health = container.sprite.userData?.value(forKey: "health") as? CGFloat {
+            health -= self.damage
             
             // Update health bar
-            let maxHealth = container.sprite.userData?["maxHealth"] as? CGFloat ?? 50.0
-            let healthRatio = newHealth / maxHealth
-            let healthBarWidth: CGFloat = 40
-            let newWidth = healthBarWidth * healthRatio
-            container.healthFill.xScale = healthRatio
-            container.healthFill.position = CGPoint(x: container.healthBar.position.x - (healthBarWidth - newWidth) / 2, y: container.healthBar.position.y)
+            container.healthFill.xScale = health / scene.goblinHealth
+            
+            if health <= 0 {
+                // Handle goblin death
+                scene.goblinDied(container: container)
+            } else {
+                container.sprite.userData?.setValue(health, forKey: "health")
+                // Apply special effects
+                specialEffect?(self, container)
+            }
         }
     }
 } 
