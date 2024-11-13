@@ -130,7 +130,7 @@ class PlayerView {
         scoreLabel = SKLabelNode(text: "Score: \(state.score)")
         scoreLabel.fontSize = 24
         scoreLabel.fontColor = .black
-        scoreLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 100)
+        scoreLabel.position = CGPoint(x: scene.size.width - 90, y: scene.size.height - 100)
         scoreLabel.fontName = "AvenirNext-Bold"
         scoreLabel.horizontalAlignmentMode = .left
         
@@ -150,7 +150,7 @@ class PlayerView {
         coinLabel = SKLabelNode(text: "Coins: \(state.coins)")
         coinLabel.fontSize = 24
         coinLabel.fontColor = .black
-        coinLabel.position = CGPoint(x: scene.size.width - 100, y: scene.size.height - 135)
+        coinLabel.position = CGPoint(x: scene.size.width - 90, y: scene.size.height - 135)
         coinLabel.fontName = "AvenirNext-Bold"
         coinLabel.horizontalAlignmentMode = .left
         
