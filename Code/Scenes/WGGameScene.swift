@@ -48,7 +48,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     struct WaveConfig {
         var goblinTypeProbabilities: [Goblin.GoblinType: Double]
         var maxGoblins: Int
-        var goblinSpawnInterval: TimeInterval
+        var baseSpawnInterval: TimeInterval
+        var spawnPatterns: [SpawnPatternConfig]
     }
     
     // Update the property declaration
@@ -75,30 +76,52 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func setupWaves() {
         waveConfigs = [
-            1: WaveConfig(  // Wave 1: 100% normal goblins
+            1: WaveConfig(
                 goblinTypeProbabilities: [.normal: 100.0],
                 maxGoblins: 10,
-                goblinSpawnInterval: 2.0
+                baseSpawnInterval: 2.0,
+                spawnPatterns: [
+                    SpawnPatternConfig(pattern: .single, probability: 70.0),
+                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
+                ]
             ),
-            2: WaveConfig(  // Wave 2: 70% normal, 15% small, 15% large
+            2: WaveConfig(
                 goblinTypeProbabilities: [.normal: 70.0, .small: 15.0, .large: 15.0],
                 maxGoblins: 15,
-                goblinSpawnInterval: 1.8
+                baseSpawnInterval: 1.8,
+                spawnPatterns: [
+                    SpawnPatternConfig(pattern: .single, probability: 50.0),
+                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0),
+                    SpawnPatternConfig(pattern: .surrounded(centerCount: 1, surroundCount: 4), probability: 20.0)
+                ]
             ),
-            3: WaveConfig(  // Wave 3: 100% small goblins
+            3: WaveConfig(
                 goblinTypeProbabilities: [.small: 100.0],
                 maxGoblins: 20,
-                goblinSpawnInterval: 1.5
+                baseSpawnInterval: 1.5,
+                spawnPatterns: [
+                    SpawnPatternConfig(pattern: .single, probability: 70.0),
+                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
+                ]
             ),
-            4: WaveConfig(  // Wave 4: 50% normal, 25% small, 25% large
+            4: WaveConfig(
                 goblinTypeProbabilities: [.normal: 50.0, .small: 25.0, .large: 25.0],
                 maxGoblins: 25,
-                goblinSpawnInterval: 1.5
+                baseSpawnInterval: 1.5,
+                spawnPatterns: [
+                    SpawnPatternConfig(pattern: .single, probability: 60.0),
+                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0),
+                    SpawnPatternConfig(pattern: .surrounded(centerCount: 1, surroundCount: 4), probability: 10.0)
+                ]
             ),
-            5: WaveConfig(  // Wave 5: 100% large goblins
+            5: WaveConfig(
                 goblinTypeProbabilities: [.large: 100.0],
                 maxGoblins: 30,
-                goblinSpawnInterval: 1.2
+                baseSpawnInterval: 1.2,
+                spawnPatterns: [
+                    SpawnPatternConfig(pattern: .single, probability: 80.0),
+                    SpawnPatternConfig(pattern: .line(count: 3), probability: 20.0)
+                ]
             )
         ]
     }
@@ -113,7 +136,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.maxGoblinsPerWave = waveConfig.maxGoblins
         self.remainingGoblins = self.maxGoblinsPerWave
         self.totalGoblinsSpawned = 0
-        self.goblinSpawnInterval = waveConfig.goblinSpawnInterval
+        self.goblinSpawnInterval = waveConfig.baseSpawnInterval
         self.updateGoblinCounter()
         self.playerState.playerOneMana = self.playerState.maxMana
         self.playerState.playerTwoMana = self.playerState.maxMana
@@ -144,16 +167,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.run(repeatPotionSpawn, withKey: "spawnPotion")
         
         // Start goblin spawning
-        let spawnGoblin = SKAction.run { [weak self] in
-            guard let self = self else { return }
-            let randomX = CGFloat.random(in: 0...self.size.width)
-            let spawnPosition = CGPoint(x: randomX, y: self.size.height + 50)
-            self.spawnGoblin(at: spawnPosition)
-        }
-        let waitForNextSpawn = SKAction.wait(forDuration: goblinSpawnInterval)
-        let spawnSequence = SKAction.sequence([waitForNextSpawn, spawnGoblin])
-        let repeatSpawnGoblin = SKAction.repeatForever(spawnSequence)
-        self.run(repeatSpawnGoblin, withKey: "spawnGoblin")
+        startSpawnPatterns(with: waveConfig)
     }
     
     func getWaveConfig(forWave wave: Int) -> WaveConfig {
@@ -177,7 +191,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return WaveConfig(
             goblinTypeProbabilities: goblinTypeProbabilities,
             maxGoblins: maxGoblins,
-            goblinSpawnInterval: goblinSpawnInterval
+            baseSpawnInterval: goblinSpawnInterval,
+            spawnPatterns: []
         )
     }
     
@@ -185,7 +200,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Stop the actions
         self.removeAction(forKey: "regenerateMana")
         self.removeAction(forKey: "spawnPotion")
-        self.removeAction(forKey: "spawnGoblin")
+        self.removeAction(forKey: "spawnPattern")
         
         isSpawningEnabled = false
     }
@@ -578,5 +593,121 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Run the complete sequence
         run(SKAction.sequence(actions))
+    }
+    
+    func selectSpawnPattern(from config: WaveConfig) -> SpawnPattern? {
+        // Check remaining goblin capacity
+        let remainingGoblins = maxGoblinsPerWave - totalGoblinsSpawned
+        
+        // Filter patterns that would exceed remaining goblin count
+        let validPatterns = config.spawnPatterns.filter { 
+            $0.pattern.goblinCount <= remainingGoblins 
+        }
+        
+        guard !validPatterns.isEmpty else { return nil }
+        
+        // Calculate total probability of valid patterns
+        let totalProbability = validPatterns.reduce(0.0) { $0 + $1.probability }
+        
+        // Generate random value
+        var random = Double.random(in: 0..<totalProbability)
+        
+        // Select pattern based on probability
+        for patternConfig in validPatterns {
+            random -= patternConfig.probability
+            if random <= 0 {
+                return patternConfig.pattern
+            }
+        }
+        
+        return validPatterns.first?.pattern
+    }
+    
+    func startSpawnPatterns(with config: WaveConfig) {
+        let spawnAction = SKAction.run { [weak self] in
+            guard let self = self else { return }
+            
+            if self.totalGoblinsSpawned >= self.maxGoblinsPerWave {
+                return
+            }
+            
+            if let pattern = self.selectSpawnPattern(from: config) {
+                self.executeSpawnPattern(pattern)
+            }
+        }
+        
+        let wait = SKAction.wait(forDuration: config.baseSpawnInterval)
+        let sequence = SKAction.sequence([wait, spawnAction])
+        run(SKAction.repeatForever(sequence), withKey: "spawnPattern")
+    }
+    
+    func executeSpawnPattern(_ pattern: SpawnPattern) {
+        // Verify we have enough remaining capacity
+        let remainingCapacity = maxGoblinsPerWave - totalGoblinsSpawned
+        guard pattern.goblinCount <= remainingCapacity else { return }
+        
+        switch pattern {
+        case .single:
+            spawnSingleGoblin()
+            
+        case .line(let count):
+            spawnLineOfGoblins(count: count)
+            
+        case .surrounded(let centerCount, let surroundCount):
+            spawnSurroundedGoblins(centerCount: centerCount, surroundCount: surroundCount)
+            
+        case .stream(let count, let interval):
+            spawnStreamOfGoblins(count: count, interval: interval)
+        }
+    }
+    
+    func spawnSingleGoblin() {
+        let randomX = CGFloat.random(in: 0...size.width)
+        let spawnPosition = CGPoint(x: randomX, y: size.height + 50)
+        spawnGoblin(at: spawnPosition)
+    }
+    
+    func spawnLineOfGoblins(count: Int) {
+        let spacing: CGFloat = 50
+        let totalWidth = spacing * CGFloat(count - 1)
+        let startX = (size.width - totalWidth) / 2
+        
+        for i in 0..<count {
+            let xPos = startX + spacing * CGFloat(i)
+            let spawnPosition = CGPoint(x: xPos, y: size.height + 50)
+            spawnGoblin(at: spawnPosition)
+        }
+    }
+    
+    func spawnSurroundedGoblins(centerCount: Int, surroundCount: Int) {
+        let centerX = size.width / 2
+        let centerY = size.height + 50
+        
+        // Spawn center goblins
+        for _ in 0..<centerCount {
+            spawnGoblin(at: CGPoint(x: centerX, y: centerY))
+        }
+        
+        // Spawn surrounding goblins in a circle
+        let radius: CGFloat = 50
+        for i in 0..<surroundCount {
+            let angle = (CGFloat.pi * 2 * CGFloat(i)) / CGFloat(surroundCount)
+            let x = centerX + radius * cos(angle)
+            let y = centerY + radius * sin(angle)
+            spawnGoblin(at: CGPoint(x: x, y: y))
+        }
+    }
+    
+    func spawnStreamOfGoblins(count: Int, interval: TimeInterval) {
+        let randomX = CGFloat.random(in: 0...size.width)
+        
+        for i in 0..<count {
+            let spawnAction = SKAction.run { [weak self] in
+                let spawnPosition = CGPoint(x: randomX, y: self?.size.height ?? 0 + 50)
+                self?.spawnGoblin(at: spawnPosition)
+            }
+            let wait = SKAction.wait(forDuration: interval * Double(i))
+            run(SKAction.sequence([wait, spawnAction]))
+        }
     }
 }

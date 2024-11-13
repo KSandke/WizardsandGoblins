@@ -64,9 +64,7 @@ class PlayerView {
             self?.updateCoinsLabel(coins: coins)
         }
 
-        state.onWaveChanged = { [weak self] wave in
-            self?.updateWaveLabel(wave: wave)
-        }
+
     }
     
     private func setupUI() {
