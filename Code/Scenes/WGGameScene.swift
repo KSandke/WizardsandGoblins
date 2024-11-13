@@ -15,7 +15,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Player State and View
     var playerState: PlayerState!
     var playerView: PlayerView!
-    var scoreView: ScoreView!
     
     // Background
     var background: SKSpriteNode!
