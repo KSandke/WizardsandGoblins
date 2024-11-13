@@ -43,6 +43,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var totalGoblinsSpawned = 0
     var maxGoblinsPerWave = 10
     
+    // New variables for wave management
+    var isInShop = false  // To track if the shop view is active
+    
     override func didMove(to view: SKView) {
         // Initialize Player State and View
         playerState = PlayerState()
@@ -52,22 +55,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         waveSetup()
         goblinCounterSetup()
         
-        let regenerateMana = SKAction.run { [weak self] in
-            self?.playerState.regenerateMana()
-        }
-        let wait = SKAction.wait(forDuration: 1.0)
-        let regenSequence = SKAction.sequence([wait, regenerateMana])
-        run(SKAction.repeatForever(regenSequence))
-        
-        // Setup mana potion spawning
-        let spawnPotionAction = SKAction.sequence([
-            SKAction.wait(forDuration: manaPotionSpawnInterval),
-            SKAction.run { [weak self] in
-                self?.spawnManaPotion()
-            }
-        ])
-        run(SKAction.repeatForever(spawnPotionAction))
-        
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
         
@@ -76,7 +63,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         largeGoblinManager = Goblin(type: .large, scene: self)
         smallGoblinManager = Goblin(type: .small, scene: self)
         
-        // Setup goblin spawning
+        // Start the first wave
+        startWave()
+    }
+    
+    func startWave() {
+        // Reset wave variables
+        self.maxGoblinsPerWave = 10 + (self.currentWave - 1) * 5
+        self.remainingGoblins = self.maxGoblinsPerWave
+        self.totalGoblinsSpawned = 0
+        self.updateGoblinCounter()
+        self.playerState.playerOneMana = self.playerState.maxMana
+        self.playerState.playerTwoMana = self.playerState.maxMana
+        
+        // Start wave actionsp
+        isSpawningEnabled = true
+        
+        // Start mana regeneration
+        let regenerateMana = SKAction.run { [weak self] in
+            self?.playerState.regenerateMana()
+        }
+        let wait = SKAction.wait(forDuration: 1.0)
+        let regenSequence = SKAction.sequence([wait, regenerateMana])
+        let repeatRegen = SKAction.repeatForever(regenSequence)
+        self.run(repeatRegen, withKey: "regenerateMana")
+        
+        // Start mana potion spawning
+        let spawnPotionAction = SKAction.sequence([
+            SKAction.wait(forDuration: manaPotionSpawnInterval),
+            SKAction.run { [weak self] in
+                self?.spawnManaPotion()
+            }
+        ])
+        let repeatPotionSpawn = SKAction.repeatForever(spawnPotionAction)
+        self.run(repeatPotionSpawn, withKey: "spawnPotion")
+        
+        // Start goblin spawning
         let spawnGoblin = SKAction.run { [weak self] in
             guard let self = self else { return }
             let randomX = CGFloat.random(in: 0...self.size.width)
@@ -85,7 +107,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         let waitForNextSpawn = SKAction.wait(forDuration: goblinSpawnInterval)
         let spawnSequence = SKAction.sequence([waitForNextSpawn, spawnGoblin])
-        run(SKAction.repeatForever(spawnSequence))
+        let repeatSpawnGoblin = SKAction.repeatForever(spawnSequence)
+        self.run(repeatSpawnGoblin, withKey: "spawnGoblin")
+    }
+    
+    func endWave() {
+        // Stop the actions
+        self.removeAction(forKey: "regenerateMana")
+        self.removeAction(forKey: "spawnPotion")
+        self.removeAction(forKey: "spawnGoblin")
+        
+        isSpawningEnabled = false
     }
     
     func spawnManaPotion() {
@@ -260,6 +292,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let touchLocation = touch.location(in: self)
         let touchedNode = nodes(at: touchLocation).first
         
+        if isInShop {
+            // Handle shop interactions
+            if let nodeName = touchedNode?.name {
+                switch nodeName {
+                case "closeShopButton":
+                    closeShopView()
+                    return
+                // Add other shop interactions here
+                default:
+                    break
+                }
+            }
+            // Don't process other touches while in shop
+            return
+        }
+        
         // Handle button taps
         if let name = touchedNode?.name {
             switch name {
@@ -332,7 +380,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             playerState.addScore(points: 10)
         }
         
-        
         // Only decrease if counter is greater than 0
         if remainingGoblins > 0 {
             remainingGoblins -= 1
@@ -340,9 +387,50 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             // Check if wave is complete when counter reaches 0
             if remainingGoblins == 0 {
-                startNextWave()
+                waveCompleted()
             }
         }
+    }
+    
+    func waveCompleted() {
+        endWave()
+        showShopView()
+    }
+    
+    func showShopView() {
+        // Create a simple overlay for the shop
+        let shopOverlay = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.8), size: self.size)
+        shopOverlay.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
+        shopOverlay.zPosition = 200
+        shopOverlay.name = "shopOverlay"
+        addChild(shopOverlay)
+        
+        // Add a label
+        let shopLabel = SKLabelNode(text: "Shop")
+        shopLabel.fontSize = 50
+        shopLabel.fontColor = .white
+        shopLabel.position = CGPoint(x: 0, y: 100)
+        shopOverlay.addChild(shopLabel)
+        
+        // Add a close button
+        let closeButton = SKLabelNode(text: "Close")
+        closeButton.fontSize = 30
+        closeButton.fontColor = .white
+        closeButton.position = CGPoint(x: 0, y: -100)
+        closeButton.name = "closeShopButton"
+        shopOverlay.addChild(closeButton)
+        
+        isInShop = true
+    }
+    
+    func closeShopView() {
+        if let shopOverlay = self.childNode(withName: "shopOverlay") {
+            shopOverlay.removeFromParent()
+        }
+        isInShop = false
+        
+        // Start the countdown to next wave
+        startNextWave()
     }
     
     func restartGame() {
@@ -359,8 +447,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         remainingGoblins = 10
         
         // Reset spawning properties
-        isSpawningEnabled = true
+        isSpawningEnabled = false
         totalGoblinsSpawned = 0
+        isInShop = false
         
         // Setup all components
         setupBackground()
@@ -371,31 +460,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         waveSetup()
         goblinCounterSetup()
         
+        physicsWorld.gravity = .zero
+        physicsWorld.contactDelegate = self
+        
         // Initialize Goblin Managers
         normalGoblinManager = Goblin(type: .normal, scene: self)
         largeGoblinManager = Goblin(type: .large, scene: self)
         smallGoblinManager = Goblin(type: .small, scene: self)
         
-        let regenerateMana = SKAction.run { [weak self] in
-            self?.playerState.regenerateMana()
-        }
-        let wait = SKAction.wait(forDuration: 1.0)
-        let regenSequence = SKAction.sequence([wait, regenerateMana])
-        run(SKAction.repeatForever(regenSequence))
-        
-        physicsWorld.gravity = .zero
-        physicsWorld.contactDelegate = self
-        
-        // Restart goblin spawning
-        let spawnGoblin = SKAction.run { [weak self] in
-            guard let self = self else { return }
-            let randomX = CGFloat.random(in: 0...self.size.width)
-            let spawnPosition = CGPoint(x: randomX, y: self.size.height + 50)
-            self.spawnGoblin(at: spawnPosition)
-        }
-        let waitForNextSpawn = SKAction.wait(forDuration: goblinSpawnInterval)
-        let spawnSequence = SKAction.sequence([waitForNextSpawn, spawnGoblin])
-        run(SKAction.repeatForever(spawnSequence))
+        // Start the first wave
+        startWave()
     }
     
     func goToMainMenu() {
@@ -429,8 +503,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func startNextWave() {
-        isSpawningEnabled = false
-        
         // Create countdown label
         let countdownLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         countdownLabel.fontSize = 72
@@ -450,24 +522,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Add final actions
         let removeLabel = SKAction.run { countdownLabel.removeFromParent() }
-        let startWave = SKAction.run { [weak self] in
+        let startWaveAction = SKAction.run { [weak self] in
             guard let self = self else { return }
             self.currentWave += 1
-            // Update maxGoblinsPerWave first
-            self.maxGoblinsPerWave = 10 + (self.currentWave - 1) * 5
-            // Then set remainingGoblins to match
-            self.remainingGoblins = self.maxGoblinsPerWave
-            self.totalGoblinsSpawned = 0
-            self.isSpawningEnabled = true
             self.updateWaveLabel()
-            self.updateGoblinCounter()
-            self.playerState.playerOneMana = self.playerState.maxMana
-            self.playerState.playerTwoMana = self.playerState.maxMana
+            self.startWave()
         }
         
         // Add the remove label and start wave actions to the sequence
         actions.append(removeLabel)
-        actions.append(startWave)
+        actions.append(startWaveAction)
         
         // Run the complete sequence
         run(SKAction.sequence(actions))
