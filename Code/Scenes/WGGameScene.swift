@@ -19,18 +19,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Background
     var background: SKSpriteNode!
     
-    // Goblin Manager
-    var goblinManager: GoblinManager!
-    
-    // Mana potions
-    var manaPotions: [SKSpriteNode] = []
-    let manaPotionSpawnInterval: TimeInterval = 10.0  // Spawn rate
-    let manaPotionManaRestore: CGFloat = 60.0  // Amount of mana restored
-    let manaPotionDuration: TimeInterval = 10.0 // How long potions stay on the map
+    // Goblin Properties
+    var goblins: [SKSpriteNode] = []
+    let goblinSpeed: CGFloat = 100
+    let goblinDamage: CGFloat = 10
+    let goblinSpawnInterval: TimeInterval = 2.0
+    let goblinHealth: CGFloat = 50
     
     // Game over properties
     var restartButton: SKLabelNode!
     var mainMenuButton: SKLabelNode!
+    var currentWave: Int = 1
+    var remainingGoblins: Int = 10
+    var waveLabel: SKLabelNode!
+    var goblinCountLabel: SKLabelNode!
+    
+    var isSpawningEnabled = true
+    var totalGoblinsSpawned = 0
+    var maxGoblinsPerWave = 10
+    
+        // Mana potions
+    var manaPotions: [SKSpriteNode] = []
+    let manaPotionSpawnInterval: TimeInterval = 10.0  // Spawn rate
+    let manaPotionManaRestore: CGFloat = 60.0  // Amount of mana restored
+    let manaPotionDuration: TimeInterval = 10.0 // How long potions stay on the map
+    // Goblin Healthbar
+    struct GoblinContainer{
+        let sprite: SKSpriteNode
+        let healthBar: SKShapeNode
+        let healthFill: SKShapeNode
+    }
+    var goblinContainers: [GoblinContainer] = []
     
     override func didMove(to view: SKView) {
         // Initialize Player State and View
@@ -38,22 +57,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerView = PlayerView(scene: self, state: playerState)
         
         setupBackground()
-        
-        // Initialize GoblinManager
-        goblinManager = GoblinManager(scene: self, castlePosition: playerView.castlePosition)
-        goblinManager.castleTakeDamage = { [weak self] damage in
-            self?.castleTakeDamage(damage: damage)
-        }
-        goblinManager.goblinKilled = { [weak self] position in
-            guard let self = self else { return }
-            // Add coins when goblin is killed (50% chance of 5 coins)
-            if Bool.random() {
-                self.playerState.addCoins(5) // 50% chance of 5 coins
-            }
-            // Add points when goblin is eliminated
-            self.playerState.addScore(points: 10)
-            self.createCoinEffect(at: position)
-        }
+        waveSetup()
+        goblinCounterSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
             self?.playerState.regenerateMana()
