@@ -120,7 +120,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
                 ]
             ),
-            2: WaveConfig(
+            3: WaveConfig(
                 goblinTypeProbabilities: [.normal: 70.0, .small: 15.0, .large: 15.0],
                 maxGoblins: 15,
                 baseSpawnInterval: 1.8,
@@ -130,7 +130,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .surrounded(centerCount: 1, surroundCount: 4), probability: 20.0)
                 ]
             ),
-            3: WaveConfig(
+            4: WaveConfig(
                 goblinTypeProbabilities: [.small: 100.0],
                 maxGoblins: 20,
                 baseSpawnInterval: 1.5,
@@ -139,7 +139,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
                 ]
             ),
-            4: WaveConfig(
+            5: WaveConfig(
                 goblinTypeProbabilities: [.normal: 50.0, .small: 25.0, .large: 25.0],
                 maxGoblins: 25,
                 baseSpawnInterval: 1.5,
@@ -149,7 +149,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .surrounded(centerCount: 1, surroundCount: 4), probability: 10.0)
                 ]
             ),
-            5: WaveConfig(
+            6: WaveConfig(
                 goblinTypeProbabilities: [.large: 100.0],
                 maxGoblins: 30,
                 baseSpawnInterval: 1.2,
@@ -208,9 +208,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func getWaveConfig(forWave wave: Int) -> WaveConfig {
         // Check if we have a custom config for this wave
         if let customConfig = waveConfigs[wave] {
+            print("Using custom config for wave \(wave)")
             return customConfig
         }else let defaultConfig = waveConfigs[-1] {
             // Modify default config based on wave number
+            print("Using default config for wave \(wave)")
             var modifiedConfig = defaultConfig
             modifiedConfig.maxGoblins = 10 + (wave - 1) * 5
             modifiedConfig.baseSpawnInterval = max(2.0 - 0.1 * Double(wave - 1), 0.5)
