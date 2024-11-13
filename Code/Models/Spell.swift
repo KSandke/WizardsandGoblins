@@ -65,7 +65,7 @@ class Spell {
         aoeCircle.zPosition = 1
         scene.addChild(aoeCircle)
         
-        // Apply effects to goblins
+        // Apply effects to goblins using Goblin class
         if let gameScene = scene as? GameScene {
             gameScene.applySpell(self, at: position)
         }
@@ -76,24 +76,5 @@ class Spell {
         let sequence = SKAction.sequence([fadeOut, remove])
         
         aoeCircle.run(sequence)
-    }
-    
-    func applyToGoblin(container: GameScene.GoblinContainer, in scene: GameScene) {
-        // Apply damage
-        if var health = container.sprite.userData?.value(forKey: "health") as? CGFloat {
-            health -= self.damage
-            
-            // Update health bar
-            container.healthFill.xScale = health / scene.goblinHealth
-            
-            if health <= 0 {
-                // Handle goblin death
-                scene.goblinDied(container: container)
-            } else {
-                container.sprite.userData?.setValue(health, forKey: "health")
-                // Apply special effects
-                specialEffect?(self, container)
-            }
-        }
     }
 } 

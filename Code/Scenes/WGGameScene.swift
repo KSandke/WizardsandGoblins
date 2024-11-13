@@ -19,12 +19,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Background
     var background: SKSpriteNode!
     
-    // Goblin Properties
-    var goblins: [SKSpriteNode] = []
-    let goblinSpeed: CGFloat = 100
-    let goblinDamage: CGFloat = 10
+    // Goblin Managers
+    var normalGoblinManager: Goblin!
+    var largeGoblinManager: Goblin!
+    var smallGoblinManager: Goblin!
     let goblinSpawnInterval: TimeInterval = 2.0
-    let goblinHealth: CGFloat = 50
+    
+    // Mana potions
+    var manaPotions: [SKSpriteNode] = []
+    let manaPotionSpawnInterval: TimeInterval = 10.0  // Spawn rate
+    let manaPotionManaRestore: CGFloat = 60.0  // Amount of mana restored
+    let manaPotionDuration: TimeInterval = 10.0 // How long potions stay on the map
     
     // Game over properties
     var restartButton: SKLabelNode!
@@ -37,19 +42,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var isSpawningEnabled = true
     var totalGoblinsSpawned = 0
     var maxGoblinsPerWave = 10
-    
-        // Mana potions
-    var manaPotions: [SKSpriteNode] = []
-    let manaPotionSpawnInterval: TimeInterval = 10.0  // Spawn rate
-    let manaPotionManaRestore: CGFloat = 60.0  // Amount of mana restored
-    let manaPotionDuration: TimeInterval = 10.0 // How long potions stay on the map
-    // Goblin Healthbar
-    struct GoblinContainer{
-        let sprite: SKSpriteNode
-        let healthBar: SKShapeNode
-        let healthFill: SKShapeNode
-    }
-    var goblinContainers: [GoblinContainer] = []
     
     override func didMove(to view: SKView) {
         // Initialize Player State and View
@@ -78,6 +70,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
+        
+        // Initialize Goblin Managers
+        normalGoblinManager = Goblin(type: .normal, scene: self)
+        largeGoblinManager = Goblin(type: .large, scene: self)
+        smallGoblinManager = Goblin(type: .small, scene: self)
         
         // Setup goblin spawning
         let spawnGoblin = SKAction.run { [weak self] in
@@ -195,76 +192,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func spawnGoblin(at position: CGPoint) {
-        // Only spawn if spawning is enabled and we haven't reached the wave's goblin limit
         if !isSpawningEnabled || totalGoblinsSpawned >= maxGoblinsPerWave {
             return
         }
         
         totalGoblinsSpawned += 1
         
-        let goblin = SKSpriteNode(imageNamed: "Goblin1")
-        goblin.size = CGSize(width: 50, height: 50)
-        goblin.position = position
-        goblin.name = "goblin"
-        
-        // Create health bar background
-        let healthBarWidth: CGFloat = 40
-        let healthBarHeight: CGFloat = 5
-        let healthBar = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
-        healthBar.fillColor = .gray
-        healthBar.strokeColor = .black
-        healthBar.position = CGPoint(x: 0, y: goblin.size.height/2 + 5)
-        
-        // Create health bar fill
-        let healthFill = SKShapeNode(rectOf: CGSize(width: healthBarWidth, height: healthBarHeight))
-        healthFill.fillColor = .red
-        healthFill.strokeColor = .clear
-        healthFill.position = healthBar.position
-        
-        // Add health bars as children of goblin
-        goblin.addChild(healthBar)
-        goblin.addChild(healthFill)
-        
-        let physicsBody = SKPhysicsBody(rectangleOf: goblin.size)
-        physicsBody.isDynamic = true
-        physicsBody.affectedByGravity = false
-        physicsBody.categoryBitMask = 1
-        physicsBody.contactTestBitMask = 2
-        goblin.physicsBody = physicsBody
-        
-        goblin.userData = NSMutableDictionary()
-        goblin.userData?.setValue(goblinHealth, forKey: "health")
-        
-        addChild(goblin)
-        
-        // Create container and store it
-        let container = GoblinContainer(sprite: goblin, healthBar: healthBar, healthFill: healthFill)
-        goblinContainers.append(container)
-        
-        let moveAction = SKAction.move(to: playerView.castlePosition, duration: TimeInterval(position.distance(to: playerView.castlePosition) / goblinSpeed))
-        let damageAction = SKAction.run { [weak self] in
-            self?.castleTakeDamage(damage: self?.goblinDamage ?? 10)
-            
-            // Remove from containers array
-            if let self = self {
-                self.goblinContainers.removeAll(where: { $0.sprite == goblin })
-            }
-            goblin.removeFromParent()
-            
-            // Only decrease if counter is greater than 0
-            if let remainingGoblins = self?.remainingGoblins, remainingGoblins > 0 {
-                self?.remainingGoblins -= 1
-                self?.updateGoblinCounter()
-                
-                // Check if wave is complete when counter reaches 0
-                if self?.remainingGoblins == 0 {
-                    self?.startNextWave()
-                }
-            }
+        // Randomly decide which type of goblin to spawn
+        let goblinTypeChance = Int.random(in: 1...100)
+        if goblinTypeChance <= 70 {
+            normalGoblinManager.spawnGoblin(at: position)
+        } else if goblinTypeChance <= 85 {
+            largeGoblinManager.spawnGoblin(at: position)
+        } else {
+            smallGoblinManager.spawnGoblin(at: position)
         }
-        
-        let sequence = SKAction.sequence([moveAction, damageAction])
-        goblin.run(sequence)
     }
     
     func castleTakeDamage(damage: CGFloat) {
@@ -364,13 +306,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     func applySpell(_ spell: Spell, at position: CGPoint) {
-        // Apply spell effects to enemies
-        goblinContainers.forEach { container in
-            let distance = position.distance(to: container.sprite.position)
-            if distance <= spell.aoeRadius {
-                spell.applyToGoblin(container: container, in: self)
-            }
-        }
+        // Apply spell effects to goblins
+        normalGoblinManager.applySpell(spell, at: position, in: self)
+        largeGoblinManager.applySpell(spell, at: position, in: self)
+        smallGoblinManager.applySpell(spell, at: position, in: self)
         
         // Check for potion hits
         for potion in manaPotions {
@@ -380,20 +319,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    func goblinDied(container: GoblinContainer) {
-        // Remove from containers array first
-        goblinContainers.removeAll(where: { $0.sprite == container.sprite })
-        container.sprite.removeFromParent()
-        
+    func goblinDied(container: Goblin.GoblinContainer) {
         // Add coins when goblin is killed (50% chance of 5 coins)
         if Bool.random() {
-            playerState.addCoins(5) // 50% chance of 5 coins
+            playerState.addCoins(5)
+            
+            // Create coin particle effect
+            createCoinEffect(at: container.sprite.position)
         }
         // Add points when goblin is eliminated
         playerState.addScore(points: 10)
         
-        // Create coin particle effect
-        createCoinEffect(at: container.sprite.position)
         
         // Only decrease if counter is greater than 0
         if remainingGoblins > 0 {
@@ -414,8 +350,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Reset properties
         playerState.reset()
-        goblins.removeAll()
-        goblinContainers.removeAll()
         manaPotions.removeAll()
         
         // Reset wave and goblin counters
@@ -434,7 +368,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         waveSetup()
         goblinCounterSetup()
-    
+        
+        // Initialize Goblin Managers
+        normalGoblinManager = Goblin(type: .normal, scene: self)
+        largeGoblinManager = Goblin(type: .large, scene: self)
+        smallGoblinManager = Goblin(type: .small, scene: self)
+        
         let regenerateMana = SKAction.run { [weak self] in
             self?.playerState.regenerateMana()
         }
@@ -456,8 +395,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let spawnSequence = SKAction.sequence([waitForNextSpawn, spawnGoblin])
         run(SKAction.repeatForever(spawnSequence))
     }
-<<<<<<< HEAD
-=======
     
     func goToMainMenu() {
         let mainMenuScene = WGMainMenu(size: self.size)
@@ -514,8 +451,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let startWave = SKAction.run { [weak self] in
             guard let self = self else { return }
             self.currentWave += 1
-            self.remainingGoblins = 10 + (self.currentWave - 1) * 5
-            self.maxGoblinsPerWave = self.remainingGoblins
+            // Update maxGoblinsPerWave first
+            self.maxGoblinsPerWave = 10 + (self.currentWave - 1) * 5
+            // Then set remainingGoblins to match
+            self.remainingGoblins = self.maxGoblinsPerWave
             self.totalGoblinsSpawned = 0
             self.isSpawningEnabled = true
             self.updateWaveLabel()
@@ -531,5 +470,4 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Run the complete sequence
         run(SKAction.sequence(actions))
     }
->>>>>>> parent of 80f341b (Goblin file)
 }
