@@ -210,7 +210,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if let customConfig = waveConfigs[wave] {
             print("Using custom config for wave \(wave)")
             return customConfig
-        }else let defaultConfig = waveConfigs[-1] {
+        }
+        if let defaultConfig = waveConfigs[-1] {
             // Modify default config based on wave number
             print("Using default config for wave \(wave)")
             var modifiedConfig = defaultConfig
@@ -218,7 +219,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             modifiedConfig.baseSpawnInterval = max(2.0 - 0.1 * Double(wave - 1), 0.5)
             return modifiedConfig
         }
-        
+// If no config found, create a basic default config
+        return WaveConfig(
+            goblinTypeProbabilities: [.normal: 100.0],
+            maxGoblins: 10,
+            baseSpawnInterval: 2.0,
+            spawnPatterns: [
+                SpawnPatternConfig(pattern: .single, probability: 100.0)
+            ]
+        )
     }
     
     func endWave() {
