@@ -368,7 +368,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func castleTakeDamage(damage: CGFloat) {
-        playerState.takeDamage(damage)
+        if playerState.takeDamage(damage) {
+            gameOver()
+        }
     }
     
     func gameOver() {
