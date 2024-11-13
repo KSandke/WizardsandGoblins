@@ -17,6 +17,7 @@
 		145402872CCB60BA00624AF9 /* WGGameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145402862CCB60B700624AF9 /* WGGameScene.swift */; };
 		145402892CCB675200624AF9 /* WGMainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145402882CCB675200624AF9 /* WGMainMenuView.swift */; };
 		1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454028B2CCB67B300624AF9 /* WGGameView.swift */; };
+		1488B8342CE46E40007F0D4C /* CGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1488B8322CE46E40007F0D4C /* CGExtensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,7 @@
 		145402882CCB675200624AF9 /* WGMainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WGMainMenuView.swift; path = Code/WGMainMenuView.swift; sourceTree = SOURCE_ROOT; };
 		1454028B2CCB67B300624AF9 /* WGGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGGameView.swift; sourceTree = "<group>"; };
 		1454028D2CCB7DFF00624AF9 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
+		1488B8322CE46E40007F0D4C /* CGExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGExtensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -124,6 +126,7 @@
 		14101F0C2CCA215B00BD8C7D /* Code */ = {
 			isa = PBXGroup;
 			children = (
+				1488B8332CE46E40007F0D4C /* Extensions */,
 				1454028A2CCB679E00624AF9 /* Views */,
 				145402812CCB604500624AF9 /* Scenes */,
 				14101F0F2CCAE60200BD8C7D /* Helper */,
@@ -177,6 +180,14 @@
 				145402882CCB675200624AF9 /* WGMainMenuView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		1488B8332CE46E40007F0D4C /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				1488B8322CE46E40007F0D4C /* CGExtensions.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -328,6 +339,7 @@
 				145402852CCB60A400624AF9 /* WGMainMenu.swift in Sources */,
 				145402892CCB675200624AF9 /* WGMainMenuView.swift in Sources */,
 				145402872CCB60BA00624AF9 /* WGGameScene.swift in Sources */,
+				1488B8342CE46E40007F0D4C /* CGExtensions.swift in Sources */,
 				14101F082CCA214A00BD8C7D /* GameContext.swift in Sources */,
 				14101F092CCA214A00BD8C7D /* GameType.swift in Sources */,
 				14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */,

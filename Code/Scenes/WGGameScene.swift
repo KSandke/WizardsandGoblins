@@ -10,21 +10,6 @@ import GameplayKit
 import Foundation
 import CoreGraphics
 
-extension CGVector {
-    func normalized() -> CGVector {
-        let length = sqrt(dx * dx + dy * dy)
-        return length > 0 ? CGVector(dx: dx / length, dy: dy / length) : .zero
-    }
-}
-
-extension CGPoint {
-    func distance(to point: CGPoint) -> CGFloat {
-        let dx = self.x - point.x
-        let dy = self.y - point.y
-        return sqrt(dx * dx + dy * dy)
-    }
-}
-
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Background
@@ -350,7 +335,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         castleHealthFill.position = castleHealthBar.position
         addChild(castleHealthFill)
         
-        updateCastleHealthBar()
+        castleHealthFill.xScale = castleHealth / maxCastleHealth
     }
     
     func wizardSetup() {
@@ -410,9 +395,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerTwoManaFill.xScale = playerTwoMana / maxMana
     }
     
-    func updateCastleHealthBar() {
-        castleHealthFill.xScale = castleHealth / maxCastleHealth
-    }
+
     
     func castSpell(from castingPlayer: SKSpriteNode, to location: CGPoint) -> Bool {
         // Check which player is casting and get their mana
@@ -549,7 +532,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func castleTakeDamage(damage: CGFloat) {
         castleHealth = max(0, castleHealth - damage)
-        updateCastleHealthBar()
+        castleHealthFill.xScale = castleHealth / maxCastleHealth
+    
         
         if castleHealth <= 0 {
             gameOver()
