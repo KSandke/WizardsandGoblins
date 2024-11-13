@@ -317,6 +317,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // Handle button taps
+        let touchedNode = nodes(at: touchLocation).first  // Get the first node at touch location
         if let name = touchedNode?.name {
             switch name {
             case "restartButton":
