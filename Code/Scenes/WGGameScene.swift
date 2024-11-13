@@ -43,6 +43,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // New variables for wave management
     var isInShop = false  // To track if the shop view is active
     var isGameOver = false
+
+    enum SpawnPattern {
+        case single
+        case line(count: Int)
+        case surrounded(centerCount: Int, surroundCount: Int)
+        case stream(count: Int, interval: TimeInterval)
+        
+        var goblinCount: Int {
+            switch self {
+            case .single:
+                return 1
+            case .line(let count):
+                return count
+            case .surrounded(let centerCount, let surroundCount):
+                return centerCount + surroundCount
+            case .stream(let count, _):
+                return count
+            }
+        }
+    }
+
+    // Add spawn pattern probability struct
+    struct SpawnPatternConfig {
+        let pattern: SpawnPattern
+        let probability: Double
+    }
     
     // Define the WaveConfig struct
     struct WaveConfig {
