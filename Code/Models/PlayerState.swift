@@ -38,8 +38,20 @@ class PlayerState {
     }
     var onScoreChanged: ((Int) -> Void)?
     
+    // Coins state
+    var coins: Int = 0 {
+        didSet {
+            onCoinsChanged?(coins)
+        }
+    }
+    var onCoinsChanged: ((Int) -> Void)?
+    
     func addScore(points: Int) {
         score += points
+    }
+    
+    func addCoins(_ amount: Int) {
+        coins += amount
     }
     
     func regenerateMana() {
@@ -57,6 +69,7 @@ class PlayerState {
         playerOneMana = maxMana
         playerTwoMana = maxMana
         score = 0  // Reset score
+        coins = 0  // Reset coins
     }
     
     func useSpell(isPlayerOne: Bool) -> Bool {

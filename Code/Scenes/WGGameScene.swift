@@ -42,17 +42,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var totalGoblinsSpawned = 0
     var maxGoblinsPerWave = 10
     
-    // Coins
-    var coins: Int = 0
-    var coinLabel: SKLabelNode!
-    var coinsPerKill: Int = 5
-    
-    // Mana potions
+        // Mana potions
     var manaPotions: [SKSpriteNode] = []
     let manaPotionSpawnInterval: TimeInterval = 10.0  // Spawn rate
     let manaPotionManaRestore: CGFloat = 60.0  // Amount of mana restored
     let manaPotionDuration: TimeInterval = 10.0 // How long potions stay on the map
-    
     // Goblin Healthbar
     struct GoblinContainer{
         let sprite: SKSpriteNode
@@ -69,7 +63,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupBackground()
         waveSetup()
         goblinCounterSetup()
-        coinSetup()
         
         let regenerateMana = SKAction.run { [weak self] in
             self?.playerState.regenerateMana()
@@ -191,18 +184,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             effect.run(SKAction.sequence([wait, remove]))
         }
     
-    func coinSetup() {
-        coinLabel = SKLabelNode(text: "Coins: 0")
-        coinLabel.fontSize = 24
-        coinLabel.fontColor = .black
-        coinLabel.position = CGPoint(x: size.width - 100, y: size.height - 120)
-        addChild(coinLabel)
-    }
-    
-    func updateCoins(){
-        coins += coinsPerKill
-        coinLabel.text = "Coins: \(coins)"
-    }
     func createAOEEffect(at position: CGPoint) {
             // Create the AOE circle
             let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius)
@@ -224,8 +205,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                         container.healthFill.xScale = health / goblinHealth
                         
                         if health <= 0 {
-                            // Add coins when goblin is killed
-                            updateCoins()
+                            // Add coins when goblin is killed (50% chance of 5 coins)
+                            if Bool.random() {
+                                playerState.addCoins(5) // 50% chance of 5 coins
+                            }
                             // Add points when goblin is eliminated
                             playerState.addScore(points: 10)
                             
@@ -369,7 +352,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(finalScoreLabel)
         
         // Add final coins label
-        let finalCoinsLabel = SKLabelNode(text: "Total Coins: \(coins)")
+        let finalCoinsLabel = SKLabelNode(text: "Total Coins: \(playerState.coins)")
         finalCoinsLabel.fontSize = 40
         finalCoinsLabel.fontColor = .yellow
         finalCoinsLabel.position = CGPoint(x: size.width / 2, y: size.height * 0.6)
@@ -489,7 +472,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Reset properties
         playerState.reset()
         goblins.removeAll()
-        coins = 0
         
         // Reset wave and goblin counters
         currentWave = 1
@@ -507,8 +489,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         waveSetup()
         goblinCounterSetup()
-        coinSetup()
-        
+    
         let regenerateMana = SKAction.run { [weak self] in
             self?.playerState.regenerateMana()
         }
