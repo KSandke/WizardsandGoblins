@@ -190,7 +190,7 @@ class Goblin {
         }
     }
 
-    func removeAllGoblins() {
+    func removeAllGoblins(in gameScene: GameScene) {
         var containersToRemove: [GoblinContainer] = []
         for container in goblinContainers {
             gameScene.goblinDied(container: container, goblinKilled: false)
