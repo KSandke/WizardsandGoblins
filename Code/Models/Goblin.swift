@@ -85,8 +85,8 @@ class Goblin {
         let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
         let damageAction = SKAction.run { [weak self] in
             scene.castleTakeDamage(damage: container.damage)
-            // Call goblinDied before removing
-            scene.goblinDied(container: container)
+            // Call goblinDied with goblinKilled = false for castle collision
+            scene.goblinDied(container: container, goblinKilled: false)
             self?.removeGoblin(container: container)
         }
         let sequence = SKAction.sequence([moveAction, damageAction])
@@ -147,9 +147,9 @@ class Goblin {
         case .normal:
             return "Goblin1"
         case .large:
-            return "GoblinLarge"   // Add appropriate image assets
+            return "Goblin1"   // Add appropriate image assets
         case .small:
-            return "GoblinSmall"   // Add appropriate image assets
+            return "Goblin1"   // Add appropriate image assets
         }
     }
     
@@ -160,8 +160,8 @@ class Goblin {
                 // Apply damage
                 container.health -= spell.damage
                 if container.health <= 0 {
-                    // Goblin dies
-                    gameScene.goblinDied(container: container)
+                    // Goblin dies - pass goblinKilled = true since it was killed by a spell
+                    gameScene.goblinDied(container: container, goblinKilled: true)
                     removeGoblin(container: container)
                 } else {
                     // Update health bar

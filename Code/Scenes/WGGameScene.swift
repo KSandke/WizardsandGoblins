@@ -319,16 +319,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    func goblinDied(container: Goblin.GoblinContainer) {
+    func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
         // Add coins when goblin is killed (50% chance of 5 coins)
-        if Bool.random() {
-            playerState.addCoins(5)
-            
-            // Create coin particle effect
-            createCoinEffect(at: container.sprite.position)
+        if goblinKilled {
+            if Bool.random() {
+                playerState.addCoins(5)
+                
+                // Create coin particle effect
+                createCoinEffect(at: container.sprite.position)
+            }
+            // Add points when goblin is eliminated
+            playerState.addScore(points: 10)
         }
-        // Add points when goblin is eliminated
-        playerState.addScore(points: 10)
         
         
         // Only decrease if counter is greater than 0
