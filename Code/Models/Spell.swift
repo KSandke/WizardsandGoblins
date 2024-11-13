@@ -7,9 +7,9 @@ class Spell {
     let aoeRadius: CGFloat
     let duration: TimeInterval
     let damage: CGFloat
-    let specialEffect: ((Spell, GameScene.GoblinContainer) -> Void)?
+    let specialEffect: ((Spell, Goblin.GoblinContainer) -> Void)?
     
-    init(name: String, manaCost: CGFloat, aoeRadius: CGFloat, duration: TimeInterval, damage: CGFloat, specialEffect: ((Spell, GameScene.GoblinContainer) -> Void)?) {
+    init(name: String, manaCost: CGFloat, aoeRadius: CGFloat, duration: TimeInterval, damage: CGFloat, specialEffect: ((Spell, Goblin.GoblinContainer) -> Void)?) {
         self.name = name
         self.manaCost = manaCost
         self.aoeRadius = aoeRadius

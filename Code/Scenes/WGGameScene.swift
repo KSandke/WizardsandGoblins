@@ -1,4 +1,14 @@
-// Code/Scenes/WGGameScene.swift
+//
+//  WGGameScene.swift
+//  WizardsandGoblins
+//
+//  Created by Kevin Sandke on 10/24/24.
+//
+
+import SpriteKit
+import GameplayKit
+import Foundation
+import CoreGraphics
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     

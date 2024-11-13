@@ -19,7 +19,6 @@
 		145402892CCB675200624AF9 /* WGMainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145402882CCB675200624AF9 /* WGMainMenuView.swift */; };
 		1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454028B2CCB67B300624AF9 /* WGGameView.swift */; };
 		1488B8342CE46E40007F0D4C /* CGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1488B8322CE46E40007F0D4C /* CGExtensions.swift */; };
-		148974822CE4945C001F7350 /* GoblinManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148974802CE4945C001F7350 /* GoblinManager.swift */; };
 		148974842CE49467001F7350 /* Goblin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148974832CE49467001F7350 /* Goblin.swift */; };
 		14ECCEEF2CE47B96005A9627 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14ECCEEE2CE47B96005A9627 /* PlayerView.swift */; };
 		14ECCEF22CE47BA8005A9627 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14ECCEF02CE47BA8005A9627 /* PlayerState.swift */; };
@@ -61,7 +60,6 @@
 		1454028B2CCB67B300624AF9 /* WGGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGGameView.swift; sourceTree = "<group>"; };
 		1454028D2CCB7DFF00624AF9 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
 		1488B8322CE46E40007F0D4C /* CGExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGExtensions.swift; sourceTree = "<group>"; };
-		148974802CE4945C001F7350 /* GoblinManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoblinManager.swift; sourceTree = "<group>"; };
 		148974832CE49467001F7350 /* Goblin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goblin.swift; sourceTree = "<group>"; };
 		14ECCEEE2CE47B96005A9627 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		14ECCEF02CE47BA8005A9627 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
@@ -136,7 +134,6 @@
 		14101F0C2CCA215B00BD8C7D /* Code */ = {
 			isa = PBXGroup;
 			children = (
-				148974812CE4945C001F7350 /* Managers */,
 				14ECCEF12CE47BA8005A9627 /* Models */,
 				1488B8332CE46E40007F0D4C /* Extensions */,
 				1454028A2CCB679E00624AF9 /* Views */,
@@ -201,14 +198,6 @@
 				1488B8322CE46E40007F0D4C /* CGExtensions.swift */,
 			);
 			path = Extensions;
-			sourceTree = "<group>";
-		};
-		148974812CE4945C001F7350 /* Managers */ = {
-			isa = PBXGroup;
-			children = (
-				148974802CE4945C001F7350 /* GoblinManager.swift */,
-			);
-			path = Managers;
 			sourceTree = "<group>";
 		};
 		14ECCEF12CE47BA8005A9627 /* Models */ = {
@@ -368,7 +357,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1443E97E2CE48A9E001C028C /* Spell.swift in Sources */,
-				148974822CE4945C001F7350 /* GoblinManager.swift in Sources */,
 				148974842CE49467001F7350 /* Goblin.swift in Sources */,
 				145402852CCB60A400624AF9 /* WGMainMenu.swift in Sources */,
 				145402892CCB675200624AF9 /* WGMainMenuView.swift in Sources */,
