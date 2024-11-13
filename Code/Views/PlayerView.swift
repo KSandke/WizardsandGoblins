@@ -16,6 +16,7 @@ class PlayerView {
     
     private var scoreLabel: SKLabelNode!
     private var coinLabel: SKLabelNode!
+    private var waveLabel: SKLabelNode!
     
     private weak var parentScene: SKScene?
     private var state: PlayerState
@@ -62,6 +63,10 @@ class PlayerView {
         state.onCoinsChanged = { [weak self] coins in
             self?.updateCoinsLabel(coins: coins)
         }
+
+        state.onWaveChanged = { [weak self] wave in
+            self?.updateWaveLabel(wave: wave)
+        }
     }
     
     private func setupUI() {
@@ -70,6 +75,7 @@ class PlayerView {
         setupManaBars()
         setupScoreLabel()
         setupCoinsLabel()
+        setupWaveLabel()
     }
     
     private func setupCastle() {
@@ -165,6 +171,27 @@ class PlayerView {
         scene.addChild(coinLabel)
     }
 
+    private func setupWaveLabel() {
+        guard let scene = parentScene else { return }
+        waveLabel = SKLabelNode(text: "Wave: 1")
+        waveLabel.fontSize = 24
+        waveLabel.fontColor = .black
+        waveLabel.position = CGPoint(x: 80, y: scene.size.height - 60)
+        waveLabel.fontName = "AvenirNext-Bold"
+        waveLabel.horizontalAlignmentMode = .left
+
+        // Add a shadow effect
+        let shadowLabel = SKLabelNode(text: waveLabel.text)
+        shadowLabel.fontSize = waveLabel.fontSize
+        shadowLabel.fontColor = .gray
+        shadowLabel.position = CGPoint(x: 2, y: -2)
+        shadowLabel.fontName = waveLabel.fontName
+        shadowLabel.horizontalAlignmentMode = .left
+        waveLabel.addChild(shadowLabel)
+
+        scene.addChild(waveLabel)
+    }
+
     private func updateCastleHealthBar(health: CGFloat) {
         castleHealthFill.xScale = health / state.maxCastleHealth
     }
@@ -188,6 +215,13 @@ class PlayerView {
         coinLabel.text = "Coins: \(coins)"
         if let shadowLabel = coinLabel.children.first as? SKLabelNode {
             shadowLabel.text = coinLabel.text
+        }
+    }
+
+    func updateWaveLabel(wave: Int) {
+        waveLabel.text = "Wave: \(wave)"
+        if let shadowLabel = waveLabel.children.first as? SKLabelNode {
+            shadowLabel.text = waveLabel.text
         }
     }
     

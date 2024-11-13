@@ -21,7 +21,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Goblin Manager
     var goblinManager: Goblin!
-    let goblinSpawnInterval: TimeInterval = 2.0
+    var goblinSpawnInterval: TimeInterval = 2.0  // Changed to variable
     
     // Mana potions
     var manaPotions: [SKSpriteNode] = []
@@ -34,7 +34,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var mainMenuButton: SKLabelNode!
     var currentWave: Int = 1
     var remainingGoblins: Int = 10
-    var waveLabel: SKLabelNode!
     var goblinCountLabel: SKLabelNode!
     
     var isSpawningEnabled = true
@@ -45,13 +44,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var isInShop = false  // To track if the shop view is active
     var isGameOver = false
     
+    // Define the WaveConfig struct
+    struct WaveConfig {
+        var goblinTypeProbabilities: [Goblin.GoblinType: Double]
+        var maxGoblins: Int
+        var goblinSpawnInterval: TimeInterval
+    }
+    
+    // Update the property declaration
+    var waveConfigs: [Int: WaveConfig] = [:]  // Changed from array to dictionary
+    
     override func didMove(to view: SKView) {
         // Initialize Player State and View
         playerState = PlayerState()
         playerView = PlayerView(scene: self, state: playerState)
         
         setupBackground()
-        waveSetup()
+        setupWaves()
         goblinCounterSetup()
         
         physicsWorld.gravity = .zero
@@ -64,17 +73,53 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         startWave()
     }
     
+    func setupWaves() {
+        waveConfigs = [
+            1: WaveConfig(  // Wave 1: 100% normal goblins
+                goblinTypeProbabilities: [.normal: 100.0],
+                maxGoblins: 10,
+                goblinSpawnInterval: 2.0
+            ),
+            2: WaveConfig(  // Wave 2: 70% normal, 15% small, 15% large
+                goblinTypeProbabilities: [.normal: 70.0, .small: 15.0, .large: 15.0],
+                maxGoblins: 15,
+                goblinSpawnInterval: 1.8
+            ),
+            3: WaveConfig(  // Wave 3: 100% small goblins
+                goblinTypeProbabilities: [.small: 100.0],
+                maxGoblins: 20,
+                goblinSpawnInterval: 1.5
+            ),
+            4: WaveConfig(  // Wave 4: 50% normal, 25% small, 25% large
+                goblinTypeProbabilities: [.normal: 50.0, .small: 25.0, .large: 25.0],
+                maxGoblins: 25,
+                goblinSpawnInterval: 1.5
+            ),
+            5: WaveConfig(  // Wave 5: 100% large goblins
+                goblinTypeProbabilities: [.large: 100.0],
+                maxGoblins: 30,
+                goblinSpawnInterval: 1.2
+            )
+        ]
+    }
+    
     func startWave() {
-        // Adjust goblin probabilities based on currentWave
-        updateGoblinProbabilities()
-        
+        let waveConfig = getWaveConfig(forWave: currentWave)
+
+        // Update goblin manager probabilities
+        goblinManager.goblinTypeProbabilities = waveConfig.goblinTypeProbabilities
+
         // Reset wave variables
-        self.maxGoblinsPerWave = 10 + (self.currentWave - 1) * 5
+        self.maxGoblinsPerWave = waveConfig.maxGoblins
         self.remainingGoblins = self.maxGoblinsPerWave
         self.totalGoblinsSpawned = 0
+        self.goblinSpawnInterval = waveConfig.goblinSpawnInterval
         self.updateGoblinCounter()
         self.playerState.playerOneMana = self.playerState.maxMana
         self.playerState.playerTwoMana = self.playerState.maxMana
+        
+        // Update wave label in PlayerView
+        playerView.updateWaveLabel(wave: currentWave)
         
         // Start wave actions
         isSpawningEnabled = true
@@ -111,17 +156,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.run(repeatSpawnGoblin, withKey: "spawnGoblin")
     }
     
-    func updateGoblinProbabilities() {
-        // Adjust the probabilities to allow for wave progression
-        // Decrease normal goblin probability over time and increase others
-        let normalProbability = max(70.0 - Double(currentWave - 1) * 5.0, 20.0)
-        let otherProbability = (100.0 - normalProbability) / 2.0
+    func getWaveConfig(forWave wave: Int) -> WaveConfig {
+        // Check if we have a custom config for this wave
+        if let customConfig = waveConfigs[wave] {
+            return customConfig
+        }
         
-        goblinManager.goblinTypeProbabilities = [
+        // Generate a default WaveConfig based on wave number
+        let normalProbability = max(70.0 - Double(wave - 1) * 5.0, 20.0)
+        let otherProbability = (100.0 - normalProbability) / 2.0
+
+        let goblinTypeProbabilities: [Goblin.GoblinType: Double] = [
             .normal: normalProbability,
             .large: otherProbability,
             .small: otherProbability
         ]
+        let maxGoblins = 10 + (wave - 1) * 5
+        let goblinSpawnInterval = max(2.0 - 0.1 * Double(wave - 1), 0.5)
+        
+        return WaveConfig(
+            goblinTypeProbabilities: goblinTypeProbabilities,
+            maxGoblins: maxGoblins,
+            goblinSpawnInterval: goblinSpawnInterval
+        )
     }
     
     func endWave() {
@@ -454,7 +511,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Re-initialize PlayerView with the reset state
         playerView = PlayerView(scene: self, state: playerState)
         
-        waveSetup()
+        setupWaves()
         goblinCounterSetup()
         
         physicsWorld.gravity = .zero
@@ -462,6 +519,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Initialize Goblin Manager
         goblinManager = Goblin(scene: self)
+        
+        // Update wave label in PlayerView
+        playerView.updateWaveLabel(wave: currentWave)
         
         // Start the first wave
         startWave()
@@ -473,24 +533,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         view?.presentScene(mainMenuScene, transition: SKTransition.fade(withDuration: 0.5))
     }
     
-    func waveSetup() {
-        waveLabel = SKLabelNode(text: "Wave: \(currentWave)")
-        waveLabel.fontSize = 24
-        waveLabel.fontColor = .black
-        waveLabel.position = CGPoint(x: 80, y: size.height - 60)
-        addChild(waveLabel)
-    }
-    
     func goblinCounterSetup() {
         goblinCountLabel = SKLabelNode(text: "Goblins: \(remainingGoblins)")
         goblinCountLabel.fontSize = 24
         goblinCountLabel.fontColor = .black
         goblinCountLabel.position = CGPoint(x: size.width - 100, y: size.height - 60)
         addChild(goblinCountLabel)
-    }
-    
-    func updateWaveLabel() {
-        waveLabel.text = "Wave: \(currentWave)"
     }
     
     func updateGoblinCounter() {
@@ -520,7 +568,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let startWaveAction = SKAction.run { [weak self] in
             guard let self = self else { return }
             self.currentWave += 1
-            self.updateWaveLabel()
+            //self.playerView.updateWaveLabel(wave: self.currentWave) // Update wave label
             self.startWave()
         }
         
