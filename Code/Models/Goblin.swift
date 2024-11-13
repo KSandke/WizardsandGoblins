@@ -53,8 +53,9 @@ class Goblin {
         goblin.addChild(healthFill)
         
         let physicsBody = SKPhysicsBody(rectangleOf: goblin.size)
-        physicsBody.isDynamic = true
+        physicsBody.isDynamic = false
         physicsBody.affectedByGravity = false
+        physicsBody.allowsRotation = false
         physicsBody.categoryBitMask = 1
         physicsBody.contactTestBitMask = 2
         goblin.physicsBody = physicsBody
@@ -84,6 +85,8 @@ class Goblin {
         let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
         let damageAction = SKAction.run { [weak self] in
             scene.castleTakeDamage(damage: container.damage)
+            // Call goblinDied before removing
+            scene.goblinDied(container: container)
             self?.removeGoblin(container: container)
         }
         let sequence = SKAction.sequence([moveAction, damageAction])
