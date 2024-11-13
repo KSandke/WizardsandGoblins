@@ -22,8 +22,41 @@ class PlayerState {
         }
     }
     let maxMana: CGFloat = 100
-    let spellCost: CGFloat = 20
     let manaRegenRate: CGFloat = 7.5
+    
+    // Spell slots
+    var playerOneSpell: Spell
+    var playerTwoSpell: Spell
+    
+    // Constructor
+    init() {
+        // Initialize default spells
+        playerOneSpell = Spell(
+            name: "Fireball",
+            manaCost: 20,
+            aoeRadius: 50,
+            duration: 1.0,
+            damage: 25,
+            specialEffect: nil
+        )
+
+        playerTwoSpell = Spell(
+            name: "IceSpell",
+            manaCost: 30,
+            aoeRadius: 50,
+            duration: 1.0,
+            damage: 15,
+            specialEffect: { spell, container in
+                // Apply slowing effect
+                container.sprite.speed = 0.5 // Reduce speed
+                let wait = SKAction.wait(forDuration: 5.0) // Slow duration
+                let resetSpeed = SKAction.run {
+                    container.sprite.speed = 1.0
+                }
+                container.sprite.run(SKAction.sequence([wait, resetSpeed]))
+            }
+        )
+    }
     
     // Callbacks for binding
     var onCastleHealthChanged: ((CGFloat) -> Void)?
@@ -70,21 +103,34 @@ class PlayerState {
         playerTwoMana = maxMana
         score = 0  // Reset score
         coins = 0  // Reset coins
+        // Reset spells if needed
     }
     
-    func useSpell(isPlayerOne: Bool) -> Bool {
+    func useSpell(isPlayerOne: Bool, cost: CGFloat) -> Bool {
         let currentMana = isPlayerOne ? playerOneMana : playerTwoMana
         
-        if currentMana < spellCost {
+        if currentMana < cost {
             return false
         }
         
         if isPlayerOne {
-            playerOneMana -= spellCost
+            playerOneMana -= cost
         } else {
-            playerTwoMana -= spellCost
+            playerTwoMana -= cost
         }
         
         return true
+    }
+
+    func getSpell(isPlayerOne: Bool) -> Spell {
+        return isPlayerOne ? playerOneSpell : playerTwoSpell
+    }
+    
+    func setSpell(forPlayerOne: Bool, spell: Spell) {
+        if forPlayerOne {
+            playerOneSpell = spell
+        } else {
+            playerTwoSpell = spell
+        }
     }
 } 

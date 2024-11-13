@@ -19,10 +19,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Background
     var background: SKSpriteNode!
     
-    // AOE Effect
-    let aoeRadius: CGFloat = 50
-    let aoeDuration: TimeInterval = 1.0
-    
     // Goblin Properties
     var goblins: [SKSpriteNode] = []
     let goblinSpeed: CGFloat = 100
@@ -160,90 +156,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createManaRestoreEffect(at position: CGPoint) {
-            // Create a visual effect for mana restoration
-            let effect = SKEmitterNode()
-            effect.particleTexture = SKTexture(imageNamed: "spark") // Add a spark image to assets
-            effect.position = position
-            effect.particleBirthRate = 100
-            effect.numParticlesToEmit = 50
-            effect.particleLifetime = 0.5
-            effect.particleColor = .blue
-            effect.particleColorBlendFactor = 1.0
-            effect.particleScale = 0.5
-            effect.particleScaleSpeed = -1.0
-            effect.emissionAngle = 0.0
-            effect.emissionAngleRange = .pi * 2
-            effect.particleSpeed = 100
-            effect.xAcceleration = 0
-            effect.yAcceleration = 0
-            addChild(effect)
-            
-            // Remove effect after duration
-            let wait = SKAction.wait(forDuration: 0.5)
-            let remove = SKAction.removeFromParent()
-            effect.run(SKAction.sequence([wait, remove]))
-        }
+        // Create a visual effect for mana restoration
+        let effect = SKEmitterNode()
+        effect.particleTexture = SKTexture(imageNamed: "spark") // Add a spark image to assets
+        effect.position = position
+        effect.particleBirthRate = 100
+        effect.numParticlesToEmit = 50
+        effect.particleLifetime = 0.5
+        effect.particleColor = .blue
+        effect.particleColorBlendFactor = 1.0
+        effect.particleScale = 0.5
+        effect.particleScaleSpeed = -1.0
+        effect.emissionAngle = 0.0
+        effect.emissionAngleRange = .pi * 2
+        effect.particleSpeed = 100
+        effect.xAcceleration = 0
+        effect.yAcceleration = 0
+        addChild(effect)
+        
+        // Remove effect after duration
+        let wait = SKAction.wait(forDuration: 0.5)
+        let remove = SKAction.removeFromParent()
+        effect.run(SKAction.sequence([wait, remove]))
+    }
     
-    func createAOEEffect(at position: CGPoint) {
-            // Create the AOE circle
-            let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius)
-            aoeCircle.fillColor = .orange
-            aoeCircle.strokeColor = .clear
-            aoeCircle.alpha = 0.5
-            aoeCircle.position = position
-            aoeCircle.zPosition = 1
-            addChild(aoeCircle)
-            
-            // Damage goblins in AOE radius
-            goblinContainers.forEach { container in
-                let distance = position.distance(to: container.sprite.position)
-                if distance <= aoeRadius {
-                    if var health = container.sprite.userData?.value(forKey: "health") as? CGFloat {
-                        health -= 25 // Spell damage
-                        
-                        // Update health bar
-                        container.healthFill.xScale = health / goblinHealth
-                        
-                        if health <= 0 {
-                            // Add coins when goblin is killed (50% chance of 5 coins)
-                            if Bool.random() {
-                                playerState.addCoins(5) // 50% chance of 5 coins
-                            }
-                            // Add points when goblin is eliminated
-                            playerState.addScore(points: 10)
-                            
-                            // Remove from containers array first
-                            goblinContainers.removeAll(where: { $0.sprite == container.sprite })
-                            container.sprite.removeFromParent()
-                            // Create coin particle effect
-                            createCoinEffect(at: container.sprite.position)
-                            // Only decrease if counter is greater than 0
-                            if remainingGoblins > 0 {
-                                remainingGoblins -= 1
-                                updateGoblinCounter()
-                                
-                                // Check if wave is complete when counter reaches 0
-                                if remainingGoblins == 0 {
-                                    startNextWave()
-                                }
-                            }
-                        } else {
-                            container.sprite.userData?.setValue(health, forKey: "health")
-                        }
-                    }
-                }
-            }
-            
-            // Create fade out and remove sequence
-            let fadeOut = SKAction.fadeOut(withDuration: aoeDuration)
-            let remove = SKAction.removeFromParent()
-            let sequence = SKAction.sequence([fadeOut, remove])
-            
-            // Run the sequence
-            aoeCircle.run(sequence)
-        }
-    
-    // Add function to create coin particle effect
     func createCoinEffect(at position: CGPoint) {
         let coinSprite = SKSpriteNode(imageNamed: "coin") // Make sure to add a coin image to assets
         coinSprite.size = CGSize(width: 20, height: 20)
@@ -310,7 +246,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self?.castleTakeDamage(damage: self?.goblinDamage ?? 10)
             
             // Remove from containers array
-            self?.goblinContainers.removeAll(where: { $0.sprite == goblin })
+            if let self = self {
+                self.goblinContainers.removeAll(where: { $0.sprite == goblin })
+            }
             goblin.removeFromParent()
             
             // Only decrease if counter is greater than 0
@@ -403,10 +341,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let distance2 = touchLocation.distance(to: p2Position)
         
         // Determine primary and backup casters based on distance
-        let (isPlayerOnePrimary, _, _) = distance1 < distance2 ?
-            (true, p1Position, p2Position) :
-            (false, p2Position, p1Position)
-        
+        let isPlayerOnePrimary = distance1 < distance2
+
         // Try to cast with primary caster, if fails try backup caster
         if !castSpell(isPlayerOne: isPlayerOnePrimary, to: touchLocation) {
             _ = castSpell(isPlayerOne: !isPlayerOnePrimary, to: touchLocation)
@@ -414,54 +350,61 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func castSpell(isPlayerOne: Bool, to location: CGPoint) -> Bool {
-        // Try to use spell from playerState
-        if !playerState.useSpell(isPlayerOne: isPlayerOne) {
-            return false
-        }
-        
+        // Check if the wave is active
+        guard isSpawningEnabled else { return false }
         // Get caster's position
         let casterPosition = isPlayerOne ? playerView.playerOnePosition : playerView.playerTwoPosition
         
-        // Create spell
-        let spell = SKSpriteNode(imageNamed: "spell1")
-        spell.size = CGSize(width: 50, height: 50)
-        spell.position = casterPosition
-        addChild(spell)
+        // Get the player's spell
+        let spell = playerState.getSpell(isPlayerOne: isPlayerOne)
         
-        // Calculate direction
-        let dx = location.x - casterPosition.x
-        let dy = location.y - casterPosition.y
-        
-        // Calculate rotation angle (in radians)
-        let angle = atan2(dy, dx)
-        
-        // Rotate spell to face movement direction
-        spell.zRotation = angle + .pi / 2 + .pi
-        
-        // Calculate distance and scale duration
-        let distance = casterPosition.distance(to: location)
-        let baseSpeed: CGFloat = 400 // pixels per second
-        let duration = TimeInterval(distance / baseSpeed)
-        
-        // Create completion handler for when spell reaches target
-        let createAOE = SKAction.run { [weak self] in
-            guard let self = self else { return }
-            
-            // Check for potion hits
-            for potion in self.manaPotions {
-                if location.distance(to: potion.position) <= self.aoeRadius {
-                    self.handlePotionHit(potion: potion, spellLocation: location)
-                }
+        // Cast the spell
+        let success = spell.cast(from: casterPosition, to: location, by: playerState, isPlayerOne: isPlayerOne, in: self)
+        return success
+    }
+
+    func applySpell(_ spell: Spell, at position: CGPoint) {
+        // Apply spell effects to enemies
+        goblinContainers.forEach { container in
+            let distance = position.distance(to: container.sprite.position)
+            if distance <= spell.aoeRadius {
+                spell.applyToGoblin(container: container, in: self)
             }
-            self.createAOEEffect(at: location)
         }
         
-        // Move spell and create AOE
-        let moveAction = SKAction.move(to: location, duration: duration)
-        let sequence = SKAction.sequence([moveAction, createAOE, SKAction.removeFromParent()])
-        spell.run(sequence)
+        // Check for potion hits
+        for potion in manaPotions {
+            if position.distance(to: potion.position) <= spell.aoeRadius {
+                handlePotionHit(potion: potion, spellLocation: position)
+            }
+        }
+    }
+    
+    func goblinDied(container: GoblinContainer) {
+        // Remove from containers array first
+        goblinContainers.removeAll(where: { $0.sprite == container.sprite })
+        container.sprite.removeFromParent()
         
-        return true
+        // Add coins when goblin is killed (50% chance of 5 coins)
+        if Bool.random() {
+            playerState.addCoins(5) // 50% chance of 5 coins
+        }
+        // Add points when goblin is eliminated
+        playerState.addScore(points: 10)
+        
+        // Create coin particle effect
+        createCoinEffect(at: container.sprite.position)
+        
+        // Only decrease if counter is greater than 0
+        if remainingGoblins > 0 {
+            remainingGoblins -= 1
+            updateGoblinCounter()
+            
+            // Check if wave is complete when counter reaches 0
+            if remainingGoblins == 0 {
+                startNextWave()
+            }
+        }
     }
     
     func restartGame() {
@@ -472,6 +415,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Reset properties
         playerState.reset()
         goblins.removeAll()
+        goblinContainers.removeAll()
+        manaPotions.removeAll()
         
         // Reset wave and goblin counters
         currentWave = 1
