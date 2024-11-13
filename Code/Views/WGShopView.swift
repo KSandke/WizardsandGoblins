@@ -91,8 +91,8 @@ class ShopView: SKNode {
         background.position = CGPoint(x: size.width/2, y: size.height/2)
         addChild(background)
         
-        // Position stats at top
-        statsLabel.position = CGPoint(x: size.width/2, y: size.height - 50)
+        // Position stats below iPhone notch area (moved from y: size.height - 50)
+        statsLabel.position = CGPoint(x: size.width/2, y: size.height - 120)
         addChild(statsLabel)
         
         // Create grid of item buttons
