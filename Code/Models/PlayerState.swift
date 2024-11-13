@@ -31,7 +31,7 @@ class PlayerState {
             playerTwoMana = maxMana * manaPercentageP2
         }
     }
-    private(set) var manaRegenRate: CGFloat = 7.5
+    var manaRegenRate: CGFloat = 7.5
     
     // Spell slots
     var playerOneSpell: Spell
