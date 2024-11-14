@@ -357,11 +357,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         
-        // Determine which wizard is casting based on proximity
+        // Get wizard positions
         let p1Position = playerView.playerOnePosition
         let p2Position = playerView.playerTwoPosition
         
-        // Calculate distances to each wizard
+        // Check if either wizard was tapped
+        if touchLocation.distance(to: p1Position) < 30 { // Adjust radius as needed
+            playerState.swapSpells(isPlayerOne: true)
+            return
+        } else if touchLocation.distance(to: p2Position) < 30 { // Adjust radius as needed
+            playerState.swapSpells(isPlayerOne: false)
+            return
+        }
+        
+        // Calculate distances for spell casting
         let distance1 = touchLocation.distance(to: p1Position)
         let distance2 = touchLocation.distance(to: p2Position)
         
