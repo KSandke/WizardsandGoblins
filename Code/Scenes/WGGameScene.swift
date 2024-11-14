@@ -106,7 +106,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ]
             ),
             1: WaveConfig( //use this config for testing
-                goblinTypeProbabilities: [.normal: 100.0],
+                goblinTypeProbabilities: [.normal: 50.0, .ranged: 50.0],
                 maxGoblins: 10,
                 baseSpawnInterval: 2.0,
                 spawnPatterns: [
