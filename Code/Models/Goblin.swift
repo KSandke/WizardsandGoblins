@@ -6,6 +6,8 @@ class Goblin {
         case normal
         case large
         case small
+        case ranged
+        case arrow
     }
     
     class GoblinContainer {
@@ -34,6 +36,9 @@ class Goblin {
     // Probabilities for each goblin type
     var goblinTypeProbabilities: [GoblinType: Double]
     
+    // Add this property near the top of the class
+    var nextGoblinType: GoblinType = .normal
+    
     init(scene: SKScene, probabilities: [GoblinType: Double] = [
         .normal: 70.0,
         .large: 15.0,
@@ -46,12 +51,12 @@ class Goblin {
     func spawnGoblin(at position: CGPoint, specificType: GoblinType? = nil) {
         guard let scene = scene else { return }
         
-        // Decide which goblin type to spawn
-        let goblinType = specificType ?? randomGoblinType()
+        // Use specificType if provided, otherwise use the probability-based type
+        nextGoblinType = specificType ?? getRandomGoblinType()
         
         // Create a goblin of that type
-        let goblinSprite = SKSpriteNode(imageNamed: imageName(for: goblinType))
-        goblinSprite.size = goblinSize(for: goblinType)
+        let goblinSprite = SKSpriteNode(imageNamed: imageName(for: nextGoblinType))
+        goblinSprite.size = goblinSize(for: nextGoblinType)
         goblinSprite.position = position
         goblinSprite.name = "goblin"
         
@@ -81,10 +86,10 @@ class Goblin {
         physicsBody.contactTestBitMask = 2
         goblinSprite.physicsBody = physicsBody
         
-        let health = goblinHealth(for: goblinType)
-        let damage = goblinDamage(for: goblinType)
+        let health = goblinHealth(for: nextGoblinType)
+        let damage = goblinDamage(for: nextGoblinType)
         let container = GoblinContainer(
-            type: goblinType,
+            type: nextGoblinType,
             sprite: goblinSprite,
             healthBar: healthBar,
             healthFill: healthFill,
@@ -99,7 +104,7 @@ class Goblin {
         moveGoblin(container: container)
     }
     
-    private func randomGoblinType() -> GoblinType {
+    private func getRandomGoblinType() -> GoblinType {
         // Compute total probability
         let totalProbability = goblinTypeProbabilities.values.reduce(0, +)
         // Generate random number between 0 and totalProbability
@@ -118,38 +123,84 @@ class Goblin {
     private func moveGoblin(container: GoblinContainer) {
         guard let scene = scene as? GameScene else { return }
         let targetPosition = scene.playerView.castlePosition
-        let moveDuration = TimeInterval(container.sprite.position.distance(to: targetPosition) / goblinSpeed(for: container.type))
         
-        let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
+        // Add special handling for ranged goblin
+        let finalPosition: CGPoint
+        if container.type == .ranged {
+            let vector = CGVector(dx: targetPosition.x - container.sprite.position.x,
+                                dy: targetPosition.y - container.sprite.position.y)
+            let distance = sqrt(vector.dx * vector.dx + vector.dy * vector.dy)
+            let ratio = max(0, (distance - 100) / distance)
+            finalPosition = CGPoint(
+                x: container.sprite.position.x + vector.dx * ratio,
+                y: container.sprite.position.y + vector.dy * ratio
+            )
+        } else {
+            finalPosition = targetPosition
+        }
+        
+        let moveDuration = TimeInterval(container.sprite.position.distance(to: finalPosition) / goblinSpeed(for: container.type))
+        
+        let moveAction = SKAction.move(to: finalPosition, duration: moveDuration)
         let damageAction = SKAction.run { [weak self] in
             scene.castleTakeDamage(damage: container.damage)
             // Call goblinDied with goblinKilled = false for castle collision
             scene.goblinDied(container: container, goblinKilled: false)
             self?.removeGoblin(container: container)
         }
-        let sequence = SKAction.sequence([moveAction, damageAction])
-        container.sprite.run(sequence)
+        
+        if container.type == .ranged {
+            // Ranged goblins don't damage the castle directly
+            container.sprite.run(moveAction)
+            
+            // Create repeating arrow attack
+            let spawnArrow = SKAction.run { [weak self] in
+                guard let self = self else { return }
+                // Only spawn arrow if goblin is still alive
+                guard self.goblinContainers.contains(where: { $0 === container }) else { return }
+                
+                // Spawn arrow at goblin's position
+                self.spawnGoblin(
+                    at: container.sprite.position,
+                    specificType: .arrow
+                )
+            }
+            
+            // Create sequence with delay between arrows
+            let waitAction = SKAction.wait(forDuration: 1.0) // Adjust timing as needed
+            let sequence = SKAction.sequence([waitAction, spawnArrow])
+            let repeatForever = SKAction.repeatForever(sequence)
+            
+            container.sprite.run(repeatForever)
+        } else {
+            let sequence = SKAction.sequence([moveAction, damageAction])
+            container.sprite.run(sequence)
+        }
     }
     
     func goblinSpeed(for type: GoblinType) -> CGFloat {
         switch type {
-        case .normal:
+        case .normal, .ranged:
             return 100
         case .large:
-            return 50   // Half speed
+            return 50
         case .small:
-            return 200  // Double speed
+            return 200
+        case .arrow:
+            return 300
         }
     }
     
     func goblinHealth(for type: GoblinType) -> CGFloat {
         switch type {
-        case .normal:
+        case .normal, .ranged:
             return 50
         case .large:
-            return 100  // Double health
+            return 100
         case .small:
-            return 25   // Half health
+            return 25
+        case .arrow:
+            return 0
         }
     }
     
@@ -158,31 +209,37 @@ class Goblin {
         case .normal:
             return 10
         case .large:
-            return 20   // Double damage
+            return 20
         case .small:
-            return 5    // Half damage
+            return 5
+        case .ranged:
+            return 5
+        case .arrow:
+            return 5
         }
     }
     
     func goblinSize(for type: GoblinType) -> CGSize {
         switch type {
-        case .normal:
+        case .normal, .ranged:
             return CGSize(width: 50, height: 50)
         case .large:
-            return CGSize(width: 100, height: 100)    // Twice as big
+            return CGSize(width: 100, height: 100)
         case .small:
-            return CGSize(width: 25, height: 25)      // Half the size
+            return CGSize(width: 25, height: 25)
+        case .arrow:
+            return CGSize(width: 10, height: 10)
         }
     }
     
     func imageName(for type: GoblinType) -> String {
         switch type {
-        case .normal:
+        case .normal, .large, .small:
             return "Goblin1"
-        case .large:
-            return "Goblin1"   // Update with the appropriate image asset
-        case .small:
-            return "Goblin1"   // Update with the appropriate image asset
+        case .ranged:
+            return "GoblinRanged" // You'll need to add this asset
+        case .arrow:
+            return "Arrow" // You'll need to add this asset
         }
     }
     

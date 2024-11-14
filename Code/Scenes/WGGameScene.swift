@@ -112,7 +112,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ]
             ),
             1: WaveConfig( //use this config for testing
-                goblinTypeProbabilities: [.normal: 100.0],
+                goblinTypeProbabilities: [.ranged: 100.0],
                 maxGoblins: 10,
                 baseSpawnInterval: 2.0,
                 spawnPatterns: [
@@ -352,11 +352,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func spawnGoblin(at position: CGPoint) {
+        // Only count non-arrow goblins towards wave total
         if !isSpawningEnabled || totalGoblinsSpawned >= maxGoblinsPerWave || isGameOver {
             return
         }
-        
-        totalGoblinsSpawned += 1
+
+        // Only increment counter for non-arrow spawns
+        if goblinManager.nextGoblinType != Goblin.GoblinType.arrow {
+            totalGoblinsSpawned += 1
+        }
         
         // Use goblinManager to spawn a goblin at the position
         goblinManager.spawnGoblin(at: position)
@@ -493,26 +497,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
-        // Add coins when goblin is killed (50% chance of 5 coins)
-        if goblinKilled {
-            if Bool.random() {
-                playerState.addCoins(5)
-                
-                // Create coin particle effect
-                createCoinEffect(at: container.sprite.position)
+        // Skip arrow deaths in goblin counting logic
+        if container.type != .arrow {
+            // Add coins when goblin is killed (50% chance of 5 coins)
+            if goblinKilled {
+                if Bool.random() {
+                    playerState.addCoins(5)
+                    
+                    // Create coin particle effect
+                    createCoinEffect(at: container.sprite.position)
+                }
+                // Add points when goblin is eliminated
+                playerState.addScore(points: 10)
             }
-            // Add points when goblin is eliminated
-            playerState.addScore(points: 10)
-        }
-        
-        // Only decrease if counter is greater than 0
-        if remainingGoblins > 0 {
-            remainingGoblins -= 1
-            updateGoblinCounter()
             
-            // Check if wave is complete when counter reaches 0
-            if remainingGoblins == 0 {
-                waveCompleted()
+            // Only decrease if counter is greater than 0
+            if remainingGoblins > 0 {
+                remainingGoblins -= 1
+                updateGoblinCounter()
+                
+                // Check if wave is complete when counter reaches 0
+                if remainingGoblins == 0 {
+                    waveCompleted()
+                }
             }
         }
     }
