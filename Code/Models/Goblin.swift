@@ -1,12 +1,6 @@
 import Foundation
 import SpriteKit
 
-struct PhysicsCategory {
-    static let none: UInt32 = 0
-    static let castle: UInt32 = 0b1          // 1
-    static let enemyProjectile: UInt32 = 0b10 // 2
-}
-
 class Goblin {
     enum GoblinType {
         case normal
@@ -43,6 +37,20 @@ class Goblin {
     
     // Add this property near the top of the class
     var nextGoblinType: GoblinType = .normal
+    
+    // Add ArrowContainer to track arrows
+    class ArrowContainer {
+        let sprite: SKSpriteNode
+        let damage: CGFloat
+        
+        init(sprite: SKSpriteNode, damage: CGFloat) {
+            self.sprite = sprite
+            self.damage = damage
+        }
+    }
+    
+    // Add property to track arrows
+    var arrowContainers: [ArrowContainer] = []
     
     init(scene: SKScene, probabilities: [GoblinType: Double] = [
         .normal: 60.0,
@@ -248,29 +256,40 @@ class Goblin {
     
     func applySpell(_ spell: Spell, at position: CGPoint, in gameScene: GameScene) {
         var containersToRemove: [GoblinContainer] = []
+        var arrowsToRemove: [ArrowContainer] = []
         
+        // Check goblins
         for container in goblinContainers {
             let distance = position.distance(to: container.sprite.position)
             if distance <= spell.aoeRadius {
                 // Apply damage
                 container.health -= spell.damage
                 if container.health <= 0 {
-                    // Goblin dies - pass goblinKilled = true since it was killed by a spell
                     gameScene.goblinDied(container: container, goblinKilled: true)
                     containersToRemove.append(container)
                 } else {
                     // Update health bar
                     let healthRatio = container.health / container.maxHealth
                     container.healthFill.xScale = healthRatio
-                    // Apply special effects
                     spell.specialEffect?(spell, container)
                 }
             }
         }
         
-        // Remove goblins after the loop
+        // Check arrows
+        for arrow in arrowContainers {
+            let distance = position.distance(to: arrow.sprite.position)
+            if distance <= spell.aoeRadius {
+                arrowsToRemove.append(arrow)
+            }
+        }
+        
+        // Remove affected entities
         for container in containersToRemove {
             removeGoblin(container: container)
+        }
+        for arrow in arrowsToRemove {
+            removeArrow(container: arrow)
         }
     }
 
@@ -289,6 +308,11 @@ class Goblin {
         for container in containersToRemove {
             removeGoblin(container: container)
         }
+
+        // Remove all arrows
+        for arrow in arrowContainers {
+            removeArrow(container: arrow)
+        }
     }
 
     private func spawnArrow(from startPosition: CGPoint, to targetPosition: CGPoint) {
@@ -300,30 +324,28 @@ class Goblin {
         arrowSprite.position = startPosition
         arrowSprite.zPosition = 1
 
-        // Calculate the movement vector and duration
-        let vector = CGVector(dx: targetPosition.x - startPosition.x, dy: targetPosition.y - startPosition.y)
-        let distance = sqrt(vector.dx * vector.dx + vector.dy * vector.dy)
-        let moveDuration = TimeInterval(distance / arrowSpeed())
+        // Create arrow container
+        let arrowContainer = ArrowContainer(sprite: arrowSprite, damage: 5)
+        arrowContainers.append(arrowContainer)
+
+        // Calculate movement duration based on distance and speed
+        let moveDuration = TimeInterval(startPosition.distance(to: targetPosition) / arrowSpeed())
 
         // Define the movement action
         let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
-        let removeAction = SKAction.removeFromParent()
-        let sequence = SKAction.sequence([moveAction, removeAction])
+        let damageAction = SKAction.run { [weak self] in
+            scene.castleTakeDamage(damage: arrowContainer.damage)
+            self?.removeArrow(container: arrowContainer)
+        }
+        let sequence = SKAction.sequence([moveAction, damageAction])
 
         arrowSprite.run(sequence)
-
-        // Set up the physics body for collision detection
-        let physicsBody = SKPhysicsBody(rectangleOf: arrowSprite.size)
-        physicsBody.isDynamic = true
-        physicsBody.affectedByGravity = false
-        physicsBody.allowsRotation = false
-        physicsBody.categoryBitMask = PhysicsCategory.enemyProjectile
-        physicsBody.contactTestBitMask = PhysicsCategory.castle
-        physicsBody.collisionBitMask = PhysicsCategory.none
-        arrowSprite.physicsBody = physicsBody
-
-        // Add the arrow to the scene
         scene.addChild(arrowSprite)
+    }
+
+    func removeArrow(container: ArrowContainer) {
+        arrowContainers.removeAll { $0 === container }
+        container.sprite.removeFromParent()
     }
 
     func arrowSpeed() -> CGFloat {

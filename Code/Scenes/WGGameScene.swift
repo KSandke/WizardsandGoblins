@@ -653,26 +653,5 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             run(SKAction.sequence([wait, spawnAction]))
         }
     }
-    func didBegin(_ contact: SKPhysicsContact) {
-        // Determine which bodies are involved in the collision
-        let firstBody: SKPhysicsBody
-        let secondBody: SKPhysicsBody
-
-        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
-            firstBody = contact.bodyA
-            secondBody = contact.bodyB
-        } else {
-            firstBody = contact.bodyB
-            secondBody = contact.bodyA
-        }
-
-        // Handle collision between enemy projectile (arrow) and the castle
-        if firstBody.categoryBitMask == PhysicsCategory.enemyProjectile && secondBody.categoryBitMask == PhysicsCategory.castle {
-            if let arrow = firstBody.node as? SKSpriteNode {
-                castleTakeDamage(damage: 5) // Adjust the damage value as needed
-                arrow.removeFromParent()
-            }
-        }
-    }
 }
 
