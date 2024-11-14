@@ -10,6 +10,17 @@ import GameplayKit
 import Foundation
 import CoreGraphics
 
+// Add this struct outside of the GameScene class
+
+struct PhysicsCategory {
+    static let none             : UInt32 = 0
+    static let goblin           : UInt32 = 0x1 << 0
+    static let spell            : UInt32 = 0x1 << 1
+    static let castle           : UInt32 = 0x1 << 2
+    static let goblinProjectile : UInt32 = 0x1 << 3
+    // Add more categories as needed
+}
+
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Player State and View
@@ -129,9 +140,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Remove projectile
             firstBody.node?.removeFromParent()
         }
-
+    
         // Add more collision handling as needed
     }
+
     func setupWaves() {
         waveConfigs = [ // Default wave configuration
             -1: WaveConfig( 

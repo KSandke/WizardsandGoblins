@@ -65,6 +65,7 @@
 		148FAAB62CE4B82A005CCBC3 /* WGShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGShopView.swift; sourceTree = "<group>"; };
 		14ECCEEE2CE47B96005A9627 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		14ECCEF02CE47BA8005A9627 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
+		14FC90B72CE58975009B6E34 /* PhysicsCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsCategory.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -168,6 +169,7 @@
 		14101F0F2CCAE60200BD8C7D /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				14FC90B72CE58975009B6E34 /* PhysicsCategory.swift */,
 				1454028D2CCB7DFF00624AF9 /* Vector.swift */,
 				14101F112CCAE64100BD8C7D /* WGLayoutInfo.swift */,
 				14101F102CCAE61200BD8C7D /* WGGameInfo.swift */,
