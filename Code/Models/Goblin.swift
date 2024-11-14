@@ -131,7 +131,7 @@ class Goblin {
             let vector = CGVector(dx: targetPosition.x - container.sprite.position.x,
                                 dy: targetPosition.y - container.sprite.position.y)
             let distance = sqrt(vector.dx * vector.dx + vector.dy * vector.dy)
-            let ratio = max(0, (distance - 100) / distance)
+            let ratio = max(0, (distance - 500) / distance)
             finalPosition = CGPoint(
                 x: container.sprite.position.x + vector.dx * ratio,
                 y: container.sprite.position.y + vector.dy * ratio
