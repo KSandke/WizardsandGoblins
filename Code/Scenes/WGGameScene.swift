@@ -75,9 +75,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Update the property declaration
     var waveConfigs: [Int: WaveConfig] = [:]  // Changed from array to dictionary
     
-    // Add near other properties
-    var manaPotionDropChance: Double = 0.1  // 10% chance by default
-    var spellChargeRestoreAmount: Int = 2
+    // Add properties for spell icons
+    private var playerOneSpellIcon: SKSpriteNode!
+    private var playerTwoSpellIcon: SKSpriteNode!
     
     override func didMove(to view: SKView) {
         // Initialize Player State and View
@@ -96,6 +96,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Start the first wave
         startWave()
+        
+        // Setup spell icons
+        setupSpellIcons()
     }
     
     func setupWaves() {
@@ -361,11 +364,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         
-        // Determine which wizard is casting based on proximity
+        // Get wizard positions
         let p1Position = playerView.playerOnePosition
         let p2Position = playerView.playerTwoPosition
         
-        // Calculate distances to each wizard
+        // Check if either wizard was tapped
+        if touchLocation.distance(to: p1Position) < 30 { // Adjust radius as needed
+            playerState.swapSpells(isPlayerOne: true)
+            updateSpellIcons()
+            return
+        } else if touchLocation.distance(to: p2Position) < 30 { // Adjust radius as needed
+            playerState.swapSpells(isPlayerOne: false)
+            updateSpellIcons()
+            return
+        }
+        
+        // Calculate distances for spell casting
         let distance1 = touchLocation.distance(to: p1Position)
         let distance2 = touchLocation.distance(to: p2Position)
         
@@ -397,66 +411,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         goblinManager.applySpell(spell, at: position, in: self)
     }
     
-    func createSpellChargeRestoreEffect(at position: CGPoint) {
-        let effect = SKEmitterNode()
-        effect.particleTexture = SKTexture(imageNamed: "spark") // Add spark image to assets
-        effect.position = position
-        effect.particleBirthRate = 100
-        effect.numParticlesToEmit = 50
-        effect.particleLifetime = 0.5
-        effect.particleColor = .blue
-        effect.particleColorBlendFactor = 1.0
-        effect.particleScale = 0.5
-        effect.particleScaleSpeed = -1.0
-        effect.emissionAngle = 0.0
-        effect.emissionAngleRange = .pi * 2
-        effect.particleSpeed = 100
-        effect.xAcceleration = 0
-        effect.yAcceleration = 0
-        addChild(effect)
-        
-        let wait = SKAction.wait(forDuration: 0.5)
-        let remove = SKAction.removeFromParent()
-        effect.run(SKAction.sequence([wait, remove]))
-    }
-    
-    func handlePotionCollection(at position: CGPoint) {
-        // Determine which wizard has fewer charges
-        let playerOneCharges = playerState.playerOneSpellCharges
-        let playerTwoCharges = playerState.playerTwoSpellCharges
-        
-        // Give charges to the wizard with fewer charges
-        // If equal, give to player one
-        if playerOneCharges <= playerTwoCharges {
-            playerState.playerOneSpellCharges = min(
-                playerState.maxSpellCharges,
-                playerState.playerOneSpellCharges + spellChargeRestoreAmount
-            )
-        } else {
-            playerState.playerTwoSpellCharges = min(
-                playerState.maxSpellCharges,
-                playerState.playerTwoSpellCharges + spellChargeRestoreAmount
-            )
-        }
-        
-        // Create collection effect
-        createSpellChargeRestoreEffect(at: position)
-    }
-    
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
         // Add coins when goblin is killed (50% chance of 5 coins)
         if goblinKilled {
-            // 50% chance to drop coins
             if Bool.random() {
                 playerState.addCoins(5)
+                
+                // Create coin particle effect
                 createCoinEffect(at: container.sprite.position)
             }
-            
-            // Check for mana potion drop and auto-collect
-            if Double.random(in: 0...1) < manaPotionDropChance {
-                handlePotionCollection(at: container.sprite.position)
-            }
-
             // Add points when goblin is eliminated
             playerState.addScore(points: 10)
         }
@@ -707,6 +670,38 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let wait = SKAction.wait(forDuration: interval * Double(i))
             run(SKAction.sequence([wait, spawnAction]))
         }
+    }
+    
+    func setupSpellIcons() {
+        // Create spell icons
+        playerOneSpellIcon = SKSpriteNode(imageNamed: playerState.getCurrentSpellName())
+        playerTwoSpellIcon = SKSpriteNode(imageNamed: playerState.getCurrentSpellName())
+        
+        // Set size for icons
+        let iconSize = CGSize(width: 30, height: 30) // Adjust size as needed
+        playerOneSpellIcon.size = iconSize
+        playerTwoSpellIcon.size = iconSize
+        
+        // Position icons next to wizards
+        playerOneSpellIcon.position = CGPoint(
+            x: playerView.playerOnePosition.x + 40, // Adjust offset as needed
+            y: playerView.playerOnePosition.y
+        )
+        playerTwoSpellIcon.position = CGPoint(
+            x: playerView.playerTwoPosition.x + 40, // Adjust offset as needed
+            y: playerView.playerTwoPosition.y
+        )
+        
+        // Add to scene
+        addChild(playerOneSpellIcon)
+        addChild(playerTwoSpellIcon)
+    }
+    
+    // Update the spell icons when spells are swapped
+    func updateSpellIcons() {
+        let spellTexture = SKTexture(imageNamed: playerState.getCurrentSpellName())
+        playerOneSpellIcon.texture = spellTexture
+        playerTwoSpellIcon.texture = spellTexture
     }
 }
 

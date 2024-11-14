@@ -28,9 +28,10 @@ class PlayerState {
         }
     }
     
-    // Spell slots
-    var playerOneSpell: Spell
-    var playerTwoSpell: Spell
+    // Replace individual spell properties with primary/secondary spells
+    private var primarySpell: Spell
+    private var secondarySpell: Spell
+    private var isUsingPrimarySpell: Bool = true
     
     // New properties for upgrades
     var maxHealth: CGFloat = 100 {
@@ -45,8 +46,8 @@ class PlayerState {
     
     // Constructor
     init() {
-        // Initialize default spells
-        playerOneSpell = Spell(
+        // Initialize primary spell (previously spell1)
+        primarySpell = Spell(
             name: "spell1",
             aoeRadius: 50,
             duration: 1.0,
@@ -54,15 +55,16 @@ class PlayerState {
             specialEffect: nil
         )
 
-        playerTwoSpell = Spell(
+        // Initialize secondary spell (previously IceSpell)
+        secondarySpell = Spell(
             name: "IceSpell",
             aoeRadius: 50,
             duration: 1.0,
             damage: 20,
             specialEffect: { spell, container in
                 // Apply slowing effect
-                container.sprite.speed = 0.5 // Reduce speed
-                let wait = SKAction.wait(forDuration: 5.0) // Slow duration
+                container.sprite.speed = 0.5
+                let wait = SKAction.wait(forDuration: 5.0)
                 let resetSpeed = SKAction.run {
                     container.sprite.speed = 1.0
                 }
@@ -144,15 +146,27 @@ class PlayerState {
         return true
     }
 
+    // Replace getSpell function
     func getSpell(isPlayerOne: Bool) -> Spell {
-        return isPlayerOne ? playerOneSpell : playerTwoSpell
+        return isUsingPrimarySpell ? primarySpell : secondarySpell
     }
     
-    func setSpell(forPlayerOne: Bool, spell: Spell) {
-        if forPlayerOne {
-            playerOneSpell = spell
+    // Add function to swap spells
+    func swapSpells(isPlayerOne: Bool) {
+        isUsingPrimarySpell.toggle()
+    }
+    
+    // Update setSpell function for shop purchases
+    func setSpell(isPrimary: Bool, spell: Spell) {
+        if isPrimary {
+            primarySpell = spell
         } else {
-            playerTwoSpell = spell
+            secondarySpell = spell
         }
+    }
+    
+    // Add this new method to PlayerState
+    func getCurrentSpellName() -> String {
+        return isUsingPrimarySpell ? primarySpell.name : secondarySpell.name
     }
 } 
