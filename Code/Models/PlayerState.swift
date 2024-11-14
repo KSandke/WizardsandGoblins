@@ -12,26 +12,21 @@ class PlayerState {
     let maxCastleHealth: CGFloat = 100
     
     // Wizard state
-    var playerOneMana: CGFloat = 100 {
+    var playerOneSpellCharges: Int = 5 {
         didSet {
-            onPlayerOneManaChanged?(playerOneMana)
+            onPlayerOneChargesChanged?(playerOneSpellCharges)
         }
     }
-    var playerTwoMana: CGFloat = 100 {
+    var playerTwoSpellCharges: Int = 5 {
         didSet {
-            onPlayerTwoManaChanged?(playerTwoMana)
+            onPlayerTwoChargesChanged?(playerTwoSpellCharges)
         }
     }
-    var maxMana: CGFloat = 100 {
+    var maxSpellCharges: Int = 5 {
         didSet {
-            // When maxMana increases, increase current mana proportionally
-            let manaPercentageP1 = playerOneMana / oldValue
-            let manaPercentageP2 = playerTwoMana / oldValue
-            playerOneMana = maxMana * manaPercentageP1
-            playerTwoMana = maxMana * manaPercentageP2
+            onMaxSpellChargesChanged?(maxSpellCharges)
         }
     }
-    var manaRegenRate: CGFloat = 7.5
     
     // Spell slots
     var playerOneSpell: Spell
@@ -53,7 +48,6 @@ class PlayerState {
         // Initialize default spells
         playerOneSpell = Spell(
             name: "spell1",
-            manaCost: 20,
             aoeRadius: 50,
             duration: 1.0,
             damage: 25,
@@ -62,7 +56,6 @@ class PlayerState {
 
         playerTwoSpell = Spell(
             name: "IceSpell",
-            manaCost: 20,
             aoeRadius: 50,
             duration: 1.0,
             damage: 20,
@@ -83,8 +76,11 @@ class PlayerState {
     
     // Callbacks for binding
     var onCastleHealthChanged: ((CGFloat) -> Void)?
-    var onPlayerOneManaChanged: ((CGFloat) -> Void)?
-    var onPlayerTwoManaChanged: ((CGFloat) -> Void)?
+    var onPlayerOneChargesChanged: ((Int) -> Void)?
+    var onPlayerTwoChargesChanged: ((Int) -> Void)?
+    var onScoreChanged: ((Int) -> Void)?
+    var onCoinsChanged: ((Int) -> Void)?
+    var onMaxSpellChargesChanged: ((Int) -> Void)?
     
     // Score state
     var score: Int = 0 {
@@ -92,7 +88,6 @@ class PlayerState {
             onScoreChanged?(score)
         }
     }
-    var onScoreChanged: ((Int) -> Void)?
     
     // Coins state
     var coins: Int = 0 {
@@ -100,7 +95,7 @@ class PlayerState {
             onCoinsChanged?(coins)
         }
     }
-    var onCoinsChanged: ((Int) -> Void)?
+    
     
     func addScore(points: Int) {
         score += points
@@ -110,9 +105,10 @@ class PlayerState {
         coins += amount
     }
     
-    func regenerateMana() {
-        playerOneMana = min(maxMana, playerOneMana + manaRegenRate)
-        playerTwoMana = min(maxMana, playerTwoMana + manaRegenRate)
+    // Update regenerateMana function
+    func regenerateSpellCharges() {
+        playerOneSpellCharges = min(maxSpellCharges, playerOneSpellCharges + 1)
+        playerTwoSpellCharges = min(maxSpellCharges, playerTwoSpellCharges + 1)
     }
     
     func takeDamage(_ damage: CGFloat) -> Bool {
@@ -120,29 +116,29 @@ class PlayerState {
         return castleHealth <= 0
     }
     
+    // Update reset function
     func reset() {
         maxHealth = maxCastleHealth  // Reset max health
         castleHealth = maxHealth
-        maxMana = 100  // Reset max mana to initial value
-        playerOneMana = maxMana
-        playerTwoMana = maxMana
         score = 0
         coins = 0
         spellPowerMultiplier = 1.0  // Reset spell power
-        manaRegenRate = 7.5  // Reset mana regen
+        playerOneSpellCharges = maxSpellCharges
+        playerTwoSpellCharges = maxSpellCharges
     }
     
+    // Update useSpell function
     func useSpell(isPlayerOne: Bool, cost: CGFloat) -> Bool {
-        let currentMana = isPlayerOne ? playerOneMana : playerTwoMana
+        let currentCharges = isPlayerOne ? playerOneSpellCharges : playerTwoSpellCharges
         
-        if currentMana < cost {
+        if currentCharges < 1 {
             return false
         }
         
         if isPlayerOne {
-            playerOneMana -= cost
+            playerOneSpellCharges -= 1
         } else {
-            playerTwoMana -= cost
+            playerTwoSpellCharges -= 1
         }
         
         return true

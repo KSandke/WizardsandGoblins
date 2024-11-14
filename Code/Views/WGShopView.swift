@@ -19,21 +19,14 @@ struct ShopItem {
             }
         ),
         ShopItem(
-            name: "Max Mana +30",
-            description: "Increase maximum mana by 20",
+            name: "Max Spell Charges +1",
+            description: "Increase spell charges by 1",
             price: 10,
-            icon: "mana_upgrade",
+            icon: "SpellCharges",
             effect: { state in
-                state.maxMana += 30
-            }
-        ),
-        ShopItem(
-            name: "Mana Regen +2",
-            description: "Increase mana regeneration",
-            price: 10,
-            icon: "regen_upgrade",
-            effect: { state in
-                state.manaRegenRate += 2
+                state.maxSpellCharges += 1
+                state.playerOneSpellCharges += 1
+                state.playerTwoSpellCharges += 1
             }
         ),
         ShopItem(

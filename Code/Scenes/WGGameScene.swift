@@ -23,12 +23,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var goblinManager: Goblin!
     var goblinSpawnInterval: TimeInterval = 2.0  // Changed to variable
     
-    // Mana potions
-    var manaPotions: [SKSpriteNode] = []
-    let manaPotionSpawnInterval: TimeInterval = 10.0  // Spawn rate
-    let manaPotionManaRestore: CGFloat = 60.0  // Amount of mana restored
-    let manaPotionDuration: TimeInterval = 10.0 // How long potions stay on the map
-    
     // Game over properties
     var restartButton: SKLabelNode!
     var mainMenuButton: SKLabelNode!
@@ -188,8 +182,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.totalGoblinsSpawned = 0
         self.goblinSpawnInterval = waveConfig.baseSpawnInterval
         self.updateGoblinCounter()
-        self.playerState.playerOneMana = self.playerState.maxMana
-        self.playerState.playerTwoMana = self.playerState.maxMana
+        
+        // Reset spell charges instead of mana
+        self.playerState.playerOneSpellCharges = self.playerState.maxSpellCharges
+        self.playerState.playerTwoSpellCharges = self.playerState.maxSpellCharges
         
         // Update wave label in PlayerView
         playerView.updateWaveLabel(wave: currentWave)
@@ -197,24 +193,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Start wave actions
         isSpawningEnabled = true
         
-        // Start mana regeneration
-        let regenerateMana = SKAction.run { [weak self] in
-            self?.playerState.regenerateMana()
+        // Start spell charge regeneration
+        let regenerateCharges = SKAction.run { [weak self] in
+            self?.playerState.regenerateSpellCharges()
         }
         let wait = SKAction.wait(forDuration: 1.0)
-        let regenSequence = SKAction.sequence([wait, regenerateMana])
+        let regenSequence = SKAction.sequence([wait, regenerateCharges])
         let repeatRegen = SKAction.repeatForever(regenSequence)
-        self.run(repeatRegen, withKey: "regenerateMana")
-        
-        // Start mana potion spawning
-        let spawnPotionAction = SKAction.sequence([
-            SKAction.wait(forDuration: manaPotionSpawnInterval),
-            SKAction.run { [weak self] in
-                self?.spawnManaPotion()
-            }
-        ])
-        let repeatPotionSpawn = SKAction.repeatForever(spawnPotionAction)
-        self.run(repeatPotionSpawn, withKey: "spawnPotion")
+        self.run(repeatRegen, withKey: "regenerateCharges")
         
         // Start goblin spawning
         startSpawnPatterns(with: waveConfig)
@@ -247,45 +233,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func endWave() {
         // Stop the actions
-        self.removeAction(forKey: "regenerateMana")
-        self.removeAction(forKey: "spawnPotion")
+        self.removeAction(forKey: "regenerateCharges")
         self.removeAction(forKey: "spawnPattern")
         
         isSpawningEnabled = false
-    }
-    
-    func spawnManaPotion() {
-        // Only spawn if the wave is active
-        guard isSpawningEnabled else { return }
-        
-        // Create random position within playable area
-        let randomX = CGFloat.random(in: 100...size.width-100)
-        let randomY = CGFloat.random(in: 200...size.height-100)
-        let position = CGPoint(x: randomX, y: randomY)
-        
-        // Create mana potion sprite
-        let potion = SKSpriteNode(color: .blue, size: CGSize(width: 30, height: 30))
-        potion.position = position
-        potion.name = "manaPotion"
-        
-        // Add some visual effects
-        potion.alpha = 0.8
-        let pulse = SKAction.sequence([
-            SKAction.scale(to: 1.2, duration: 0.5),
-            SKAction.scale(to: 1.0, duration: 0.5)
-        ])
-        potion.run(SKAction.repeatForever(pulse))
-        
-        // Add automatic removal after duration
-        let removeSequence = SKAction.sequence([
-            SKAction.wait(forDuration: manaPotionDuration),
-            SKAction.fadeOut(withDuration: 1.0),
-            SKAction.removeFromParent()
-        ])
-        potion.run(removeSequence)
-        
-        addChild(potion)
-        manaPotions.append(potion)
     }
     
     func setupBackground() {
@@ -296,52 +247,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(background)
     }
     
-    func handlePotionHit(potion: SKSpriteNode, spellLocation: CGPoint) {
-        // Find the closest wizard to the spell location
-        let distanceToPlayerOne = spellLocation.distance(to: playerView.playerOnePosition)
-        let distanceToPlayerTwo = spellLocation.distance(to: playerView.playerTwoPosition)
-        
-        // Determine which wizard gets the mana
-        if distanceToPlayerOne < distanceToPlayerTwo {
-            playerState.playerOneMana = min(playerState.maxMana, playerState.playerOneMana + manaPotionManaRestore)
-        } else {
-            playerState.playerTwoMana = min(playerState.maxMana, playerState.playerTwoMana + manaPotionManaRestore)
-        }
-        
-        // Create mana restore effect
-        createManaRestoreEffect(at: potion.position)
-        
-        // Remove the potion
-        if let index = manaPotions.firstIndex(of: potion) {
-            manaPotions.remove(at: index)
-        }
-        potion.removeFromParent()
-    }
-    
-    func createManaRestoreEffect(at position: CGPoint) {
-        // Create a visual effect for mana restoration
-        let effect = SKEmitterNode()
-        effect.particleTexture = SKTexture(imageNamed: "spark") // Add a spark image to assets
-        effect.position = position
-        effect.particleBirthRate = 100
-        effect.numParticlesToEmit = 50
-        effect.particleLifetime = 0.5
-        effect.particleColor = .blue
-        effect.particleColorBlendFactor = 1.0
-        effect.particleScale = 0.5
-        effect.particleScaleSpeed = -1.0
-        effect.emissionAngle = 0.0
-        effect.emissionAngleRange = .pi * 2
-        effect.particleSpeed = 100
-        effect.xAcceleration = 0
-        effect.yAcceleration = 0
-        addChild(effect)
-        
-        // Remove effect after duration
-        let wait = SKAction.wait(forDuration: 0.5)
-        let remove = SKAction.removeFromParent()
-        effect.run(SKAction.sequence([wait, remove]))
-    }
     
     func createCoinEffect(at position: CGPoint) {
         let coinSprite = SKSpriteNode(imageNamed: "coin") // Make sure to add a coin image to assets
@@ -384,13 +289,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         removeAllActions()
         isGameOver = true
         
-        // Remove any remaining goblins and potions
+        // Remove any remaining goblins
         goblinManager.removeAllGoblins(in: self)
-        
-        for potion in manaPotions {
-            potion.removeFromParent()
-        }
-        manaPotions.removeAll()
         
         let gameOverLabel = SKLabelNode(text: "Game Over!")
         gameOverLabel.fontSize = 50
@@ -445,7 +345,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // Handle button taps
-        let touchedNode = nodes(at: touchLocation).first  // Get the first node at touch location
+        let touchedNode = nodes(at: touchLocation).first
         if let name = touchedNode?.name {
             switch name {
             case "restartButton":
@@ -491,15 +391,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func applySpell(_ spell: Spell, at position: CGPoint) {
-        // Apply spell effects to goblins
+        // Apply spell effects to goblins only
         goblinManager.applySpell(spell, at: position, in: self)
-        
-        // Check for potion hits
-        for potion in manaPotions {
-            if position.distance(to: potion.position) <= spell.aoeRadius {
-                handlePotionHit(potion: potion, spellLocation: position)
-            }
-        }
     }
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
@@ -565,7 +458,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Reset properties
         playerState.reset()
-        manaPotions.removeAll()
         
         // Reset wave and goblin counters
         currentWave = 1

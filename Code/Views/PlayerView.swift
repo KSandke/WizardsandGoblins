@@ -9,10 +9,8 @@ class PlayerView {
     private var playerOne: SKSpriteNode
     private var playerTwo: SKSpriteNode
     
-    private var playerOneManaBar: SKShapeNode
-    private var playerTwoManaBar: SKShapeNode
-    private var playerOneManaFill: SKShapeNode
-    private var playerTwoManaFill: SKShapeNode
+    private var playerOneChargeSegments: [SKShapeNode] = []
+    private var playerTwoChargeSegments: [SKShapeNode] = []
     
     private var scoreLabel: SKLabelNode!
     private var coinLabel: SKLabelNode!
@@ -33,11 +31,6 @@ class PlayerView {
         playerOne = SKSpriteNode(imageNamed: "Wizard1")
         playerTwo = SKSpriteNode(imageNamed: "Wizard2")
         
-        playerOneManaBar = SKShapeNode(rectOf: CGSize(width: 100, height: 10))
-        playerTwoManaBar = SKShapeNode(rectOf: CGSize(width: 100, height: 10))
-        playerOneManaFill = SKShapeNode(rectOf: CGSize(width: 100, height: 10))
-        playerTwoManaFill = SKShapeNode(rectOf: CGSize(width: 100, height: 10))
-        
         setupBindings()
         setupUI()
     }
@@ -48,12 +41,12 @@ class PlayerView {
             self?.updateCastleHealthBar(health: health)
         }
         
-        state.onPlayerOneManaChanged = { [weak self] mana in
-            self?.updatePlayerOneManaBar(mana: mana)
+        state.onPlayerOneChargesChanged = { [weak self] charges in
+            self?.updatePlayerOneCharges(charges: charges)
         }
         
-        state.onPlayerTwoManaChanged = { [weak self] mana in
-            self?.updatePlayerTwoManaBar(mana: mana)
+        state.onPlayerTwoChargesChanged = { [weak self] charges in
+            self?.updatePlayerTwoCharges(charges: charges)
         }
 
         state.onScoreChanged = { [weak self] score in
@@ -64,7 +57,10 @@ class PlayerView {
             self?.updateCoinsLabel(coins: coins)
         }
 
-
+        // Add new binding for max charges
+        state.onMaxSpellChargesChanged = { [weak self] maxCharges in
+            self?.updateMaxCharges(maxCharges: maxCharges)
+        }
     }
     
     private func setupUI() {
@@ -108,25 +104,84 @@ class PlayerView {
     }
     
     private func setupManaBars() {
-        setupManaBar(bar: playerOneManaBar, fill: playerOneManaFill, atPosition: playerOne.position)
-        setupManaBar(bar: playerTwoManaBar, fill: playerTwoManaFill, atPosition: playerTwo.position)
+        setupChargeSegments(segments: &playerOneChargeSegments, atPosition: playerOne.position)
+        setupChargeSegments(segments: &playerTwoChargeSegments, atPosition: playerTwo.position)
         
-        updatePlayerOneManaBar(mana: state.playerOneMana)
-        updatePlayerTwoManaBar(mana: state.playerTwoMana)
+        updatePlayerOneCharges(charges: state.playerOneSpellCharges)
+        updatePlayerTwoCharges(charges: state.playerTwoSpellCharges)
     }
     
-    private func setupManaBar(bar: SKShapeNode, fill: SKShapeNode, atPosition pos: CGPoint) {
+    private func setupChargeSegments(segments: inout [SKShapeNode], atPosition pos: CGPoint) {
         guard let scene = parentScene else { return }
         
-        bar.fillColor = .gray
-        bar.strokeColor = .black
-        bar.position = CGPoint(x: pos.x, y: pos.y - 50)
-        scene.addChild(bar)
+        let screenMidX = scene.size.width / 2
         
-        fill.fillColor = .blue
-        fill.strokeColor = .clear
-        fill.position = bar.position
-        scene.addChild(fill)
+        // Calculate maximum available width based on whether this is player one or two
+        let maxAvailableWidth: CGFloat
+        if pos.x < screenMidX {  // Player One (left side)
+            maxAvailableWidth = min(
+                pos.x * 1.4,  // Distance from left edge
+                screenMidX - pos.x - 20  // Distance to middle, with 20pt buffer
+            )
+        } else {  // Player Two (right side)
+            maxAvailableWidth = min(
+                (scene.size.width - pos.x) * 1.4,  // Distance from right edge
+                pos.x - screenMidX - 20  // Distance from middle, with 20pt buffer
+            )
+        }
+        
+        // Base segment sizes
+        let baseSegmentWidth: CGFloat = 18
+        let baseSegmentHeight: CGFloat = 10
+        let baseSpacing: CGFloat = 2
+        
+        // Calculate total width needed for base sizes
+        let baseWidth = (baseSegmentWidth * CGFloat(state.maxSpellCharges)) + 
+                       (baseSpacing * CGFloat(state.maxSpellCharges - 1))
+        
+        // Calculate scale factor if needed
+        let scaleFactor = min(1.0, maxAvailableWidth / baseWidth)
+        
+        // Apply scale to measurements
+        let segmentWidth = baseSegmentWidth * scaleFactor
+        let segmentHeight = baseSegmentHeight * scaleFactor
+        let spacing = baseSpacing * scaleFactor
+        
+        // Calculate total width with scaled measurements
+        let totalWidth = (segmentWidth * CGFloat(state.maxSpellCharges)) + 
+                        (spacing * CGFloat(state.maxSpellCharges - 1))
+        
+        // Adjust startX to ensure segments stay on their respective sides
+        let startX: CGFloat
+        if pos.x < screenMidX {  // Player One (left side)
+            startX = min(pos.x - (totalWidth / 2), screenMidX - totalWidth - 20)
+        } else {  // Player Two (right side)
+            startX = max(pos.x - (totalWidth / 2), screenMidX + 20)
+        }
+        
+        for i in 0..<state.maxSpellCharges {
+            let segment = SKShapeNode(rectOf: CGSize(width: segmentWidth, height: segmentHeight))
+            segment.fillColor = .blue
+            segment.strokeColor = .black
+            segment.position = CGPoint(
+                x: startX + (CGFloat(i) * (segmentWidth + spacing)) + (segmentWidth / 2),
+                y: pos.y - 50
+            )
+            scene.addChild(segment)
+            segments.append(segment)
+        }
+    }
+    
+    private func updatePlayerOneCharges(charges: Int) {
+        for (index, segment) in playerOneChargeSegments.enumerated() {
+            segment.fillColor = index < charges ? .blue : .gray
+        }
+    }
+    
+    private func updatePlayerTwoCharges(charges: Int) {
+        for (index, segment) in playerTwoChargeSegments.enumerated() {
+            segment.fillColor = index < charges ? .blue : .gray
+        }
     }
 
     private func setupScoreLabel() {
@@ -194,14 +249,6 @@ class PlayerView {
         castleHealthFill.xScale = health / state.maxCastleHealth
     }
     
-    private func updatePlayerOneManaBar(mana: CGFloat) {
-        playerOneManaFill.xScale = mana / state.maxMana
-    }
-    
-    private func updatePlayerTwoManaBar(mana: CGFloat) {
-        playerTwoManaFill.xScale = mana / state.maxMana
-    }
-
     private func updateScoreLabel(score: Int) {
         scoreLabel.text = "Score: \(score)"
         if let shadowLabel = scoreLabel.children.first as? SKLabelNode {
@@ -234,5 +281,22 @@ class PlayerView {
     
     var playerTwoPosition: CGPoint {
         playerTwo.position
+    }
+
+    // Add new function to handle max charges change
+    private func updateMaxCharges(maxCharges: Int) {
+        // Remove existing charge segments
+        playerOneChargeSegments.forEach { $0.removeFromParent() }
+        playerTwoChargeSegments.forEach { $0.removeFromParent() }
+        playerOneChargeSegments.removeAll()
+        playerTwoChargeSegments.removeAll()
+        
+        // Setup new charge segments
+        setupChargeSegments(segments: &playerOneChargeSegments, atPosition: playerOne.position)
+        setupChargeSegments(segments: &playerTwoChargeSegments, atPosition: playerTwo.position)
+        
+        // Update visual state
+        updatePlayerOneCharges(charges: state.playerOneSpellCharges)
+        updatePlayerTwoCharges(charges: state.playerTwoSpellCharges)
     }
 } 
