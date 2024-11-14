@@ -40,9 +40,10 @@ class Goblin {
     var nextGoblinType: GoblinType = .normal
     
     init(scene: SKScene, probabilities: [GoblinType: Double] = [
-        .normal: 70.0,
+        .normal: 60.0,
         .large: 15.0,
-        .small: 15.0
+        .small: 15.0,
+        .ranged: 10.0
     ]) {
         self.scene = scene
         self.goblinTypeProbabilities = probabilities
