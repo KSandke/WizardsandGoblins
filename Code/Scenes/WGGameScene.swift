@@ -112,7 +112,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ]
             ),
             1: WaveConfig( //use this config for testing
-                goblinTypeProbabilities: [.ranged: 100.0],
+                goblinTypeProbabilities: [.normal: 100.0],
                 maxGoblins: 10,
                 baseSpawnInterval: 2.0,
                 spawnPatterns: [
@@ -149,7 +149,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ]
             ),
             5: WaveConfig(
-                goblinTypeProbabilities: [.normal: 50.0, .small: 25.0, .large: 25.0],
+                goblinTypeProbabilities: [.normal: 40.0, .small: 25.0, .large: 25.0, .ranged: 10.0],
                 maxGoblins: 25,
                 baseSpawnInterval: 1.5,
                 spawnPatterns: [
@@ -166,6 +166,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .single, probability: 80.0),
                     SpawnPatternConfig(pattern: .line(count: 3), probability: 20.0)
                 ]
+            ),
+            7: WaveConfig(
+                goblinTypeProbabilities: [.ranged: 100.0],
+                maxGoblins: 30,
+                baseSpawnInterval: 1.2,
+                spawnPatterns: [SpawnPatternConfig(pattern: .single, probability: 100.0)]
             )
         ]
     }
