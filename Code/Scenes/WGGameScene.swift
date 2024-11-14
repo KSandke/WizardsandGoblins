@@ -136,7 +136,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         if firstBody.categoryBitMask == PhysicsCategory.goblinProjectile && secondBody.categoryBitMask == PhysicsCategory.castle {
             // Castle takes damage
-            castleTakeDamage(damage: 10)
+            castleTakeDamage(damage: /* define damage amount */)
             // Remove projectile
             firstBody.node?.removeFromParent()
         }
