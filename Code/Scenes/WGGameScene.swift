@@ -100,38 +100,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         startWave()
     }
     
-    func didBegin(_ contact: SKPhysicsContact) {
-        // Determine which bodies are involved
-        let firstBody: SKPhysicsBody
-        let secondBody: SKPhysicsBody
-
-        // Ensure consistent ordering
-        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
-            firstBody = contact.bodyA
-            secondBody = contact.bodyB
-        } else {
-            firstBody = contact.bodyB
-            secondBody = contact.bodyA
-        }
-
-        // Handle collisions
-        if firstBody.categoryBitMask == PhysicsCategory.goblin && secondBody.categoryBitMask == PhysicsCategory.spell {
-            if let goblinNode = firstBody.node as? SKSpriteNode {
-                // Apply damage or effects to the goblin
-                goblinManager.handleSpellHit(on: goblinNode)
-            }
-            secondBody.node?.removeFromParent()
-        }
-
-        if firstBody.categoryBitMask == PhysicsCategory.goblinProjectile && secondBody.categoryBitMask == PhysicsCategory.castle {
-            // Castle takes damage
-            castleTakeDamage(damage: /* define damage amount */)
-            // Remove projectile
-            firstBody.node?.removeFromParent()
-        }
-
-        // Add more collision handling as needed
-    }
     func setupWaves() {
         waveConfigs = [ // Default wave configuration
             -1: WaveConfig( 

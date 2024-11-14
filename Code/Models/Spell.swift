@@ -30,15 +30,6 @@ class Spell {
         spellNode.position = casterPosition
         scene.addChild(spellNode)
         
-        // Set up physics body
-        let physicsBody = SKPhysicsBody(circleOfRadius: spellNode.size.width / 2)
-        physicsBody.isDynamic = true
-        physicsBody.affectedByGravity = false
-        physicsBody.categoryBitMask = PhysicsCategory.spell
-        physicsBody.contactTestBitMask = PhysicsCategory.goblin
-        physicsBody.collisionBitMask = PhysicsCategory.none
-        spellNode.physicsBody = physicsBody
-        
         // Calculate direction and rotation
         let dx = targetPosition.x - casterPosition.x
         let dy = targetPosition.y - casterPosition.y

@@ -93,13 +93,6 @@ class PlayerView {
         scene.addChild(castleHealthFill)
         
         updateCastleHealthBar(health: state.castleHealth)
-
-        // After setting up the castle node
-        castle.physicsBody = SKPhysicsBody(rectangleOf: castle.size)
-        castle.physicsBody?.isDynamic = false
-        castle.physicsBody?.categoryBitMask = PhysicsCategory.castle
-        castle.physicsBody?.contactTestBitMask = PhysicsCategory.goblin | PhysicsCategory.goblinProjectile
-        castle.physicsBody?.collisionBitMask = PhysicsCategory.none
     }
     
     private func setupWizards() {
