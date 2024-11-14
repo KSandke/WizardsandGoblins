@@ -74,6 +74,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Update the property declaration
     var waveConfigs: [Int: WaveConfig] = [:]  // Changed from array to dictionary
+
+    // Add properties for mana potion drop chance and spell charge restore amount
+    var manaPotionDropChance: Double = 0.1  // 10% chance by default
+    var spellChargeRestoreAmount: Int = 2
     
     // Add properties for spell icons
     private var playerOneSpellIcon: SKSpriteNode!
@@ -410,6 +414,52 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Apply spell effects to goblins only
         goblinManager.applySpell(spell, at: position, in: self)
     }
+
+    func createSpellChargeRestoreEffect(at position: CGPoint) {
+    let effect = SKEmitterNode()
+    effect.particleTexture = SKTexture(imageNamed: "spark") // Add spark image to assets
+    effect.position = position
+    effect.particleBirthRate = 100
+    effect.numParticlesToEmit = 50
+    effect.particleLifetime = 0.5
+    effect.particleColor = .blue
+    effect.particleColorBlendFactor = 1.0
+    effect.particleScale = 0.5
+    effect.particleScaleSpeed = -1.0
+    effect.emissionAngle = 0.0
+    effect.emissionAngleRange = .pi * 2
+    effect.particleSpeed = 100
+    effect.xAcceleration = 0
+    effect.yAcceleration = 0
+    addChild(effect)
+    
+    let wait = SKAction.wait(forDuration: 0.5)
+    let remove = SKAction.removeFromParent()
+    effect.run(SKAction.sequence([wait, remove]))
+    }
+    
+    func handlePotionCollection(at position: CGPoint) {
+        // Determine which wizard has fewer charges
+        let playerOneCharges = playerState.playerOneSpellCharges
+        let playerTwoCharges = playerState.playerTwoSpellCharges
+        
+        // Give charges to the wizard with fewer charges
+        // If equal, give to player one
+        if playerOneCharges <= playerTwoCharges {
+            playerState.playerOneSpellCharges = min(
+                playerState.maxSpellCharges,
+                playerState.playerOneSpellCharges + spellChargeRestoreAmount
+            )
+        } else {
+            playerState.playerTwoSpellCharges = min(
+                playerState.maxSpellCharges,
+                playerState.playerTwoSpellCharges + spellChargeRestoreAmount
+            )
+        }
+        
+        // Create collection effect
+        createSpellChargeRestoreEffect(at: position)
+    }
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
         // Add coins when goblin is killed (50% chance of 5 coins)
@@ -422,6 +472,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             // Add points when goblin is eliminated
             playerState.addScore(points: 10)
+
+            // Check for mana potion drop and auto-collect
+            if Double.random(in: 0...1) < manaPotionDropChance {
+                handlePotionCollection(at: container.sprite.position)
+            }
+
         }
         
         // Only decrease if counter is greater than 0
