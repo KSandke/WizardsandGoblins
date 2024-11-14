@@ -127,14 +127,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         // Handle collisions
         if firstBody.categoryBitMask == PhysicsCategory.goblin && secondBody.categoryBitMask == PhysicsCategory.spell {
-            if let goblinNode = firstBody.node as? SKSpriteNode,
-               let spellNode = secondBody.node as? SKSpriteNode,
-               let spell = spellNode.userData?["spell"] as? Spell {
-                // Get damage from the spell object
-                let damage = spell.damage
-
+            if let goblinNode = firstBody.node as? SKSpriteNode {
                 // Apply damage or effects to the goblin
-                goblinManager.handleSpellHit(on: goblinNode, damage: damage)
+                goblinManager.handleSpellHit(on: goblinNode)
             }
             secondBody.node?.removeFromParent()
         }
@@ -145,14 +140,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Remove projectile
             firstBody.node?.removeFromParent()
         }
-
-        if let spellNode = secondBody.node as? SKSpriteNode,
-           let goblinNode = firstBody.node as? SKSpriteNode,
-           let spell = spellNode.userData?["spell"] as? Spell {
-            let damage = spell.damage
-            goblinManager.handleSpellHit(on: goblinNode, damage: damage)
-        }
-
+    
         // Add more collision handling as needed
     }
 
