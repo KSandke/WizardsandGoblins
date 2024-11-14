@@ -118,7 +118,7 @@ class Goblin {
         return .normal
     }
     
-    private func moveGoblin(container: GoblinContainer) {
+    func moveGoblin(container: GoblinContainer) {
         guard let scene = scene as? GameScene else { return }
         let targetPosition = scene.playerView.castlePosition
         let goblinSpeed = goblinSpeed(for: container.type)
