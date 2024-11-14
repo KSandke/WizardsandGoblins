@@ -311,23 +311,22 @@ class Goblin {
             removeGoblin(container: container)
         }
     }
-    func handleSpellHit(on goblinNode: SKSpriteNode, damage: CGFloat) {
+    func handleSpellHit(on goblinNode: SKSpriteNode) {
         if let container = goblinContainers.first(where: { $0.sprite == goblinNode }) {
             // Apply damage
-            container.health -= damage
+            container.health -= /* spell damage */
             updateHealthBar(for: container)
 
             // Check if goblin is dead
             if container.health <= 0 {
                 removeGoblin(container: container)
-                // Inform the game scene that a goblin has died
-                if let gameScene = scene as? GameScene {
-                    gameScene.goblinDied(container: container, goblinKilled: true)
-                }
+            // Inform the game scene that a goblin has died
+            if let gameScene = scene as? GameScene {
+                gameScene.goblinDied(container: container, goblinKilled: true)
+            }
             }
         }
     }
-    
     private func updateHealthBar(for container: GoblinContainer) {
         let healthPercentage = container.health / container.maxHealth
         container.healthFill.xScale = max(healthPercentage, 0)
