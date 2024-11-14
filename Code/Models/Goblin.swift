@@ -226,7 +226,7 @@ class Goblin {
         case .large:
             return CGSize(width: 100, height: 100)
         case .small:
-            return CGSize(width: 25, height: 25)
+            return CGSize(width: 50, height: 50)
         case .arrow:
             return CGSize(width: 10, height: 10)
         }
