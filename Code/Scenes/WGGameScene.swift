@@ -263,16 +263,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func spawnGoblin(at position: CGPoint) {
-        // Only count non-arrow goblins towards wave total
+        // Check if spawning is enabled and if the game is not over
         if !isSpawningEnabled || totalGoblinsSpawned >= maxGoblinsPerWave || isGameOver {
             return
         }
 
-        // Only increment counter for non-arrow spawns
-        if goblinManager.nextGoblinType != Goblin.GoblinType.arrow {
-            totalGoblinsSpawned += 1
-        }
-        
+        // Increment the total goblins spawned
+        totalGoblinsSpawned += 1
+
         // Use goblinManager to spawn a goblin at the position
         goblinManager.spawnGoblin(at: position)
     }
@@ -396,29 +394,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
-        // Skip arrow deaths in goblin counting logic
-        if container.type != .arrow {
-            // Add coins when goblin is killed (50% chance of 5 coins)
-            if goblinKilled {
-                if Bool.random() {
-                    playerState.addCoins(5)
-                    
-                    // Create coin particle effect
-                    createCoinEffect(at: container.sprite.position)
-                }
-                // Add points when goblin is eliminated
-                playerState.addScore(points: 10)
-            }
-            
-            // Only decrease if counter is greater than 0
-            if remainingGoblins > 0 {
-                remainingGoblins -= 1
-                updateGoblinCounter()
+        // Add coins when goblin is killed (50% chance of 5 coins)
+        if goblinKilled {
+            if Bool.random() {
+                playerState.addCoins(5)
                 
-                // Check if wave is complete when counter reaches 0
-                if remainingGoblins == 0 {
-                    waveCompleted()
-                }
+                // Create coin particle effect
+                createCoinEffect(at: container.sprite.position)
+            }
+            // Add points when goblin is eliminated
+            playerState.addScore(points: 10)
+        }
+        
+        // Only decrease if counter is greater than 0
+        if remainingGoblins > 0 {
+            remainingGoblins -= 1
+            updateGoblinCounter()
+            
+            // Check if wave is complete when counter reaches 0
+            if remainingGoblins == 0 {
+                waveCompleted()
             }
         }
     }
@@ -656,6 +651,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             let wait = SKAction.wait(forDuration: interval * Double(i))
             run(SKAction.sequence([wait, spawnAction]))
+        }
+    }
+
+    // Add this extension to your GameScene class
+    extension GameScene: SKPhysicsContactDelegate {
+        func didBegin(_ contact: SKPhysicsContact) {
+            // Determine which bodies are involved in the collision
+            let firstBody: SKPhysicsBody
+            let secondBody: SKPhysicsBody
+
+            if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+                firstBody = contact.bodyA
+                secondBody = contact.bodyB
+            } else {
+                firstBody = contact.bodyB
+                secondBody = contact.bodyA
+            }
+
+            // Handle collision between enemy projectile (arrow) and the castle
+            if firstBody.categoryBitMask == PhysicsCategory.enemyProjectile && secondBody.categoryBitMask == PhysicsCategory.castle {
+                if let arrow = firstBody.node as? SKSpriteNode {
+                    castleTakeDamage(damage: 5) // Adjust the damage value as needed
+                    arrow.removeFromParent()
+                }
+            }
         }
     }
 }

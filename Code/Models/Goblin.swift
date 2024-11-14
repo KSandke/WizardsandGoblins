@@ -7,7 +7,6 @@ class Goblin {
         case large
         case small
         case ranged
-        case arrow
     }
     
     class GoblinContainer {
@@ -125,11 +124,11 @@ class Goblin {
         guard let scene = scene as? GameScene else { return }
         let targetPosition = scene.playerView.castlePosition
         
-        // Add special handling for ranged goblin
+        // Calculate the final position for the goblin
         let finalPosition: CGPoint
         if container.type == .ranged {
             let vector = CGVector(dx: targetPosition.x - container.sprite.position.x,
-                                dy: targetPosition.y - container.sprite.position.y)
+                                  dy: targetPosition.y - container.sprite.position.y)
             let distance = sqrt(vector.dx * vector.dx + vector.dy * vector.dy)
             let ratio = max(0, (distance - 500) / distance)
             finalPosition = CGPoint(
@@ -141,39 +140,34 @@ class Goblin {
         }
         
         let moveDuration = TimeInterval(container.sprite.position.distance(to: finalPosition) / goblinSpeed(for: container.type))
-        
         let moveAction = SKAction.move(to: finalPosition, duration: moveDuration)
-        let damageAction = SKAction.run { [weak self] in
-            scene.castleTakeDamage(damage: container.damage)
-            // Call goblinDied with goblinKilled = false for castle collision
-            scene.goblinDied(container: container, goblinKilled: false)
-            self?.removeGoblin(container: container)
-        }
         
         if container.type == .ranged {
-            // Ranged goblins don't damage the castle directly
+            // Ranged goblins move to a position and start shooting arrows
             container.sprite.run(moveAction)
             
             // Create repeating arrow attack
             let spawnArrow = SKAction.run { [weak self] in
                 guard let self = self else { return }
-                // Only spawn arrow if goblin is still alive
+                // Ensure the goblin is still alive
                 guard self.goblinContainers.contains(where: { $0 === container }) else { return }
                 
-                // Spawn arrow at goblin's position
-                self.spawnGoblin(
-                    at: container.sprite.position,
-                    specificType: .arrow
-                )
+                // Spawn an arrow towards the castle
+                self.spawnArrow(from: container.sprite.position, to: scene.playerView.castlePosition)
             }
             
-            // Create sequence with delay between arrows
-            let waitAction = SKAction.wait(forDuration: 1.5) // Adjust timing as needed
-            let sequence = SKAction.sequence([waitAction, spawnArrow])
-            let repeatForever = SKAction.repeatForever(sequence)
-            
-            container.sprite.run(repeatForever)
+            // Set up the arrow attack sequence
+            let waitAction = SKAction.wait(forDuration: 1.5) // Adjust as needed
+            let attackSequence = SKAction.sequence([spawnArrow, waitAction])
+            let repeatAttack = SKAction.repeatForever(attackSequence)
+            container.sprite.run(repeatAttack, withKey: "rangedAttack")
         } else {
+            // Other goblins move and damage the castle upon arrival
+            let damageAction = SKAction.run { [weak self] in
+                scene.castleTakeDamage(damage: container.damage)
+                scene.goblinDied(container: container, goblinKilled: false)
+                self?.removeGoblin(container: container)
+            }
             let sequence = SKAction.sequence([moveAction, damageAction])
             container.sprite.run(sequence)
         }
@@ -187,8 +181,8 @@ class Goblin {
             return 50
         case .small:
             return 200
-        case .arrow:
-            return 300
+        // case .arrow:
+        //     return 300
         }
     }
     
@@ -200,8 +194,8 @@ class Goblin {
             return 100
         case .small:
             return 25
-        case .arrow:
-            return 0
+        // case .arrow:
+        //     return 0
         }
     }
     
@@ -215,8 +209,8 @@ class Goblin {
             return 5
         case .ranged:
             return 5
-        case .arrow:
-            return 5
+        // case .arrow:
+        //     return 5
         }
     }
     
@@ -228,8 +222,8 @@ class Goblin {
             return CGSize(width: 100, height: 100)
         case .small:
             return CGSize(width: 50, height: 50)
-        case .arrow:
-            return CGSize(width: 10, height: 10)
+        // case .arrow:
+        //     return CGSize(width: 10, height: 10)
         }
     }
     
@@ -239,8 +233,8 @@ class Goblin {
             return "Goblin1"
         case .ranged:
             return "rangedGoblin" // You'll need to add this asset
-        case .arrow:
-            return "Arrow" // You'll need to add this asset
+        // case .arrow:
+        //     return "Arrow" // You'll need to add this asset
         case .small:
             return "smallGoblin"
         }
@@ -289,5 +283,44 @@ class Goblin {
         for container in containersToRemove {
             removeGoblin(container: container)
         }
+    }
+
+    private func spawnArrow(from startPosition: CGPoint, to targetPosition: CGPoint) {
+        guard let scene = scene as? GameScene else { return }
+
+        // Create the arrow sprite
+        let arrowSprite = SKSpriteNode(imageNamed: "Arrow")
+        arrowSprite.size = CGSize(width: 10, height: 10)
+        arrowSprite.position = startPosition
+        arrowSprite.zPosition = 1
+
+        // Calculate the movement vector and duration
+        let vector = CGVector(dx: targetPosition.x - startPosition.x, dy: targetPosition.y - startPosition.y)
+        let distance = sqrt(vector.dx * vector.dx + vector.dy * vector.dy)
+        let moveDuration = TimeInterval(distance / arrowSpeed())
+
+        // Define the movement action
+        let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
+        let removeAction = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([moveAction, removeAction])
+
+        arrowSprite.run(sequence)
+
+        // Set up the physics body for collision detection
+        let physicsBody = SKPhysicsBody(rectangleOf: arrowSprite.size)
+        physicsBody.isDynamic = true
+        physicsBody.affectedByGravity = false
+        physicsBody.allowsRotation = false
+        physicsBody.categoryBitMask = PhysicsCategory.enemyProjectile
+        physicsBody.contactTestBitMask = PhysicsCategory.castle
+        physicsBody.collisionBitMask = 0
+        arrowSprite.physicsBody = physicsBody
+
+        // Add the arrow to the scene
+        scene.addChild(arrowSprite)
+    }
+
+    func arrowSpeed() -> CGFloat {
+        return 300.0 // Adjust the speed as needed
     }
 } 

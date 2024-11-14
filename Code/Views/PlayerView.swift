@@ -76,6 +76,7 @@ class PlayerView {
         guard let scene = parentScene else { return }
         
         castle.position = CGPoint(x: scene.size.width/2, y: 50)
+        castle.zPosition = 0
         scene.addChild(castle)
         
         castleHealthBar.fillColor = .gray
@@ -87,6 +88,16 @@ class PlayerView {
         castleHealthFill.strokeColor = .clear
         castleHealthFill.position = castleHealthBar.position
         scene.addChild(castleHealthFill)
+
+        //setup physics
+        let castlePhysicsBody = SKPhysicsBody(rectangleOf: castleSprite.size)
+        castlePhysicsBody.isDynamic = false
+        castlePhysicsBody.affectedByGravity = false
+        castlePhysicsBody.allowsRotation = false
+        castlePhysicsBody.categoryBitMask = PhysicsCategory.castle
+        castlePhysicsBody.contactTestBitMask = PhysicsCategory.enemyProjectile
+        castlePhysicsBody.collisionBitMask = 0
+        castleSprite.physicsBody = castlePhysicsBody
         
         updateCastleHealthBar(health: state.castleHealth)
     }
