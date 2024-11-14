@@ -1,6 +1,12 @@
 import Foundation
 import SpriteKit
 
+struct PhysicsCategory {
+    static let none: UInt32 = 0
+    static let castle: UInt32 = 0b1          // 1
+    static let enemyProjectile: UInt32 = 0b10 // 2
+}
+
 class Goblin {
     enum GoblinType {
         case normal
@@ -313,7 +319,7 @@ class Goblin {
         physicsBody.allowsRotation = false
         physicsBody.categoryBitMask = PhysicsCategory.enemyProjectile
         physicsBody.contactTestBitMask = PhysicsCategory.castle
-        physicsBody.collisionBitMask = 0
+        physicsBody.collisionBitMask = PhysicsCategory.none
         arrowSprite.physicsBody = physicsBody
 
         // Add the arrow to the scene
