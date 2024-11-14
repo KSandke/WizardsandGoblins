@@ -320,7 +320,7 @@ class Goblin {
 
         // Create the arrow sprite
         let arrowSprite = SKSpriteNode(imageNamed: "Arrow")
-        arrowSprite.size = CGSize(width: 10, height: 10)
+        arrowSprite.size = CGSize(width: 15, height: 15)
         arrowSprite.position = startPosition
         arrowSprite.zPosition = 1
 
