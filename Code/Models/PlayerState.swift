@@ -164,4 +164,9 @@ class PlayerState {
             secondarySpell = spell
         }
     }
+    
+    // Add this new method to PlayerState
+    func getCurrentSpellName() -> String {
+        return isUsingPrimarySpell ? primarySpell.name : secondarySpell.name
+    }
 } 

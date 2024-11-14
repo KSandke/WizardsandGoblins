@@ -75,6 +75,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Update the property declaration
     var waveConfigs: [Int: WaveConfig] = [:]  // Changed from array to dictionary
     
+    // Add properties for spell icons
+    private var playerOneSpellIcon: SKSpriteNode!
+    private var playerTwoSpellIcon: SKSpriteNode!
+    
     override func didMove(to view: SKView) {
         // Initialize Player State and View
         playerState = PlayerState()
@@ -92,6 +96,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Start the first wave
         startWave()
+        
+        // Setup spell icons
+        setupSpellIcons()
     }
     
     func setupWaves() {
@@ -364,9 +371,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Check if either wizard was tapped
         if touchLocation.distance(to: p1Position) < 30 { // Adjust radius as needed
             playerState.swapSpells(isPlayerOne: true)
+            updateSpellIcons()
             return
         } else if touchLocation.distance(to: p2Position) < 30 { // Adjust radius as needed
             playerState.swapSpells(isPlayerOne: false)
+            updateSpellIcons()
             return
         }
         
@@ -661,6 +670,38 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let wait = SKAction.wait(forDuration: interval * Double(i))
             run(SKAction.sequence([wait, spawnAction]))
         }
+    }
+    
+    func setupSpellIcons() {
+        // Create spell icons
+        playerOneSpellIcon = SKSpriteNode(imageNamed: playerState.getCurrentSpellName())
+        playerTwoSpellIcon = SKSpriteNode(imageNamed: playerState.getCurrentSpellName())
+        
+        // Set size for icons
+        let iconSize = CGSize(width: 30, height: 30) // Adjust size as needed
+        playerOneSpellIcon.size = iconSize
+        playerTwoSpellIcon.size = iconSize
+        
+        // Position icons next to wizards
+        playerOneSpellIcon.position = CGPoint(
+            x: playerView.playerOnePosition.x + 40, // Adjust offset as needed
+            y: playerView.playerOnePosition.y
+        )
+        playerTwoSpellIcon.position = CGPoint(
+            x: playerView.playerTwoPosition.x + 40, // Adjust offset as needed
+            y: playerView.playerTwoPosition.y
+        )
+        
+        // Add to scene
+        addChild(playerOneSpellIcon)
+        addChild(playerTwoSpellIcon)
+    }
+    
+    // Update the spell icons when spells are swapped
+    func updateSpellIcons() {
+        let spellTexture = SKTexture(imageNamed: playerState.getCurrentSpellName())
+        playerOneSpellIcon.texture = spellTexture
+        playerTwoSpellIcon.texture = spellTexture
     }
 }
 
