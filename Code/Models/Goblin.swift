@@ -167,7 +167,7 @@ class Goblin {
             }
             
             // Create sequence with delay between arrows
-            let waitAction = SKAction.wait(forDuration: 1.0) // Adjust timing as needed
+            let waitAction = SKAction.wait(forDuration: 1.5) // Adjust timing as needed
             let sequence = SKAction.sequence([waitAction, spawnArrow])
             let repeatForever = SKAction.repeatForever(sequence)
             
