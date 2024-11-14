@@ -234,12 +234,14 @@ class Goblin {
     
     func imageName(for type: GoblinType) -> String {
         switch type {
-        case .normal, .large, .small:
+        case .normal, .large:
             return "Goblin1"
         case .ranged:
-            return "GoblinRanged" // You'll need to add this asset
+            return "rangedGoblin" // You'll need to add this asset
         case .arrow:
             return "Arrow" // You'll need to add this asset
+        case .small:
+            return "smallGoblin"
         }
     }
     
