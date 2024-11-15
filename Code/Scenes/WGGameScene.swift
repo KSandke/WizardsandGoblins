@@ -457,11 +457,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             )
         }
         
-        // Replace particle effect with frame animation
+        // Replace particle effect with larger frame animation
         createFrameAnimation(at: position,
-                            framePrefix: "ManaPot",  // Update this to match your asset names
-                            frameCount: 4,  // Update this to match your number of frames
-                            duration: 0.5)  // Adjust timing as needed
+                            framePrefix: "ManaPot",
+                            frameCount: 4,
+                            duration: 1,
+                            size: CGSize(width: 100, height: 100))  // Adjust size as needed
     }
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
@@ -767,10 +768,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func createFrameAnimation(at position: CGPoint, 
                             framePrefix: String, 
                             frameCount: Int, 
-                            duration: TimeInterval) {
+                            duration: TimeInterval,
+                            size: CGSize) {
         // Create sprite with first frame
         let animationNode = SKSpriteNode(imageNamed: "\(framePrefix)1")
         animationNode.position = position
+        animationNode.size = size
         addChild(animationNode)
         
         // Create array of textures
