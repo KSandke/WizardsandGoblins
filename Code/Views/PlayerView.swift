@@ -175,15 +175,85 @@ class PlayerView {
     }
     
     private func updatePlayerOneCharges(charges: Int) {
-        for (index, segment) in playerOneChargeSegments.enumerated() {
-            segment.fillColor = index < charges ? .blue : .gray
+        // Get the previous charge count by counting blue segments
+        let previousCharges = playerOneChargeSegments.filter { $0.fillColor == .blue }.count
+        
+        // If charges increased, animate the new segments
+        if charges > previousCharges {
+            for (index, segment) in playerOneChargeSegments.enumerated() {
+                if index < charges {
+                    if index >= previousCharges {
+                        // Animate new charge segments
+                        animateChargeSegment(segment)
+                    } else {
+                        // Keep existing charged segments blue
+                        segment.fillColor = .blue
+                    }
+                } else {
+                    segment.fillColor = .gray
+                }
+            }
+        } else {
+            // Regular update without animation
+            for (index, segment) in playerOneChargeSegments.enumerated() {
+                segment.fillColor = index < charges ? .blue : .gray
+            }
         }
     }
     
     private func updatePlayerTwoCharges(charges: Int) {
-        for (index, segment) in playerTwoChargeSegments.enumerated() {
-            segment.fillColor = index < charges ? .blue : .gray
+        // Get the previous charge count by counting blue segments
+        let previousCharges = playerTwoChargeSegments.filter { $0.fillColor == .blue }.count
+        
+        // If charges increased, animate the new segments
+        if charges > previousCharges {
+            for (index, segment) in playerTwoChargeSegments.enumerated() {
+                if index < charges {
+                    if index >= previousCharges {
+                        // Animate new charge segments
+                        animateChargeSegment(segment)
+                    } else {
+                        // Keep existing charged segments blue
+                        segment.fillColor = .blue
+                    }
+                } else {
+                    segment.fillColor = .gray
+                }
+            }
+        } else {
+            // Regular update without animation
+            for (index, segment) in playerTwoChargeSegments.enumerated() {
+                segment.fillColor = index < charges ? .blue : .gray
+            }
         }
+    }
+
+    private func animateChargeSegment(_ segment: SKShapeNode) {
+        // Create flash animation sequence
+        let flashDuration = 0.15
+        
+        // Start with white flash
+        let flashWhite = SKAction.run { segment.fillColor = .white }
+        let waitFlash = SKAction.wait(forDuration: flashDuration)
+        
+        // Then transition to bright blue
+        let flashBrightBlue = SKAction.run { segment.fillColor = SKColor(red: 0.3, green: 0.7, blue: 1.0, alpha: 1.0) }
+        let waitBright = SKAction.wait(forDuration: flashDuration)
+        
+        // Finally settle to regular blue
+        let setNormalBlue = SKAction.run { segment.fillColor = .blue }
+        
+        // Combine into sequence
+        let sequence = SKAction.sequence([
+            flashWhite,
+            waitFlash,
+            flashBrightBlue,
+            waitBright,
+            setNormalBlue
+        ])
+        
+        // Run the animation
+        segment.run(sequence)
     }
 
     private func setupScoreLabel() {
