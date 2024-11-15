@@ -457,13 +457,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             )
         }
         
-        // Create collection effect
-        createSpellChargeRestoreEffect(at: position)
+        // Replace particle effect with frame animation
+        createFrameAnimation(at: position,
+                            framePrefix: "ManaPot",  // Update this to match your asset names
+                            frameCount: 4,  // Update this to match your number of frames
+                            duration: 0.5)  // Adjust timing as needed
     }
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
         // Add coins when goblin is killed (50% chance of 5 coins)
         if goblinKilled {
+            
             if Bool.random() {
                 playerState.addCoins(5)
                 
@@ -758,6 +762,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let spellTexture = SKTexture(imageNamed: playerState.getCurrentSpellName())
         playerOneSpellIcon.texture = spellTexture
         playerTwoSpellIcon.texture = spellTexture
+    }
+    
+    func createFrameAnimation(at position: CGPoint, 
+                            framePrefix: String, 
+                            frameCount: Int, 
+                            duration: TimeInterval) {
+        // Create sprite with first frame
+        let animationNode = SKSpriteNode(imageNamed: "\(framePrefix)1")
+        animationNode.position = position
+        addChild(animationNode)
+        
+        // Create array of textures
+        var textures: [SKTexture] = []
+        for i in 1...frameCount {
+            let texture = SKTexture(imageNamed: "\(framePrefix)\(i)")
+            textures.append(texture)
+        }
+        
+        // Create animation action
+        let animate = SKAction.animate(with: textures, 
+                                     timePerFrame: duration/Double(frameCount))
+        let remove = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([animate, remove])
+        
+        // Run animation once
+        animationNode.run(sequence)
     }
 }
 
