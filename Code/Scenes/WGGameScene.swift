@@ -461,7 +461,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         createFrameAnimation(at: position,
                             framePrefix: "ManaPot",
                             frameCount: 4,
-                            duration: 1,
+                             duration: 0.6,
                             size: CGSize(width: 100, height: 100))  // Adjust size as needed
     }
     
