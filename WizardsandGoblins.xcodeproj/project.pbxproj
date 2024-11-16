@@ -83,6 +83,11 @@
 			path = WizardsandGoblinsUITests;
 			sourceTree = "<group>";
 		};
+		92E344862CE81F4A0078C92D /* Particles */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Particles;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -142,6 +147,7 @@
 				145402812CCB604500624AF9 /* Scenes */,
 				14101F0F2CCAE60200BD8C7D /* Helper */,
 				14101F0E2CCA216600BD8C7D /* Base */,
+				92E344862CE81F4A0078C92D /* Particles */,
 			);
 			path = Code;
 			sourceTree = "<group>";
@@ -230,6 +236,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				14101ED72CCA066000BD8C7D /* WizardsandGoblins */,
+				92E344862CE81F4A0078C92D /* Particles */,
 			);
 			name = WizardsandGoblins;
 			packageProductDependencies = (

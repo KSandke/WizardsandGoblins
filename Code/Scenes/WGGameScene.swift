@@ -822,14 +822,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Update the spell icons when spells are swapped
     func updateSpellIcons() {
-        let spellTexture1 = SKSpriteNode(imageNamed: "spell1") //default for now
+        let spellIcon1 = SKSpriteNode(imageNamed: "spell1") //default for now
         
         //let spellTexture1 = SKTexture(imageNamed: playerState.getSpellName(forSlot: 0))
-        playerOneSpellIcon.texture = spellTexture1
-        let spellTexture2 = SKSpriteNode(imageNamed: "spell1") //default for now
+        playerOneSpellIcon = spellIcon1
+        let spellIcon2 = SKSpriteNode(imageNamed: "spell1") //default for now
         
         //let spellTexture2 = SKTexture(imageNamed: playerState.getSpellName(forSlot: 1))
-        playerTwoSpellIcon.texture = spellTexture2
+        playerTwoSpellIcon = spellIcon2
     }
     
     func createFrameAnimation(at position: CGPoint, 

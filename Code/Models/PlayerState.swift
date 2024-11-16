@@ -51,6 +51,7 @@ class PlayerState {
         // Initialize spells
         let fireball = FireballSpell()
         let iceSpell = IceSpell()
+        //let lightningSpell = LightningSpell()
         unlockedSpells = [fireball, iceSpell]
         equippedSpells = [fireball, iceSpell]
     }

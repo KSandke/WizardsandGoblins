@@ -72,7 +72,7 @@ struct ShopItem {
                 let iceSpell = IceSpell()
                 state.unlockedSpells.append(iceSpell)
             }
-        )*/,
+        )*,
         // One-Time Use Powerups
         ShopItem(
             name: "Health Potion",
@@ -105,7 +105,7 @@ struct ShopItem {
                     fireball.damage += 10
                 }
             }
-        )
+        )*/
     ]
 }
 
@@ -213,8 +213,8 @@ class ShopView: SKNode {
         let buttonHeight: CGFloat = 200
         let padding: CGFloat = 20
         
-        let startX = size.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
-        let startY = size.height/2 + CGFloat(((items.count + 1) / 2) - 1) * (buttonHeight + padding)/2
+        let startX = background.size.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
+        let startY = background.size.height/2 + CGFloat(((items.count + 1) / 2) - 1) * (buttonHeight + padding)/2
         
         for (index, item) in items.enumerated() {
             let row = index / gridWidth
