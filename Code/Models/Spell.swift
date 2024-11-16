@@ -160,9 +160,32 @@ class LightningEffect: SpellEffect {
                     otherGoblin.sprite.position.distance(to: goblin.sprite.position) <= chainRange
             }
             
-            // Apply effects to all affected goblins
-            let affectedGoblins = [goblin] + nearbyGoblins
+            // Apply initial strike to main target
+            createLightningStrike(at: goblin.sprite.position, in: gameScene) {
+                // After initial strike, create chain effects to nearby targets
+                for (index, targetGoblin) in nearbyGoblins.enumerated() {
+                    // Small delay between each chain
+                    let chainDelay = 0.1 * Double(index)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + chainDelay) {
+                        // Create lightning bolt to next target
+                        self.createLightningBolt(
+                            from: goblin.sprite.position,
+                            to: targetGoblin.sprite.position,
+                            in: gameScene
+                        ) {
+                            // Create strike effect on chained target
+                            self.createLightningStrike(
+                                at: targetGoblin.sprite.position,
+                                in: gameScene,
+                                completion: nil
+                            )
+                        }
+                    }
+                }
+            }
             
+            // Apply gameplay effects to all targets
+            let affectedGoblins = [goblin] + nearbyGoblins
             for affectedGoblin in affectedGoblins {
                 // Stop the goblin movement and attacks
                 let originalSpeed = affectedGoblin.sprite.speed
@@ -175,22 +198,53 @@ class LightningEffect: SpellEffect {
                 } else {
                     affectedGoblin.applyDamage(chainDamage)
                 }
-
-                // Create lightning effect
-                if let lightningEffect = SKEmitterNode(fileNamed: "LightningEffect") {
-                    lightningEffect.position = affectedGoblin.sprite.position
-                    gameScene.addChild(lightningEffect)
-                    
-                    // Remove effect and restore movement/attacks after duration
-                    let wait = SKAction.wait(forDuration: effectDuration)
-                    let cleanup = SKAction.run {
-                        lightningEffect.removeFromParent()
-                        affectedGoblin.sprite.speed = originalSpeed
-                        affectedGoblin.resumeAttacks()
-                    }
-                    lightningEffect.run(SKAction.sequence([wait, cleanup]))
+                
+                // Reset after duration
+                DispatchQueue.main.asyncAfter(deadline: .now() + effectDuration) {
+                    affectedGoblin.sprite.speed = originalSpeed
+                    affectedGoblin.resumeAttacks()
                 }
             }
+        }
+    }
+    
+    private func createLightningStrike(at position: CGPoint, in scene: SKScene, completion: (() -> Void)?) {
+        if let strikeEffect = SKEmitterNode(fileNamed: "LightningStrike") {
+            strikeEffect.position = position
+            scene.addChild(strikeEffect)
+            
+            // Remove effect after duration
+            let wait = SKAction.wait(forDuration: 0.2)
+            let cleanup = SKAction.run {
+                strikeEffect.removeFromParent()
+                completion?()
+            }
+            strikeEffect.run(SKAction.sequence([wait, cleanup]))
+        }
+    }
+    
+    private func createLightningBolt(from start: CGPoint, to end: CGPoint, in scene: SKScene, completion: @escaping () -> Void) {
+        // Create the emitter node for the bolt
+        if let boltEffect = SKEmitterNode(fileNamed: "LightningBolt") {
+            // Calculate the angle and distance
+            let dx = end.x - start.x
+            let dy = end.y - start.y
+            let angle = atan2(dy, dx)
+            let distance = sqrt(dx * dx + dy * dy)
+            
+            // Configure the emitter
+            boltEffect.position = start
+            boltEffect.emissionAngle = angle
+            boltEffect.particlePositionRange = CGVector(dx: distance, dy: 2)
+            scene.addChild(boltEffect)
+            
+            // Remove after short duration
+            let wait = SKAction.wait(forDuration: 0.1)
+            let cleanup = SKAction.run {
+                boltEffect.removeFromParent()
+                completion()
+            }
+            boltEffect.run(SKAction.sequence([wait, cleanup]))
         }
     }
 } 
