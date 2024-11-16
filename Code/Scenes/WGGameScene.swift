@@ -83,6 +83,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var playerOneSpellIcon: SKSpriteNode!
     private var playerTwoSpellIcon: SKSpriteNode!
     
+    // Add to your existing properties
+    private var tutorialManager: TutorialManager!
+    private var hasTutorialBeenShown: Bool = false
+    
     override func didMove(to view: SKView) {
         // Initialize Player State and View
         playerState = PlayerState()
@@ -103,6 +107,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Setup spell icons
         setupSpellIcons()
+        
+        // Add to didMove(to:) after other initialization
+        tutorialManager = TutorialManager(scene: self)
+        if !hasTutorialBeenShown {
+            tutorialManager.startTutorial()
+            hasTutorialBeenShown = true
+        }
     }
     
     func setupWaves() {
@@ -344,6 +355,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let touchLocation = touch.location(in: self)
+        
+        // Handle tutorial taps first
+        if tutorialManager.isTutorialActive {
+            tutorialManager.handleTap()
+            return
+        }
         
         if isInShop {
             // Forward touch to shop view if it exists
