@@ -796,9 +796,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func setupSpellIcons() {
         // Create spell icons
-        playerOneSpellIcon = SKSpriteNode(imageNamed: playerState.getSpellName(forSlot: 0))
-        playerTwoSpellIcon = SKSpriteNode(imageNamed: playerState.getSpellName(forSlot: 1))
-        
+        //playerOneSpellIcon = SKSpriteNode(imageNamed: playerState.getSpellName(forSlot: 0))
+        //playerTwoSpellIcon = SKSpriteNode(imageNamed: playerState.getSpellName(forSlot: 1))
+        playerOneSpellIcon = SKSpriteNode(imageNamed: "spell1") //default for now
+        playerTwoSpellIcon = SKSpriteNode(imageNamed: "spell1") //default for now
         // Set size for icons
         let iconSize = CGSize(width: 30, height: 30) // Adjust size as needed
         playerOneSpellIcon.size = iconSize
@@ -821,11 +822,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Update the spell icons when spells are swapped
     func updateSpellIcons() {
-        let spellTexture1 = SKTexture(imageNamed: "spell1") //default for now
+        let spellTexture1 = SKSpriteNode(imageNamed: "spell1") //default for now
         
         //let spellTexture1 = SKTexture(imageNamed: playerState.getSpellName(forSlot: 0))
         playerOneSpellIcon.texture = spellTexture1
-        let spellTexture2 = SKTexture(imageNamed: "spell1") //default for now
+        let spellTexture2 = SKSpriteNode(imageNamed: "spell1") //default for now
         
         //let spellTexture2 = SKTexture(imageNamed: playerState.getSpellName(forSlot: 1))
         playerTwoSpellIcon.texture = spellTexture2
