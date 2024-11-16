@@ -457,11 +457,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func castSpell(isPlayerOne: Bool, to location: CGPoint) -> Bool {
         // Check if the wave is active and game is not over
         guard isSpawningEnabled && !isGameOver else { return false }
+        
         // Get caster's position
         let casterPosition = isPlayerOne ? playerView.playerOnePosition : playerView.playerTwoPosition
         
-        // Get the player's spell
-        let spell = playerState.getSpell(isPlayerOne: isPlayerOne)
+        // Get the player's spell and safely unwrap it
+        guard let spell = playerState.getSpell(isPlayerOne: isPlayerOne) else {
+            return false
+        }
         
         // Cast the spell
         let success = spell.cast(from: casterPosition, to: location, by: playerState, isPlayerOne: isPlayerOne, in: self)
@@ -793,8 +796,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func setupSpellIcons() {
         // Create spell icons
-        playerOneSpellIcon = SKSpriteNode(imageNamed: playerState.getCurrentSpellName())
-        playerTwoSpellIcon = SKSpriteNode(imageNamed: playerState.getCurrentSpellName())
+        playerOneSpellIcon = SKSpriteNode(imageNamed: playerState.getSpellName(forSlot: 0))
+        playerTwoSpellIcon = SKSpriteNode(imageNamed: playerState.getSpellName(forSlot: 1))
         
         // Set size for icons
         let iconSize = CGSize(width: 30, height: 30) // Adjust size as needed
