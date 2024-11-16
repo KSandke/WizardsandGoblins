@@ -27,6 +27,37 @@ class Goblin {
             self.damage = damage
             self.maxHealth = maxHealth
         }
+
+        func applyDamage(_ damage: CGFloat) {
+            health -= damage
+            if health <= 0 {
+                health = 0
+            }
+            let healthRatio = health / maxHealth
+            healthFill.xScale = max(healthRatio, 0)
+        }
+        
+        func pauseAttacks() {
+            sprite.removeAction(forKey: "rangedAttack")
+        }
+        
+        func resumeAttacks() {
+            guard type == .ranged,
+                  let scene = sprite.scene as? GameScene else { return }
+            
+            // Recreate the attack sequence
+            let spawnArrow = SKAction.run { [weak self] in
+                guard let self = self else { return }
+                if let goblinManager = scene.goblinManager {
+                    goblinManager.spawnArrow(from: self.sprite.position, to: scene.playerView.castlePosition)
+                }
+            }
+            
+            let waitAction = SKAction.wait(forDuration: 1.5)
+            let attackSequence = SKAction.sequence([spawnArrow, waitAction])
+            let repeatAttack = SKAction.repeatForever(attackSequence)
+            sprite.run(repeatAttack, withKey: "rangedAttack")
+        }
     }
     
     weak var scene: SKScene?
@@ -262,16 +293,12 @@ class Goblin {
         for container in goblinContainers {
             let distance = position.distance(to: container.sprite.position)
             if distance <= spell.aoeRadius {
-                // Apply damage
-                container.health -= spell.damage
+                // Apply special effect
+                spell.applySpecialEffect(on: container)
+
                 if container.health <= 0 {
                     gameScene.goblinDied(container: container, goblinKilled: true)
                     containersToRemove.append(container)
-                } else {
-                    // Update health bar
-                    let healthRatio = container.health / container.maxHealth
-                    container.healthFill.xScale = healthRatio
-                    spell.specialEffect?(spell, container)
                 }
             }
         }
@@ -352,3 +379,4 @@ class Goblin {
         return 300.0 // Adjust the speed as needed
     }
 } 
+

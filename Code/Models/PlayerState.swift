@@ -9,7 +9,7 @@ class PlayerState {
             onCastleHealthChanged?(castleHealth)
         }
     }
-    let maxCastleHealth: CGFloat = 100
+    var maxCastleHealth: CGFloat = 100
     
     // Wizard state
     var playerOneSpellCharges: Int = 5 {
@@ -28,15 +28,14 @@ class PlayerState {
         }
     }
     
-    // Replace individual spell properties with primary/secondary spells
-    private var primarySpell: Spell
-    private var secondarySpell: Spell
+    // Spells
+    var unlockedSpells: [Spell] = []
+    var equippedSpells: [Spell?] = [nil, nil]
     private var isUsingPrimarySpell: Bool = true
     
     // New properties for upgrades
     var maxHealth: CGFloat = 100 {
         didSet {
-            // When maxHealth increases, increase current health proportionally
             let healthPercentage = castleHealth / oldValue
             castleHealth = maxHealth * healthPercentage
         }
@@ -44,36 +43,16 @@ class PlayerState {
     
     var spellPowerMultiplier: CGFloat = 1.0
     
+    // Powerups
+    var powerups: [PowerUp] = []
+    
     // Constructor
     init() {
-        // Initialize primary spell (previously spell1)
-        primarySpell = Spell(
-            name: "spell1",
-            aoeRadius: 50,
-            duration: 1.0,
-            damage: 25,
-            specialEffect: nil
-        )
-
-        // Initialize secondary spell (previously IceSpell)
-        secondarySpell = Spell(
-            name: "IceSpell",
-            aoeRadius: 50,
-            duration: 1.0,
-            damage: 20,
-            specialEffect: { spell, container in
-                // Apply slowing effect
-                container.sprite.speed = 0.5
-                let wait = SKAction.wait(forDuration: 5.0)
-                let resetSpeed = SKAction.run {
-                    container.sprite.speed = 1.0
-                }
-                container.sprite.run(SKAction.sequence([wait, resetSpeed]))
-            }
-        )
-        
-        // Initialize maxHealth to match castleHealth
-        maxHealth = maxCastleHealth
+        // Initialize spells
+        let fireball = FireballSpell()
+        let iceSpell = IceSpell()
+        unlockedSpells = [fireball, iceSpell]
+        equippedSpells = [fireball, iceSpell]
     }
     
     // Callbacks for binding
@@ -98,7 +77,6 @@ class PlayerState {
         }
     }
     
-    
     func addScore(points: Int) {
         score += points
     }
@@ -107,7 +85,6 @@ class PlayerState {
         coins += amount
     }
     
-    // Update regenerateMana function
     func regenerateSpellCharges() {
         playerOneSpellCharges = min(maxSpellCharges, playerOneSpellCharges + 1)
         playerTwoSpellCharges = min(maxSpellCharges, playerTwoSpellCharges + 1)
@@ -118,18 +95,17 @@ class PlayerState {
         return castleHealth <= 0
     }
     
-    // Update reset function
     func reset() {
-        maxHealth = maxCastleHealth  // Reset max health
+        maxHealth = maxCastleHealth
         castleHealth = maxHealth
         score = 0
         coins = 0
-        spellPowerMultiplier = 1.0  // Reset spell power
+        spellPowerMultiplier = 1.0
         playerOneSpellCharges = maxSpellCharges
         playerTwoSpellCharges = maxSpellCharges
+        powerups = []
     }
     
-    // Update useSpell function
     func useSpell(isPlayerOne: Bool, cost: CGFloat) -> Bool {
         let currentCharges = isPlayerOne ? playerOneSpellCharges : playerTwoSpellCharges
         
@@ -145,28 +121,25 @@ class PlayerState {
         
         return true
     }
+    
+    func getSpell(isPlayerOne: Bool) -> Spell? {
+        let spellIndex = isPlayerOne ? 0 : 1
+        return equippedSpells[spellIndex]
+    }
+    
+    func getSpellName(forSlot slot: Int) -> String {
+        return equippedSpells[slot]?.name ?? "DefaultSpell"
+    }
+}
 
-    // Replace getSpell function
-    func getSpell(isPlayerOne: Bool) -> Spell {
-        return isUsingPrimarySpell ? primarySpell : secondarySpell
-    }
+class PowerUp {
+    let name: String
+    let icon: String
+    let effect: (PlayerState) -> Void
     
-    // Add function to swap spells
-    func swapSpells(isPlayerOne: Bool) {
-        isUsingPrimarySpell.toggle()
-    }
-    
-    // Update setSpell function for shop purchases
-    func setSpell(isPrimary: Bool, spell: Spell) {
-        if isPrimary {
-            primarySpell = spell
-        } else {
-            secondarySpell = spell
-        }
-    }
-    
-    // Add this new method to PlayerState
-    func getCurrentSpellName() -> String {
-        return isUsingPrimarySpell ? primarySpell.name : secondarySpell.name
+    init(name: String, icon: String, effect: @escaping (PlayerState) -> Void) {
+        self.name = name
+        self.icon = icon
+        self.effect = effect
     }
 } 

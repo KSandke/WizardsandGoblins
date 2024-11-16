@@ -82,6 +82,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Add properties for spell icons
     private var playerOneSpellIcon: SKSpriteNode!
     private var playerTwoSpellIcon: SKSpriteNode!
+    private var powerupIcons: [SKSpriteNode] = []
     
     override func didMove(to view: SKView) {
         // Initialize Player State and View
@@ -103,6 +104,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Setup spell icons
         setupSpellIcons()
+
+        // Setup powerup icons
+        setupPowerupIcons()
     }
     
     func setupWaves() {
@@ -180,7 +184,52 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             )
         ]
     }
-    
+    func setupPowerupIcons() {
+        // Remove existing icons
+        for icon in powerupIcons {
+            icon.removeFromParent()
+        }
+        powerupIcons.removeAll()
+        
+        for (index, powerup) in playerState.powerups.enumerated() {
+            let icon = SKSpriteNode(imageNamed: powerup.icon)
+            icon.size = CGSize(width: 40, height: 40)
+            let xPosition = CGFloat(50 + index * 50)
+            icon.position = CGPoint(x: xPosition, y: 50)
+            icon.name = "powerupIcon_\(index)"
+            addChild(icon)
+            powerupIcons.append(icon)
+        }
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard !isGameOver else { return }
+        
+        for touch in touches {
+            let location = touch.location(in: self)
+            let nodesAtPoint = nodes(at: location)
+            
+            for node in nodesAtPoint {
+                if let nodeName = node.name {
+                    if nodeName.starts(with: "powerupIcon_") {
+                        let indexString = nodeName.replacingOccurrences(of: "powerupIcon_", with: "")
+                        if let index = Int(indexString) {
+                            usePowerup(at: index)
+                            return
+                        }
+                    }
+                    // Existing touch handling...
+                }
+            }
+        }
+    }
+
+    func usePowerup(at index: Int) {
+        guard index >= 0 && index < playerState.powerups.count else { return }
+        let powerup = playerState.powerups.remove(at: index)
+        powerup.effect(playerState)
+        setupPowerupIcons()
+    }
     func startWave() {
         let waveConfig = getWaveConfig(forWave: currentWave)
 
@@ -215,6 +264,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Start goblin spawning
         startSpawnPatterns(with: waveConfig)
+
+        updateSpellIcons()
+        setupPowerupIcons()
     }
     
     func getWaveConfig(forWave wave: Int) -> WaveConfig {
@@ -363,6 +415,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             case "mainMenuButton":
                 goToMainMenu()
                 return
+            case let powerupName where powerupName.starts(with: "powerupIcon_"):
+                let indexString = powerupName.replacingOccurrences(of: "powerupIcon_", with: "")
+                if let index = Int(indexString) {
+                    usePowerup(at: index)
+                    return
+                }
             default:
                 break
             }
@@ -760,9 +818,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Update the spell icons when spells are swapped
     func updateSpellIcons() {
-        let spellTexture = SKTexture(imageNamed: playerState.getCurrentSpellName())
-        playerOneSpellIcon.texture = spellTexture
-        playerTwoSpellIcon.texture = spellTexture
+        let spellTexture1 = SKTexture(imageNamed: playerState.getSpellName(forSlot: 0))
+        playerOneSpellIcon.texture = spellTexture1
+        
+        let spellTexture2 = SKTexture(imageNamed: playerState.getSpellName(forSlot: 1))
+        playerTwoSpellIcon.texture = spellTexture2
     }
     
     func createFrameAnimation(at position: CGPoint, 
