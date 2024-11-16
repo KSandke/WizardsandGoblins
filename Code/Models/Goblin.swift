@@ -274,7 +274,9 @@ class Goblin {
     
     func imageName(for type: GoblinType) -> String {
         switch type {
-        case .normal, .large:
+        case .normal:
+            return "normalGoblin"
+        case .large:
             return "Goblin1"
         case .ranged:
             return "rangedGoblin" // You'll need to add this asset
@@ -347,7 +349,7 @@ class Goblin {
 
         // Create the arrow sprite
         let arrowSprite = SKSpriteNode(imageNamed: "Arrow")
-        arrowSprite.size = CGSize(width: 15, height: 15)
+        arrowSprite.size = CGSize(width: 25, height: 25)
         arrowSprite.position = startPosition
         arrowSprite.zPosition = 1
 
