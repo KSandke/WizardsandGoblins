@@ -330,17 +330,17 @@ class ShopView: SKNode {
         
         // Top section: Stats comparison
         let statsComparison = createStatsComparison()
-        statsComparison.position = CGPoint(x: size.width / 2, y: size.height - 200)
+        statsComparison.position = CGPoint(x: background.size.width / 2, y: background.size.height - 200)
         equipScreen?.addChild(statsComparison)
         
         // Middle section: Powerups
         let powerupsDisplay = createPowerupsDisplay()
-        powerupsDisplay.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        powerupsDisplay.position = CGPoint(x: background.size.width / 2, y: background.size.height / 2)
         equipScreen?.addChild(powerupsDisplay)
         
         // Bottom section: Equipped spells
         let spellsDisplay = createSpellsDisplay()
-        spellsDisplay.position = CGPoint(x: size.width / 2, y: 150)
+        spellsDisplay.position = CGPoint(x: background.size.width / 2, y: 150)
         equipScreen?.addChild(spellsDisplay)
         
         addChild(equipScreen!)
@@ -457,7 +457,7 @@ class ShopView: SKNode {
         let titleLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         titleLabel.text = "Select a Spell"
         titleLabel.fontSize = 24
-        titleLabel.position = CGPoint(x: size.width / 2, y: size.height - 200)
+        titleLabel.position = CGPoint(x: background.size.width / 2, y: background.size.height - 200)
         selectionScreen.addChild(titleLabel)
         
         // List unlocked spells
@@ -466,7 +466,7 @@ class ShopView: SKNode {
             spellLabel.text = spell.name
             spellLabel.fontSize = 20
             spellLabel.name = "spellOption_\(index)_\(slotIndex)"
-            spellLabel.position = CGPoint(x: size.width / 2, y: size.height - 250 - CGFloat(30 * index))
+            spellLabel.position = CGPoint(x: background.size.width / 2, y: background.size.height - 250 - CGFloat(30 * index))
             selectionScreen.addChild(spellLabel)
         }
         
