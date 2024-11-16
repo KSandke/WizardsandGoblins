@@ -56,7 +56,7 @@ struct ShopItem {
             description: "Unlock the Lightning Spell",
             price: 15,
             icon: "LightningSpell",
-            category: .spells,
+            category: .playerUpgrades,//to be made .spells eventually
             effect: { state in
                 let lightningSpell = LightningSpell()
                 state.unlockedSpells.append(lightningSpell)
