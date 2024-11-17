@@ -102,18 +102,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Initialize Goblin Manager with initial probabilities
         goblinManager = Goblin(scene: self)
         
-        // Start the first wave
-        startWave()
-        
         // Setup spell icons
         setupSpellIcons()
         
-        // Add to didMove(to:) after other initialization
+        // Initialize tutorial manager
         tutorialManager = TutorialManager(scene: self)
         if !hasTutorialBeenShown {
-            tutorialManager.startTutorial()
+            tutorialManager.startTutorial { [weak self] in
+                // Start the game after tutorial completes
+                self?.startGame()
+            }
             hasTutorialBeenShown = true
+        } else {
+            // Only start the game if tutorial has been shown
+            startGame()
         }
+    }
+    
+    // Add new method to start the game
+    private func startGame() {
+        startWave()
     }
     
     func setupWaves() {
@@ -358,7 +366,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Handle tutorial taps first
         if tutorialManager.isTutorialActive {
-            tutorialManager.handleTap()
+            tutorialManager.handleTap(touch)
             return
         }
         
