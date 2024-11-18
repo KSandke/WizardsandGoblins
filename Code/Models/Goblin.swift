@@ -17,8 +17,9 @@ class Goblin {
         var health: CGFloat
         let damage: CGFloat
         let maxHealth: CGFloat
+        let goldValue: Int
                 
-        init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat) {
+        init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat, goldValue: Int) {
             self.type = type
             self.sprite = sprite
             self.healthBar = healthBar
@@ -26,6 +27,7 @@ class Goblin {
             self.health = health
             self.damage = damage
             self.maxHealth = maxHealth
+            self.goldValue = goldValue
         }
     }
     
@@ -109,7 +111,8 @@ class Goblin {
             healthFill: healthFill,
             health: health,
             damage: damage,
-            maxHealth: health
+            maxHealth: health,
+            goldValue: goblinGoldValue(for: nextGoblinType)
         )
         goblinContainers.append(container)
         
@@ -356,5 +359,18 @@ class Goblin {
 
     func arrowSpeed() -> CGFloat {
         return 300.0 // Adjust the speed as needed
+    }
+
+    func goblinGoldValue(for type: GoblinType) -> Int {
+        switch type {
+        case .normal:
+            return 5
+        case .large:
+            return 15
+        case .small:
+            return 3
+        case .ranged:
+            return 10
+        }
     }
 } 
