@@ -91,7 +91,7 @@ class ShopView: SKNode {
         addChild(statsLabel)
         
         // Add coin icon
-        let coinIcon = SKSpriteNode(imageNamed: "coin_icon")  // Make sure you have this asset
+        let coinIcon = SKSpriteNode(imageNamed: "coin")  // Make sure you have this asset
         coinIcon.size = CGSize(width: 40, height: 40)  // Adjust size as needed
         coinIcon.position = CGPoint(x: statsLabel.position.x - 100, y: statsLabel.position.y)
         addChild(coinIcon)
