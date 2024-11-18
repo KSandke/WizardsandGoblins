@@ -191,7 +191,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ]
             ),
             7: WaveConfig(
-                goblinTypeProbabilities: [.large: 100.0],
+                goblinTypeProbabilities: [.small: 40.0, .large: 60.0],
                 maxGoblins: 30,
                 baseSpawnInterval: 1.2,
                 spawnPatterns: [

@@ -209,7 +209,7 @@ class Goblin {
         case .normal, .ranged:
             return 50
         case .large:
-            return 100
+            return 125
         case .small:
             return 25
         // case .arrow:

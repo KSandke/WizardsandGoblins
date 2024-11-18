@@ -3,27 +3,41 @@ import SpriteKit
 struct ShopItem {
     let name: String
     let description: String
-    let price: Int
+    var basePrice: Int
     let icon: String  // Name of image asset
     let effect: (PlayerState) -> Void
+    
+    // Add current price tracking
+    private static var purchaseCounts: [String: Int] = [:]
+    
+    var currentPrice: Int {
+        let purchases = ShopItem.purchaseCounts[name] ?? 0
+        return basePrice + (purchases * 5)
+    }
+    
+    var level: Int {
+        return (ShopItem.purchaseCounts[name] ?? 0) + 1
+    }
     
     // Predefined shop items
     static let items: [ShopItem] = [
         ShopItem(
             name: "Max Health +20",
-            description: "Increase maximum health by 20",
-            price: 5,
+            description: "Increase maximum health",
+            basePrice: 5,
             icon: "health_upgrade",
             effect: { state in
-                state.maxHealth += 20
+                let level = ShopItem.purchaseCounts["Max Health +20"] ?? 0
+                state.maxHealth += 20 + (CGFloat(level) * 5)
             }
         ),
         ShopItem(
             name: "Max Spell Charges +1",
             description: "Increase spell charges by 1",
-            price: 10,
+            basePrice: 10,
             icon: "SpellCharges",
             effect: { state in
+                let level = ShopItem.purchaseCounts["Max Spell Charges +1"] ?? 0
                 state.maxSpellCharges += 1
                 state.playerOneSpellCharges += 1
                 state.playerTwoSpellCharges += 1
@@ -32,13 +46,19 @@ struct ShopItem {
         ShopItem(
             name: "Spell Power +10%",
             description: "Increase spell damage",
-            price: 5,
+            basePrice: 5,
             icon: "power_upgrade",
             effect: { state in
-                state.spellPowerMultiplier *= 1.1
+                let level = ShopItem.purchaseCounts["Spell Power +10%"] ?? 0
+                state.spellPowerMultiplier *= 1.1 + (CGFloat(level) * 0.05)
             }
         )
     ]
+    
+    // Add method to track purchases
+    static func recordPurchase(of itemName: String) {
+        purchaseCounts[itemName, default: 0] += 1
+    }
 }
 
 class ShopView: SKNode {
@@ -99,8 +119,8 @@ class ShopView: SKNode {
         // Create grid of item buttons
         let gridWidth = 2
         let gridHeight = 2
-        let buttonWidth: CGFloat = 200
-        let buttonHeight: CGFloat = 200
+        let buttonWidth: CGFloat = 180
+        let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
         let startX = size.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
@@ -132,19 +152,34 @@ class ShopView: SKNode {
         background.name = "itemButton_\(item.name)"
         container.addChild(background)
         
-        // Item name
+        // Item name (without level)
         let nameLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         nameLabel.text = item.name
-        nameLabel.fontSize = 20
-        nameLabel.position = CGPoint(x: 0, y: 30)
+        nameLabel.fontSize = 16
+        nameLabel.position = CGPoint(x: 0, y: 40)
         container.addChild(nameLabel)
+        
+        // Level display
+        let levelLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        levelLabel.text = "Level \(item.level)"
+        levelLabel.fontSize = 14
+        levelLabel.fontColor = .green
+        levelLabel.position = CGPoint(x: 0, y: 20)
+        container.addChild(levelLabel)
+        
+        // Description
+        let descLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        descLabel.text = item.description
+        descLabel.fontSize = 12
+        descLabel.position = CGPoint(x: 0, y: 0)
+        container.addChild(descLabel)
         
         // Price
         let priceLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        priceLabel.text = "\(item.price) coins"
-        priceLabel.fontSize = 18
+        priceLabel.text = "\(item.currentPrice) coins"
+        priceLabel.fontSize = 14
         priceLabel.fontColor = .yellow
-        priceLabel.position = CGPoint(x: 0, y: -30)
+        priceLabel.position = CGPoint(x: 0, y: -20)
         container.addChild(priceLabel)
         
         return container
@@ -182,28 +217,76 @@ class ShopView: SKNode {
     }
     
     private func purchaseItem(_ item: ShopItem) {
-        guard playerState.coins >= item.price else {
+        guard playerState.coins >= item.currentPrice else {
             showMessage("Not enough coins!")
             return
         }
         
-        playerState.coins -= item.price
+        playerState.coins -= item.currentPrice
         item.effect(playerState)
+        ShopItem.recordPurchase(of: item.name)
+        
+        // Show level up message
+        showMessage("\(item.name) upgraded to Level \(item.level)!")
+        
+        refreshItemButtons()
         updateStats()
-        showMessage("Purchase successful!")
+    }
+    
+    // Add method to refresh item buttons
+    private func refreshItemButtons() {
+        // Remove existing buttons
+        itemButtons.forEach { $0.removeFromParent() }
+        itemButtons.removeAll()
+        
+        // Recreate buttons with updated prices
+        let gridWidth = 2
+        let gridHeight = 2
+        let buttonWidth: CGFloat = 180
+        let buttonHeight: CGFloat = 120
+        let padding: CGFloat = 20
+        
+        let startX = background.frame.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
+        let startY = background.frame.height/2 + CGFloat(gridHeight-1) * (buttonHeight + padding)/2
+        
+        for (index, item) in ShopItem.items.enumerated() {
+            let row = index / gridWidth
+            let col = index % gridWidth
+            
+            let x = startX + CGFloat(col) * (buttonWidth + padding)
+            let y = startY - CGFloat(row) * (buttonHeight + padding)
+            
+            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: x, y: y)
+            addChild(button)
+            itemButtons.append(button)
+        }
     }
     
     private func showMessage(_ text: String) {
+        // Remove any existing messages first
+        self.enumerateChildNodes(withName: "messageLabel") { node, _ in
+            node.removeFromParent()
+        }
+        
         let message = SKLabelNode(fontNamed: "HelveticaNeue")
+        message.name = "messageLabel"  // Add name for removal
         message.text = text
-        message.fontSize = 24
+        message.fontSize = 20
         message.fontColor = .white
-        message.position = CGPoint(x: background.frame.midX, y: background.frame.midY)
         message.alpha = 0
+        
+        // Position below coins but above shop items
+        // Assuming statsLabel is your coins display
+        message.position = CGPoint(
+            x: statsLabel.position.x,
+            y: statsLabel.position.y - 60
+              // Adjust this value as needed
+        )
         addChild(message)
         
         let fadeIn = SKAction.fadeIn(withDuration: 0.5)
-        let wait = SKAction.wait(forDuration: 1.0)
+        let wait = SKAction.wait(forDuration: 1.5)
         let fadeOut = SKAction.fadeOut(withDuration: 0.5)
         let remove = SKAction.removeFromParent()
         
