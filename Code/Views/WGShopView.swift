@@ -84,9 +84,17 @@ class ShopView: SKNode {
         background.position = CGPoint(x: size.width/2, y: size.height/2)
         addChild(background)
         
-        // Position stats below iPhone notch area (moved from y: size.height - 50)
-        statsLabel.position = CGPoint(x: size.width/2, y: size.height - 120)
+        // Create coin display with larger font and icon
+        statsLabel.fontSize = 32  // Increased from 24
+        statsLabel.fontColor = .yellow  // Make coins yellow
+        statsLabel.position = CGPoint(x: size.width/2 + 25, y: size.height - 120)  // Shifted right to make room for icon
         addChild(statsLabel)
+        
+        // Add coin icon
+        let coinIcon = SKSpriteNode(imageNamed: "coin_icon")  // Make sure you have this asset
+        coinIcon.size = CGSize(width: 40, height: 40)  // Adjust size as needed
+        coinIcon.position = CGPoint(x: statsLabel.position.x - 100, y: statsLabel.position.y)
+        addChild(coinIcon)
         
         // Create grid of item buttons
         let gridWidth = 2
@@ -143,7 +151,16 @@ class ShopView: SKNode {
     }
     
     private func updateStats() {
-        statsLabel.text = "Coins: \(playerState.coins) | Score: \(playerState.score)"
+        // Updated to only show coins prominently
+        statsLabel.text = "\(playerState.coins) Coins"
+        
+        // Add score in smaller text below if desired
+        let scoreLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        scoreLabel.text = "Score: \(playerState.score)"
+        scoreLabel.fontSize = 20
+        scoreLabel.position = CGPoint(x: statsLabel.position.x, y: statsLabel.position.y - 30)
+        scoreLabel.fontColor = .white
+        addChild(scoreLabel)
     }
     
     func handleTap(at point: CGPoint) {
