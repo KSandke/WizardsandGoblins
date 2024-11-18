@@ -80,8 +80,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var spellChargeRestoreAmount: Int = 2
     
     // Add properties for spell icons
-    private var playerOneSpellIcon: SKSpriteNode!
-    private var playerTwoSpellIcon: SKSpriteNode!
+    internal var playerOneSpellIcon: SKSpriteNode!
+    internal var playerTwoSpellIcon: SKSpriteNode!
     
     // Add to your existing properties
     private var tutorialManager: TutorialManager!
@@ -135,16 +135,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
                 ]
             ),
-            1: WaveConfig( //use this config for testing
-                goblinTypeProbabilities: [.normal: 50.0, .ranged: 50.0],
-                maxGoblins: 10,
-                baseSpawnInterval: 2.0,
+            1: WaveConfig(
+                goblinTypeProbabilities: [.normal: 100.0],
+                maxGoblins: 3,
+                baseSpawnInterval: 3.0,
                 spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 70.0),
-                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
+                    SpawnPatternConfig(pattern: .single, probability: 100.0)
                 ]
             ),
-            2: WaveConfig(
+            2: WaveConfig( //use this config for testing
                 goblinTypeProbabilities: [.normal: 100.0],
                 maxGoblins: 10,
                 baseSpawnInterval: 2.0,
@@ -154,6 +153,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ]
             ),
             3: WaveConfig(
+                goblinTypeProbabilities: [.normal: 100.0],
+                maxGoblins: 10,
+                baseSpawnInterval: 2.0,
+                spawnPatterns: [
+                    SpawnPatternConfig(pattern: .single, probability: 70.0),
+                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
+                ]
+            ),
+            4: WaveConfig(
                 goblinTypeProbabilities: [.normal: 70.0, .small: 15.0, .large: 15.0],
                 maxGoblins: 15,
                 baseSpawnInterval: 1.8,
@@ -163,7 +171,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .surrounded(centerCount: 1, surroundCount: 4), probability: 20.0)
                 ]
             ),
-            4: WaveConfig(
+            5: WaveConfig(
                 goblinTypeProbabilities: [.small: 100.0],
                 maxGoblins: 20,
                 baseSpawnInterval: 1.5,
@@ -172,7 +180,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
                 ]
             ),
-            5: WaveConfig(
+            6: WaveConfig(
                 goblinTypeProbabilities: [.normal: 40.0, .small: 25.0, .large: 25.0, .ranged: 10.0],
                 maxGoblins: 25,
                 baseSpawnInterval: 1.5,
@@ -182,7 +190,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .surrounded(centerCount: 1, surroundCount: 4), probability: 10.0)
                 ]
             ),
-            6: WaveConfig(
+            7: WaveConfig(
                 goblinTypeProbabilities: [.large: 100.0],
                 maxGoblins: 30,
                 baseSpawnInterval: 1.2,
@@ -191,7 +199,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     SpawnPatternConfig(pattern: .line(count: 3), probability: 20.0)
                 ]
             ),
-            7: WaveConfig(
+            8: WaveConfig(
                 goblinTypeProbabilities: [.ranged: 100.0],
                 maxGoblins: 30,
                 baseSpawnInterval: 1.2,

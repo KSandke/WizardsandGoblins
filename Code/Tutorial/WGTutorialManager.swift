@@ -6,10 +6,10 @@ import GameplayKit
 class TutorialManager {
     enum TutorialStep {
         case welcome
-        case moveWizards
-        case castSpell
-        case killGoblin
-        case useShop
+        case castleHealth
+        case manaSystem
+        case spellTypes
+        case scoring
         case complete
     }
     
@@ -35,6 +35,8 @@ class TutorialManager {
     
     // Add completion handler
     private var completionHandler: (() -> Void)?
+    
+    private var highlightMessageBoxes: [SKSpriteNode] = []
     
     init(scene: GameScene) {
         self.scene = scene
@@ -108,19 +110,36 @@ class TutorialManager {
     }
     
     private func updateMessage() {
+        guard let scene = scene,
+              let gameScene = scene as? GameScene else { return }
+        
+        // Remove previous highlights
+        scene.children.filter { $0.name == "tutorial-highlight" }.forEach { $0.removeFromParent() }
+        
         switch currentStep {
         case .welcome:
-            messageLabel?.text = "Welcome to Wizards & Goblins!\nTap to continue"
-        case .moveWizards:
-            messageLabel?.text = "Tap anywhere to cast spells\nwith your wizards!"
-        case .castSpell:
-            messageLabel?.text = "Tap on a wizard to switch\ntheir spell type"
-        case .killGoblin:
-            messageLabel?.text = "Defeat the goblins before\nthey reach your castle!"
-        case .useShop:
-            messageLabel?.text = "Use coins in the shop to\nupgrade your wizards"
+            showMessage("Welcome to Wizards & Goblins!\nLet's learn the basics.")
+            
+        case .castleHealth:
+            highlightUIElement(node: gameScene.playerView.tutorialCastleHealthBar, 
+                             description: "This is your castle's health.\nDon't let goblins reach it!")
+            
+        case .manaSystem:
+            if let firstSegment = gameScene.playerView.tutorialPlayerOneCharges.first {
+                highlightUIElement(node: firstSegment, 
+                                 description: "Mana bars show available spell charges.\nThey regenerate over time.")
+            }
+            
+        case .spellTypes:
+            highlightUIElement(node: gameScene.playerOneSpellIcon, 
+                             description: "Tap wizards to switch spell types.\nDifferent spells have different effects!")
+            
+        case .scoring:
+            highlightUIElement(node: gameScene.playerView.tutorialScoreLabel, 
+                             description: "Earn points by defeating goblins.\nCollect coins to upgrade your wizards!")
+            
         case .complete:
-            messageLabel?.text = "You're ready to play!\nGood luck!"
+            showMessage("You're ready to play!\nGood luck defending your castle!")
         }
     }
     
@@ -135,14 +154,14 @@ class TutorialManager {
             // Advance to next step
             switch currentStep {
             case .welcome:
-                currentStep = .moveWizards
-            case .moveWizards:
-                currentStep = .castSpell
-            case .castSpell:
-                currentStep = .killGoblin
-            case .killGoblin:
-                currentStep = .useShop
-            case .useShop:
+                currentStep = .castleHealth
+            case .castleHealth:
+                currentStep = .manaSystem
+            case .manaSystem:
+                currentStep = .spellTypes
+            case .spellTypes:
+                currentStep = .scoring
+            case .scoring:
                 currentStep = .complete
             case .complete:
                 endTutorial()
@@ -185,6 +204,14 @@ class TutorialManager {
             self?.messageLabel = nil
         }
         
+        // Clean up highlight message boxes
+        highlightMessageBoxes.forEach { box in
+            box.run(fadeOut) { 
+                box.removeFromParent()
+            }
+        }
+        highlightMessageBoxes.removeAll()
+        
         // Remove any highlights
         scene?.children.filter { $0.name?.contains("tutorial-highlight") ?? false }
             .forEach { $0.removeFromParent() }
@@ -210,12 +237,142 @@ class TutorialManager {
         
         // Animate the highlight
         let fadeIn = SKAction.fadeIn(withDuration: 0.3)
-        let pulse = SKAction.sequence([
-            SKAction.scale(to: 1.1, duration: 0.5),
-            SKAction.scale(to: 1.0, duration: 0.5)
-        ])
-        
         highlight.run(fadeIn)
-        highlight.run(SKAction.repeatForever(pulse))
+    }
+    
+    private func highlightUIElement(node: SKNode, description: String) {
+        guard let scene = scene else { return }
+        
+        // Clean up previous highlight message boxes
+        highlightMessageBoxes.forEach { $0.removeFromParent() }
+        highlightMessageBoxes.removeAll()
+        
+        // Create highlight frame
+        let frame = SKShapeNode(rect: node.frame.insetBy(dx: -10, dy: -10), cornerRadius: 8)
+        frame.strokeColor = .yellow
+        frame.lineWidth = 2
+        frame.name = "tutorial-highlight"
+        frame.zPosition = 1000
+        scene.addChild(frame)
+        
+        // Add pulsing animation
+        let scaleUp = SKAction.scale(to: 1.1, duration: 0.5)
+        let scaleDown = SKAction.scale(to: 1.0, duration: 0.5)
+        let pulse = SKAction.sequence([scaleUp, scaleDown])
+        frame.run(SKAction.repeatForever(pulse))
+        
+        // Position message box near the highlighted element
+        let messageBox = createMessageBox(text: description)
+        let boxSize = messageBox.size
+        let yOffset: CGFloat = node.frame.minY > scene.size.height/2 ? -100 : 100
+        let basePosition = CGPoint(x: node.frame.midX, y: node.frame.midY + yOffset)
+        messageBox.position = getMessageBoxPosition(basePosition: basePosition, boxSize: boxSize)
+        
+        scene.addChild(messageBox)
+        highlightMessageBoxes.append(messageBox)
+    }
+    
+    private func showMessage(_ text: String) {
+        guard let scene = scene else { return }
+        
+        // Remove any existing message box
+        messageBox?.removeFromParent()
+        
+        // Create message box with rounded corners
+        let boxWidth: CGFloat = 300
+        let boxHeight: CGFloat = 150
+        messageBox = SKSpriteNode(color: .white, size: CGSize(width: boxWidth, height: boxHeight))
+        messageBox?.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
+        messageBox?.zPosition = 1001
+        messageBox?.alpha = 0.9
+        let boxSize = CGSize(width: boxWidth, height: boxHeight)
+        let basePosition = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
+        messageBox?.position = getMessageBoxPosition(basePosition: basePosition, boxSize: boxSize)
+        
+        // Add border and corner radius
+        let border = SKShapeNode(rectOf: CGSize(width: boxWidth, height: boxHeight), cornerRadius: 15)
+        border.fillColor = .white
+        border.strokeColor = .blue
+        border.lineWidth = 3
+        messageBox?.addChild(border)
+        
+        // Create message label
+        messageLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        messageLabel?.numberOfLines = 0
+        messageLabel?.text = text
+        messageLabel?.fontSize = 20
+        messageLabel?.fontColor = .black
+        messageLabel?.preferredMaxLayoutWidth = boxWidth - 40
+        messageLabel?.verticalAlignmentMode = .center
+        messageLabel?.position = CGPoint(x: 0, y: 0)
+        messageBox?.addChild(messageLabel!)
+        
+        // Add continue hint
+        let continueHint = SKLabelNode(fontNamed: "HelveticaNeue")
+        continueHint.text = "Tap to continue"
+        continueHint.fontSize = 16
+        continueHint.fontColor = .gray
+        continueHint.position = CGPoint(x: 0, y: -(boxHeight/2 - 25))
+        messageBox?.addChild(continueHint)
+        
+        scene.addChild(messageBox!)
+        
+        // Add fade in animation
+        messageBox?.alpha = 0
+        let fadeIn = SKAction.fadeIn(withDuration: 0.3)
+        messageBox?.run(fadeIn)
+    }
+    
+    private func createMessageBox(text: String) -> SKSpriteNode {
+        // Create message box with rounded corners
+        let boxWidth: CGFloat = 300
+        let boxHeight: CGFloat = 100
+        let messageBox = SKSpriteNode(color: .white, size: CGSize(width: boxWidth, height: boxHeight))
+        messageBox.alpha = 0.9
+        messageBox.zPosition = 1001
+        
+        // Add border and corner radius
+        let border = SKShapeNode(rectOf: CGSize(width: boxWidth, height: boxHeight), cornerRadius: 15)
+        border.fillColor = .white
+        border.strokeColor = .blue
+        border.lineWidth = 3
+        messageBox.addChild(border)
+        
+        // Create message label
+        let messageLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        messageLabel.numberOfLines = 0
+        messageLabel.text = text
+        messageLabel.fontSize = 18
+        messageLabel.fontColor = .black
+        messageLabel.preferredMaxLayoutWidth = boxWidth - 40
+        messageLabel.verticalAlignmentMode = .center
+        messageLabel.position = CGPoint(x: 0, y: 0)
+        messageBox.addChild(messageLabel)
+        
+        // Add fade in animation
+        messageBox.alpha = 0
+        let fadeIn = SKAction.fadeIn(withDuration: 0.3)
+        messageBox.run(fadeIn)
+        
+        return messageBox
+    }
+    
+    private func getMessageBoxPosition(basePosition: CGPoint, boxSize: CGSize) -> CGPoint {
+        guard let scene = scene else { return basePosition }
+        
+        // Calculate safe margins
+        let margin: CGFloat = 20
+        
+        // Calculate bounds
+        let minX = margin + boxSize.width/2
+        let maxX = scene.size.width - margin - boxSize.width/2
+        let minY = margin + boxSize.height/2
+        let maxY = scene.size.height - margin - boxSize.height/2
+        
+        // Clamp position within bounds
+        let clampedX = min(maxX, max(minX, basePosition.x))
+        let clampedY = min(maxY, max(minY, basePosition.y))
+        
+        return CGPoint(x: clampedX, y: clampedY)
     }
 } 
