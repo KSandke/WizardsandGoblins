@@ -157,24 +157,28 @@ class Goblin {
         let moveAction = SKAction.move(to: finalPosition, duration: moveDuration)
         
         if container.type == .ranged {
-            // Ranged goblins move to a position and start shooting arrows
-            container.sprite.run(moveAction)
-            
-            // Create repeating arrow attack
-            let spawnArrow = SKAction.run { [weak self] in
+            // Create completion block for after movement
+            let startShooting = SKAction.run { [weak self] in
                 guard let self = self else { return }
                 // Ensure the goblin is still alive
                 guard self.goblinContainers.contains(where: { $0 === container }) else { return }
                 
-                // Spawn an arrow towards the castle
-                self.spawnArrow(from: container.sprite.position, to: scene.playerView.castlePosition)
+                // Create repeating arrow attack
+                let spawnArrow = SKAction.run { [weak self] in
+                    guard let self = self else { return }
+                    guard self.goblinContainers.contains(where: { $0 === container }) else { return }
+                    self.spawnArrow(from: container.sprite.position, to: scene.playerView.castlePosition)
+                }
+                
+                let waitAction = SKAction.wait(forDuration: 1.5)
+                let attackSequence = SKAction.sequence([spawnArrow, waitAction])
+                let repeatAttack = SKAction.repeatForever(attackSequence)
+                container.sprite.run(repeatAttack, withKey: "rangedAttack")
             }
             
-            // Set up the arrow attack sequence
-            let waitAction = SKAction.wait(forDuration: 1.5) // Adjust as needed
-            let attackSequence = SKAction.sequence([spawnArrow, waitAction])
-            let repeatAttack = SKAction.repeatForever(attackSequence)
-            container.sprite.run(repeatAttack, withKey: "rangedAttack")
+            // Run move action first, then start shooting
+            let sequence = SKAction.sequence([moveAction, startShooting])
+            container.sprite.run(sequence)
         } else {
             // Other goblins move and damage the castle upon arrival
             let damageAction = SKAction.run { [weak self] in
