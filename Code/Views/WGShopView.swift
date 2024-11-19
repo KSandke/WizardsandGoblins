@@ -299,14 +299,15 @@ class ShopView: SKNode {
                 return
             }
             if let buttonName = node.name {
-                if buttonName.starts(with: "sectionButton_") {
-                    if let categoryName = buttonName.split(separator: "_").last,
-                       let category = ShopItem.Category(rawValue: String(categoryName)) {
-                        selectedCategory = category
-                        createItemButtons(for: selectedCategory)
-                    }
-                    return
-                } else if buttonName.starts(with: "itemButton_") {
+                // if buttonName.starts(with: "sectionButton_") {
+                //     if let categoryName = buttonName.split(separator: "_").last,
+                //        let category = ShopItem.Category(rawValue: String(categoryName)) {
+                //         selectedCategory = category
+                //         createItemButtons(for: selectedCategory)
+                //     }
+                //     return
+                // } else 
+                    if buttonName.starts(with: "itemButton_") {
                     let itemName = buttonName.replacingOccurrences(of: "itemButton_", with: "")
                     if let item = ShopItem.items.first(where: { $0.name == itemName }) {
                         purchaseItem(item)
