@@ -80,9 +80,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var spellChargeRestoreAmount: Int = 2
 
     // Add properties for spell icons
-    private var playerOneSpellIcon: SKSpriteNode!
-    private var playerTwoSpellIcon: SKSpriteNode!
-    private var powerupIcons: [SKSpriteNode] = []
+    var playerOneSpellIcon: SKSpriteNode!
+    var playerTwoSpellIcon: SKSpriteNode!
+    var powerupIcons: [SKSpriteNode] = []
     private var tutorialManager: TutorialManager!
     private var hasTutorialBeenShown: Bool = false
 
@@ -136,10 +136,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             ),
             1: WaveConfig(
                 goblinTypeProbabilities: [.normal: 100.0],
-                maxGoblins: 3,
-                baseSpawnInterval: 3.0,
+                maxGoblins: 30,
+                baseSpawnInterval: 1.0,
                 spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 100.0)
+                    //SpawnPatternConfig(pattern: .single, probability: 100.0)
+                    SpawnPatternConfig(pattern: .line(count: 5), probability: 100.0)
                 ]
             ),
             2: WaveConfig( //use this config for testing
