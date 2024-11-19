@@ -216,9 +216,9 @@ class ShopView: SKNode {
         let padding: CGFloat = 20
 
         let startX = background.size.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
-        let startY = background.size.height/2 + CGFloat(((items.count + 1) / 2) - 1) * (buttonHeight + padding)/2
+        let startY = background.size.height/2 + CGFloat(((ShopItem.items.count + 1) / 2) - 1) * (buttonHeight + padding)/2
 
-        for (index, item) in items.enumerated() {
+        for (index, item) in ShopItem.items.enumerated() {
             let row = index / gridWidth
             let col = index % gridWidth
 
