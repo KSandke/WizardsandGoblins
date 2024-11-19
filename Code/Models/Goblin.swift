@@ -17,8 +17,9 @@ class Goblin {
         var health: CGFloat
         let damage: CGFloat
         let maxHealth: CGFloat
+        let goldValue: Int
                 
-        init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat) {
+        init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat, goldValue: Int) {
             self.type = type
             self.sprite = sprite
             self.healthBar = healthBar
@@ -26,6 +27,7 @@ class Goblin {
             self.health = health
             self.damage = damage
             self.maxHealth = maxHealth
+            self.goldValue = goldValue
         }
 
         func applyDamage(_ damage: CGFloat) {
@@ -140,7 +142,8 @@ class Goblin {
             healthFill: healthFill,
             health: health,
             damage: damage,
-            maxHealth: health
+            maxHealth: health,
+            goldValue: goblinGoldValue(for: nextGoblinType)
         )
         goblinContainers.append(container)
         
@@ -188,24 +191,28 @@ class Goblin {
         let moveAction = SKAction.move(to: finalPosition, duration: moveDuration)
         
         if container.type == .ranged {
-            // Ranged goblins move to a position and start shooting arrows
-            container.sprite.run(moveAction)
-            
-            // Create repeating arrow attack
-            let spawnArrow = SKAction.run { [weak self] in
+            // Create completion block for after movement
+            let startShooting = SKAction.run { [weak self] in
                 guard let self = self else { return }
                 // Ensure the goblin is still alive
                 guard self.goblinContainers.contains(where: { $0 === container }) else { return }
                 
-                // Spawn an arrow towards the castle
-                self.spawnArrow(from: container.sprite.position, to: scene.playerView.castlePosition)
+                // Create repeating arrow attack
+                let spawnArrow = SKAction.run { [weak self] in
+                    guard let self = self else { return }
+                    guard self.goblinContainers.contains(where: { $0 === container }) else { return }
+                    self.spawnArrow(from: container.sprite.position, to: scene.playerView.castlePosition)
+                }
+                
+                let waitAction = SKAction.wait(forDuration: 1.5)
+                let attackSequence = SKAction.sequence([spawnArrow, waitAction])
+                let repeatAttack = SKAction.repeatForever(attackSequence)
+                container.sprite.run(repeatAttack, withKey: "rangedAttack")
             }
             
-            // Set up the arrow attack sequence
-            let waitAction = SKAction.wait(forDuration: 1.5) // Adjust as needed
-            let attackSequence = SKAction.sequence([spawnArrow, waitAction])
-            let repeatAttack = SKAction.repeatForever(attackSequence)
-            container.sprite.run(repeatAttack, withKey: "rangedAttack")
+            // Run move action first, then start shooting
+            let sequence = SKAction.sequence([moveAction, startShooting])
+            container.sprite.run(sequence)
         } else {
             // Other goblins move and damage the castle upon arrival
             let damageAction = SKAction.run { [weak self] in
@@ -236,7 +243,7 @@ class Goblin {
         case .normal, .ranged:
             return 50
         case .large:
-            return 100
+            return 125
         case .small:
             return 25
         // case .arrow:
@@ -379,6 +386,19 @@ class Goblin {
 
     func arrowSpeed() -> CGFloat {
         return 300.0 // Adjust the speed as needed
+    }
+
+    func goblinGoldValue(for type: GoblinType) -> Int {
+        switch type {
+        case .normal:
+            return 5
+        case .large:
+            return 15
+        case .small:
+            return 3
+        case .ranged:
+            return 10
+        }
     }
 } 
 

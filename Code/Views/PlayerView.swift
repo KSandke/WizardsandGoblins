@@ -11,13 +11,22 @@ class PlayerView {
     
     private var playerOneChargeSegments: [SKShapeNode] = []
     private var playerTwoChargeSegments: [SKShapeNode] = []
-    
     private var scoreLabel: SKLabelNode!
     private var coinLabel: SKLabelNode!
     private var waveLabel: SKLabelNode!
     
     private weak var parentScene: SKScene?
     private var state: PlayerState
+    // Add public getters for tutorial access
+    var tutorialCastleHealthBar: SKShapeNode { castleHealthBar }
+    var tutorialPlayerOneCharges: [SKShapeNode] { playerOneChargeSegments }
+    var tutorialPlayerTwoCharges: [SKShapeNode] { playerTwoChargeSegments }
+    var tutorialScoreLabel: SKLabelNode { scoreLabel }
+    var tutorialWaveLabel: SKLabelNode { waveLabel }
+    var tutorialCoinLabel: SKLabelNode { coinLabel }
+
+    var playerOnePosition: CGPoint { playerOne.position }
+    var playerTwoPosition: CGPoint { playerTwo.position }
     
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
@@ -346,14 +355,7 @@ class PlayerView {
     var castlePosition: CGPoint {
         castle.position
     }
-    
-    var playerOnePosition: CGPoint {
-        playerOne.position
-    }
-    
-    var playerTwoPosition: CGPoint {
-        playerTwo.position
-    }
+
 
     // Add new function to handle max charges change
     private func updateMaxCharges(maxCharges: Int) {
@@ -371,4 +373,5 @@ class PlayerView {
         updatePlayerOneCharges(charges: state.playerOneSpellCharges)
         updatePlayerTwoCharges(charges: state.playerTwoSpellCharges)
     }
+
 } 
