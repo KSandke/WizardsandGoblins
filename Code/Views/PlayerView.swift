@@ -28,6 +28,11 @@ class PlayerView {
     var playerOnePosition: CGPoint { playerOne.position }
     var playerTwoPosition: CGPoint { playerTwo.position }
     
+    private var primarySpellIcon: SKSpriteNode!
+    private var secondarySpellIcon: SKSpriteNode!
+    private var primaryCycleButton: SKSpriteNode!
+    private var secondaryCycleButton: SKSpriteNode!
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -79,6 +84,7 @@ class PlayerView {
         setupScoreLabel()
         setupCoinsLabel()
         setupWaveLabel()
+        setupSpellIcons()
     }
     
     private func setupCastle() {
@@ -372,6 +378,88 @@ class PlayerView {
         // Update visual state
         updatePlayerOneCharges(charges: state.playerOneSpellCharges)
         updatePlayerTwoCharges(charges: state.playerTwoSpellCharges)
+    }
+
+    private func setupSpellIcons() {
+        guard let scene = parentScene else { return }
+        
+        // Primary spell setup
+        primarySpellIcon = SKSpriteNode(imageNamed: state.primarySpell.name)
+        primarySpellIcon.size = CGSize(width: 40, height: 40)
+        primarySpellIcon.position = CGPoint(x: playerOne.position.x - 30, y: playerOne.position.y + 50)
+        scene.addChild(primarySpellIcon)
+        
+        // Secondary spell setup
+        secondarySpellIcon = SKSpriteNode(imageNamed: state.secondarySpell.name)
+        secondarySpellIcon.size = CGSize(width: 40, height: 40)
+        secondarySpellIcon.position = CGPoint(x: playerTwo.position.x - 30, y: playerTwo.position.y + 50)
+        scene.addChild(secondarySpellIcon)
+        
+        // Cycle buttons
+        setupCycleButtons()
+    }
+
+    private func setupCycleButtons() {
+        guard let scene = parentScene else { return }
+        
+        // Primary cycle button
+        primaryCycleButton = SKSpriteNode(imageNamed: "cycle_arrow")  // Create this asset
+        primaryCycleButton.size = CGSize(width: 20, height: 20)
+        primaryCycleButton.position = CGPoint(x: primarySpellIcon.position.x + 30, y: primarySpellIcon.position.y)
+        primaryCycleButton.name = "primaryCycle"
+        scene.addChild(primaryCycleButton)
+        
+        // Secondary cycle button
+        secondaryCycleButton = SKSpriteNode(imageNamed: "cycle_arrow")
+        secondaryCycleButton.size = CGSize(width: 20, height: 20)
+        secondaryCycleButton.position = CGPoint(x: secondarySpellIcon.position.x + 30, y: secondarySpellIcon.position.y)
+        secondaryCycleButton.name = "secondaryCycle"
+        scene.addChild(secondaryCycleButton)
+    }
+
+    func handleSpellCycleTouch(_ touchedNode: SKNode) {
+        switch touchedNode.name {
+        case "primaryCycle":
+            cycleSpell(isPrimary: true)
+        case "secondaryCycle":
+            cycleSpell(isPrimary: false)
+        default:
+            break
+        }
+    }
+
+    private func cycleSpell(isPrimary: Bool) {
+        let availableSpells = state.getAvailableSpells()
+        guard availableSpells.count > 1 else { return }
+        
+        let currentSpell = isPrimary ? state.primarySpell : state.secondarySpell
+        
+        // Find the index of the current spell
+        if let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) {
+            // Get the next spell in the rotation
+            let nextIndex = (currentIndex + 1) % availableSpells.count
+            let nextSpell = availableSpells[nextIndex]
+            
+            // Update the state
+            if isPrimary {
+                state.primarySpell = nextSpell
+                primarySpellIcon.texture = SKTexture(imageNamed: nextSpell.name)
+            } else {
+                state.secondarySpell = nextSpell
+                secondarySpellIcon.texture = SKTexture(imageNamed: nextSpell.name)
+            }
+            
+            // Add visual feedback
+            let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
+            let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
+            let sequence = SKAction.sequence([scaleUp, scaleDown])
+            
+            if isPrimary {
+                primarySpellIcon.run(sequence)
+            } else {
+                secondarySpellIcon.run(sequence)
+            }
+        }
     }
 
 } 

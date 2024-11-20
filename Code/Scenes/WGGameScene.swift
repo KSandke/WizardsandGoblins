@@ -386,6 +386,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
+        // Handle spell cycling
+        let touchedNodes = nodes(at: touchLocation)
+        for node in touchedNodes {
+            if node.name == "primaryCycle" || node.name == "secondaryCycle" {
+                playerView.handleSpellCycleTouch(node)
+                return
+            }
+        }
+        
         // Handle button taps
         let touchedNode = nodes(at: touchLocation).first
         if let name = touchedNode?.name {
@@ -422,7 +431,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Determine primary and backup casters based on distance
         let isPlayerOnePrimary = distance1 < distance2
-
+        
         // Try to cast with primary caster, if fails try backup caster
         if !castSpell(isPlayerOne: isPlayerOnePrimary, to: touchLocation) {
             _ = castSpell(isPlayerOne: !isPlayerOnePrimary, to: touchLocation)

@@ -18,6 +18,7 @@ class Goblin {
         let damage: CGFloat
         let maxHealth: CGFloat
         let goldValue: Int
+        private var isAttacksPaused = false
                 
         init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat, goldValue: Int) {
             self.type = type
@@ -28,6 +29,54 @@ class Goblin {
             self.damage = damage
             self.maxHealth = maxHealth
             self.goldValue = goldValue
+        }
+        
+        func applyDamage(_ damage: CGFloat) {
+            health -= damage
+            
+            // Check if goblin should die
+            if health <= 0 {
+                // Stop all actions when the goblin dies
+                sprite.removeAllActions()
+                
+                // Find the game scene and notify BEFORE removing the sprite
+                if let gameScene = sprite.scene as? GameScene {
+                    gameScene.goblinDied(container: self, goblinKilled: true)
+                    // Remove from goblinContainers array
+                    gameScene.goblinManager.goblinContainers.removeAll { $0 === self }
+                }
+                
+                // Remove the sprite and health bars from the scene
+                sprite.removeFromParent()
+                return
+            }
+            
+            // Update health bar only if still alive
+            let healthRatio = max(0, health / maxHealth)  // Ensure ratio doesn't go negative
+            healthFill.xScale = healthRatio
+        }
+        
+        func pauseAttacks() {
+            isAttacksPaused = true
+            sprite.removeAction(forKey: "rangedAttack") // Stops ranged attacks if applicable
+        }
+        
+        func resumeAttacks() {
+            isAttacksPaused = false
+            // Only restart attacks for ranged goblins
+            if type == .ranged {
+                // Recreate the attack sequence
+                let spawnArrow = SKAction.run { [weak self] in
+                    guard let self = self,
+                          let scene = self.sprite.scene as? GameScene else { return }
+                    scene.goblinManager.spawnArrow(from: self.sprite.position, 
+                                                 to: scene.playerView.castlePosition)
+                }
+                let waitAction = SKAction.wait(forDuration: 1.5)
+                let attackSequence = SKAction.sequence([spawnArrow, waitAction])
+                let repeatAttack = SKAction.repeatForever(attackSequence)
+                sprite.run(repeatAttack, withKey: "rangedAttack")
+            }
         }
     }
     
@@ -271,17 +320,8 @@ class Goblin {
         for container in goblinContainers {
             let distance = position.distance(to: container.sprite.position)
             if distance <= spell.aoeRadius {
-                // Apply damage
-                container.health -= spell.damage
-                if container.health <= 0 {
-                    gameScene.goblinDied(container: container, goblinKilled: true)
-                    containersToRemove.append(container)
-                } else {
-                    // Update health bar
-                    let healthRatio = container.health / container.maxHealth
-                    container.healthFill.xScale = healthRatio
-                    spell.specialEffect?(spell, container)
-                }
+                // Apply the spell effect
+                spell.applySpecialEffect(on: container)
             }
         }
         

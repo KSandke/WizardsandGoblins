@@ -2,6 +2,20 @@ import Foundation
 import CoreGraphics
 import SpriteKit
 
+// First, create a FrostEffect class
+class FrostEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        goblin.applyDamage(spell.damage)
+        // Apply slowing effect
+        goblin.sprite.speed = 0.5
+        let wait = SKAction.wait(forDuration: 5.0)
+        let resetSpeed = SKAction.run {
+            goblin.sprite.speed = 1.0
+        }
+        goblin.sprite.run(SKAction.sequence([wait, resetSpeed]))
+    }
+}
+
 class PlayerState {
     // Castle state
     var castleHealth: CGFloat = 100 {
@@ -29,8 +43,16 @@ class PlayerState {
     }
     
     // Replace individual spell properties with primary/secondary spells
-    private var primarySpell: Spell
-    private var secondarySpell: Spell
+    var primarySpell: Spell {
+        didSet {
+            // You might want to add notification handling here
+        }
+    }
+    var secondarySpell: Spell {
+        didSet {
+            // You might want to add notification handling here
+        }
+    }
     private var isUsingPrimarySpell: Bool = true
     
     // New properties for upgrades
@@ -44,6 +66,9 @@ class PlayerState {
     
     var spellPowerMultiplier: CGFloat = 1.0
     
+    // Add this property to track available spells
+    private var availableSpells: [Spell] = []
+    
     // Constructor
     init() {
         // Initialize primary spell (previously spell1)
@@ -52,7 +77,7 @@ class PlayerState {
             aoeRadius: 50,
             duration: 1.0,
             damage: 25,
-            specialEffect: nil
+            effect: DefaultEffect()  // Use DefaultEffect here
         )
 
         // Initialize secondary spell (previously IceSpell)
@@ -61,19 +86,14 @@ class PlayerState {
             aoeRadius: 50,
             duration: 1.0,
             damage: 20,
-            specialEffect: { spell, container in
-                // Apply slowing effect
-                container.sprite.speed = 0.5
-                let wait = SKAction.wait(forDuration: 5.0)
-                let resetSpeed = SKAction.run {
-                    container.sprite.speed = 1.0
-                }
-                container.sprite.run(SKAction.sequence([wait, resetSpeed]))
-            }
+            effect: FrostEffect()  // Use FrostEffect here instead of closure
         )
         
         // Initialize maxHealth to match castleHealth
         maxHealth = maxCastleHealth
+        
+        // Add initial spells to available spells
+        availableSpells = [primarySpell, secondarySpell]
     }
     
     // Callbacks for binding
@@ -168,5 +188,24 @@ class PlayerState {
     // Add this new method to PlayerState
     func getCurrentSpellName() -> String {
         return isUsingPrimarySpell ? primarySpell.name : secondarySpell.name
+    }
+    
+    // Add this new method
+    func addSpell(_ spell: Spell) {
+        // Check if we already have this type of spell
+        if !availableSpells.contains(where: { $0.name == spell.name }) {
+            availableSpells.append(spell)
+            // If this is our first or second spell, set it as primary/secondary
+            if availableSpells.count == 1 {
+                primarySpell = spell
+            } else if availableSpells.count == 2 {
+                secondarySpell = spell
+            }
+        }
+    }
+    
+    // Add this method to get available spells
+    func getAvailableSpells() -> [Spell] {
+        return availableSpells
     }
 } 

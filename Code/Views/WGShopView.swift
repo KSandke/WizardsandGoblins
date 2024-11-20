@@ -52,6 +52,23 @@ struct ShopItem {
                 let level = ShopItem.purchaseCounts["Spell Power +10%"] ?? 0
                 state.spellPowerMultiplier *= 1.1 + (CGFloat(level) * 0.05)
             }
+        ),
+        ShopItem(
+            name: "Random Spell",
+            description: "Get a random new spell",
+            basePrice: 15,
+            icon: "random_spell",  // You'll need to add this asset
+            effect: { state in
+                let availableSpells = [
+                    FireballSpell(),
+                    IceSpell(),
+                    LightningSpell(),
+                    PoisonCloudSpell()
+                ]
+                if let randomSpell = availableSpells.randomElement() {
+                    state.addSpell(randomSpell)
+                }
+            }
         )
     ]
     
