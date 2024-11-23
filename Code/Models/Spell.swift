@@ -290,7 +290,7 @@ class CyberneticOverloadSpell: Spell {
             damage: 30,
             aoeRadius: 100,
             duration: 5.0,
-            spellEffect: CyberneticOverloadEffect()
+            effect: CyberneticOverloadEffect()
         )
     }
 }
@@ -302,7 +302,7 @@ class SteampunkTimeBombSpell: Spell {
             damage: 50,
             aoeRadius: 150,
             duration: 3.0,
-            spellEffect: SteampunkTimeBombEffect()
+            effect: SteampunkTimeBombEffect()
         )
     }
 }
@@ -314,7 +314,43 @@ class IronMaidenSpell: Spell {
             damage: 35,
             aoeRadius: 15,
             duration: 8.0,
-            spellEffect: IronMaidenEffect()
+            effect: IronMaidenEffect()
+        )
+    }
+}
+
+class ShadowPuppetSpell: Spell {
+    init() {
+        super.init(
+            name: "Shadow Puppet",
+            damage: 0,
+            aoeRadius: 0,
+            duration: 10.0,
+            effect: ShadowPuppetEffect()
+        )
+    }
+}
+
+class TemporalDistortionSpell: Spell {
+    init() {
+        super.init(
+            name: "Temporal Distortion",
+            damage: 0,
+            aoeRadius: 120,
+            duration: 5.0,
+            effect: TemporalDistortionEffect()
+        )
+    }
+}
+
+class QuantumCollapseSpell: Spell {
+    init() {
+        super.init(
+            name: "Quantum Collapse",
+            damage: 50,
+            aoeRadius: 100,
+            duration: 3.0,
+            effect: QuantumCollapseEffect()
         )
     }
 }
@@ -1583,5 +1619,93 @@ class SteampunkTimeBombEffect: SpellEffect {
                 SKAction.removeFromParent()
             ]))
         }
+    }
+}
+
+
+
+class ShadowPuppetEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
+
+        // Create shadow puppet at goblin's position
+        let shadowSprite = goblin.sprite.copy() as! SKSpriteNode
+        shadowSprite.color = .black
+        shadowSprite.colorBlendFactor = 1.0
+        shadowSprite.alpha = 0.7
+        shadowSprite.position = goblin.sprite.position
+        shadowSprite.zPosition = goblin.sprite.zPosition
+
+        // Create a dummy GoblinContainer for the shadow puppet
+        let shadowGoblin = Goblin.GoblinContainer(
+            type: goblin.type,
+            sprite: shadowSprite,
+            healthBar: SKShapeNode(),
+            healthFill: SKShapeNode(),
+            health: goblin.health,
+            damage: goblin.damage * 1.2,
+            maxHealth: goblin.maxHealth,
+            goldValue: 0
+        )
+
+        // Add to the scene and goblin manager
+        scene.addChild(shadowSprite)
+        scene.goblinManager.addShadowGoblin(shadowGoblin)
+
+        // Shadow attacks other goblins
+        shadowGoblin.startAttackingGoblins(in: scene)
+
+        // Remove shadow puppet after duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
+            shadowSprite.removeFromParent()
+            scene.goblinManager.removeShadowGoblin(shadowGoblin)
+        }
+
+        // Visual effect
+        let shadowEffect = ShadowPuppetEmitter(at: goblin.sprite.position)
+        scene.addChild(shadowEffect)
+        shadowEffect.run(SKAction.sequence([
+            SKAction.wait(forDuration: spell.duration),
+            SKAction.removeFromParent()
+        ]))
+    }
+}
+
+class TemporalDistortionEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        // Slow down goblin
+        goblin.sprite.speed = 0.3
+
+        // Visual effect
+        let distortion = TemporalDistortionEmitter()
+        distortion.position = CGPoint.zero
+        goblin.sprite.addChild(distortion)
+
+        // Restore speed after duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
+            goblin.sprite.speed = 1.0
+            distortion.removeFromParent()
+        }
+    }
+}
+
+class QuantumCollapseEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene else { return }
+
+        // Apply fluctuating damage
+        let minDamage = spell.damage * 0.5
+        let maxDamage = spell.damage * 1.5
+        let randomDamage = CGFloat.random(in: minDamage...maxDamage)
+        goblin.applyDamage(randomDamage)
+
+        // Visual effect
+        let quantumEffect = QuantumCollapseEmitter()
+        quantumEffect.position = goblin.sprite.position
+        scene.addChild(quantumEffect)
+        quantumEffect.run(SKAction.sequence([
+            SKAction.wait(forDuration: spell.duration),
+            SKAction.removeFromParent()
+        ]))
     }
 }

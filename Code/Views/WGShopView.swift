@@ -77,7 +77,10 @@ struct ShopItem {
                     CyberneticOverloadSpell(),
                     SteampunkTimeBombSpell(),
                     //HologramTrapSpell(),
-                    SystemOverrideSpell()
+                    SystemOverrideSpell(),
+                    ShadowPuppetSpell(),
+                    TemporalDistortionSpell(),
+                    QuantumCollapseSpell()
                 ]
                 if let randomSpell = availableSpells.randomElement() {
                     state.addSpell(randomSpell)
