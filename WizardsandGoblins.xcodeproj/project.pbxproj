@@ -46,6 +46,12 @@
 		14F528DF2CF163FA0092C18F /* EarthShatterEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */; };
 		14F528E02CF163FA0092C18F /* BloodMoonEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DC2CF163FA0092C18F /* BloodMoonEmitter.swift */; };
 		14F528E12CF163FA0092C18F /* MysticBarrierEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */; };
+		925D72F22CF1668D00E11E34 /* InfernoEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EF2CF1668D00E11E34 /* InfernoEmitter.swift */; };
+		925D72F32CF1668D00E11E34 /* MeteorShowerEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72F02CF1668D00E11E34 /* MeteorShowerEmitter.swift */; };
+		925D72F42CF1668D00E11E34 /* NecromancersGripEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72F12CF1668D00E11E34 /* NecromancersGripEmitter.swift */; };
+		925D72F52CF1668D00E11E34 /* ArcaneStormEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EC2CF1668D00E11E34 /* ArcaneStormEmitter.swift */; };
+		925D72F62CF1668D00E11E34 /* DivineWrathEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */; };
+		925D72F72CF1668D00E11E34 /* BlizzardEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -112,6 +118,12 @@
 		14F528DC2CF163FA0092C18F /* BloodMoonEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloodMoonEmitter.swift; sourceTree = "<group>"; };
 		14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarthShatterEmitter.swift; sourceTree = "<group>"; };
 		14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MysticBarrierEmitter.swift; sourceTree = "<group>"; };
+		925D72EC2CF1668D00E11E34 /* ArcaneStormEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcaneStormEmitter.swift; sourceTree = "<group>"; };
+		925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlizzardEmitter.swift; sourceTree = "<group>"; };
+		925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DivineWrathEmitter.swift; sourceTree = "<group>"; };
+		925D72EF2CF1668D00E11E34 /* InfernoEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfernoEmitter.swift; sourceTree = "<group>"; };
+		925D72F02CF1668D00E11E34 /* MeteorShowerEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeteorShowerEmitter.swift; sourceTree = "<group>"; };
+		925D72F12CF1668D00E11E34 /* NecromancersGripEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NecromancersGripEmitter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -275,6 +287,12 @@
 		14DDF43E2CF1551100A0EBAB /* EmitterNodes */ = {
 			isa = PBXGroup;
 			children = (
+				925D72EC2CF1668D00E11E34 /* ArcaneStormEmitter.swift */,
+				925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */,
+				925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */,
+				925D72EF2CF1668D00E11E34 /* InfernoEmitter.swift */,
+				925D72F02CF1668D00E11E34 /* MeteorShowerEmitter.swift */,
+				925D72F12CF1668D00E11E34 /* NecromancersGripEmitter.swift */,
 				14F528DC2CF163FA0092C18F /* BloodMoonEmitter.swift */,
 				14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */,
 				14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */,
@@ -498,6 +516,12 @@
 				14DDF4472CF1551100A0EBAB /* TracerEffect.swift in Sources */,
 				14F528D72CF1638C0092C18F /* QuantumCollapseEmitter.swift in Sources */,
 				14DDF4482CF1551100A0EBAB /* CodeRain.swift in Sources */,
+				925D72F22CF1668D00E11E34 /* InfernoEmitter.swift in Sources */,
+				925D72F32CF1668D00E11E34 /* MeteorShowerEmitter.swift in Sources */,
+				925D72F42CF1668D00E11E34 /* NecromancersGripEmitter.swift in Sources */,
+				925D72F52CF1668D00E11E34 /* ArcaneStormEmitter.swift in Sources */,
+				925D72F62CF1668D00E11E34 /* DivineWrathEmitter.swift in Sources */,
+				925D72F72CF1668D00E11E34 /* BlizzardEmitter.swift in Sources */,
 				14DDF4492CF1551100A0EBAB /* HologramExplosion.swift in Sources */,
 				14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */,
 				14F528D32CF162A70092C18F /* IronMaidenEmitter.swift in Sources */,
