@@ -24,6 +24,16 @@
 		14DDF42E2CF14C5D00A0EBAB /* LightningStrike.sks in Resources */ = {isa = PBXBuildFile; fileRef = 14DDF42C2CF14C5D00A0EBAB /* LightningStrike.sks */; };
 		14DDF42F2CF14C5D00A0EBAB /* LightningBolt.sks in Resources */ = {isa = PBXBuildFile; fileRef = 14DDF42B2CF14C5D00A0EBAB /* LightningBolt.sks */; };
 		14DDF4302CF14C5D00A0EBAB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 14DDF42A2CF14C5D00A0EBAB /* Assets.xcassets */; };
+		14DDF4402CF1551100A0EBAB /* NanoSwarmMini.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF43A2CF1551100A0EBAB /* NanoSwarmMini.swift */; };
+		14DDF4412CF1551100A0EBAB /* BloodDrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF4342CF1551100A0EBAB /* BloodDrip.swift */; };
+		14DDF4422CF1551100A0EBAB /* NukeCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF43B2CF1551100A0EBAB /* NukeCloud.swift */; };
+		14DDF4432CF1551100A0EBAB /* NanoSwarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF4392CF1551100A0EBAB /* NanoSwarm.swift */; };
+		14DDF4442CF1551100A0EBAB /* BloodParticle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF4352CF1551100A0EBAB /* BloodParticle.swift */; };
+		14DDF4452CF1551100A0EBAB /* SwarmQueenEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF43C2CF1551100A0EBAB /* SwarmQueenEmitter.swift */; };
+		14DDF4462CF1551100A0EBAB /* MissileExplosion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF4382CF1551100A0EBAB /* MissileExplosion.swift */; };
+		14DDF4472CF1551100A0EBAB /* TracerEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF43D2CF1551100A0EBAB /* TracerEffect.swift */; };
+		14DDF4482CF1551100A0EBAB /* CodeRain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF4362CF1551100A0EBAB /* CodeRain.swift */; };
+		14DDF4492CF1551100A0EBAB /* HologramExplosion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DDF4372CF1551100A0EBAB /* HologramExplosion.swift */; };
 		14ECCEEF2CE47B96005A9627 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14ECCEEE2CE47B96005A9627 /* PlayerView.swift */; };
 		14ECCEF22CE47BA8005A9627 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14ECCEF02CE47BA8005A9627 /* PlayerState.swift */; };
 		14EDC1732CE96559002EFCF1 /* WGTutorialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EDC1712CE96559002EFCF1 /* WGTutorialManager.swift */; };
@@ -71,6 +81,16 @@
 		14DDF42B2CF14C5D00A0EBAB /* LightningBolt.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = LightningBolt.sks; sourceTree = "<group>"; };
 		14DDF42C2CF14C5D00A0EBAB /* LightningStrike.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = LightningStrike.sks; sourceTree = "<group>"; };
 		14DDF4332CF1529500A0EBAB /* nuclear_siren.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nuclear_siren.mp3; sourceTree = "<group>"; };
+		14DDF4342CF1551100A0EBAB /* BloodDrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloodDrip.swift; sourceTree = "<group>"; };
+		14DDF4352CF1551100A0EBAB /* BloodParticle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloodParticle.swift; sourceTree = "<group>"; };
+		14DDF4362CF1551100A0EBAB /* CodeRain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeRain.swift; sourceTree = "<group>"; };
+		14DDF4372CF1551100A0EBAB /* HologramExplosion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HologramExplosion.swift; sourceTree = "<group>"; };
+		14DDF4382CF1551100A0EBAB /* MissileExplosion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissileExplosion.swift; sourceTree = "<group>"; };
+		14DDF4392CF1551100A0EBAB /* NanoSwarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoSwarm.swift; sourceTree = "<group>"; };
+		14DDF43A2CF1551100A0EBAB /* NanoSwarmMini.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanoSwarmMini.swift; sourceTree = "<group>"; };
+		14DDF43B2CF1551100A0EBAB /* NukeCloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NukeCloud.swift; sourceTree = "<group>"; };
+		14DDF43C2CF1551100A0EBAB /* SwarmQueenEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwarmQueenEmitter.swift; sourceTree = "<group>"; };
+		14DDF43D2CF1551100A0EBAB /* TracerEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TracerEffect.swift; sourceTree = "<group>"; };
 		14ECCEEE2CE47B96005A9627 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		14ECCEF02CE47BA8005A9627 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
 		14EDC1712CE96559002EFCF1 /* WGTutorialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGTutorialManager.swift; sourceTree = "<group>"; };
@@ -146,6 +166,7 @@
 		14101F0C2CCA215B00BD8C7D /* Code */ = {
 			isa = PBXGroup;
 			children = (
+				14DDF43F2CF1551100A0EBAB /* Effects */,
 				14DDF42D2CF14C5D00A0EBAB /* Particles */,
 				14EDC1722CE96559002EFCF1 /* Tutorial */,
 				14ECCEF12CE47BA8005A9627 /* Models */,
@@ -231,6 +252,31 @@
 				14DDF4332CF1529500A0EBAB /* nuclear_siren.mp3 */,
 			);
 			path = Sounds;
+			sourceTree = "<group>";
+		};
+		14DDF43E2CF1551100A0EBAB /* EmitterNodes */ = {
+			isa = PBXGroup;
+			children = (
+				14DDF4342CF1551100A0EBAB /* BloodDrip.swift */,
+				14DDF4352CF1551100A0EBAB /* BloodParticle.swift */,
+				14DDF4362CF1551100A0EBAB /* CodeRain.swift */,
+				14DDF4372CF1551100A0EBAB /* HologramExplosion.swift */,
+				14DDF4382CF1551100A0EBAB /* MissileExplosion.swift */,
+				14DDF4392CF1551100A0EBAB /* NanoSwarm.swift */,
+				14DDF43A2CF1551100A0EBAB /* NanoSwarmMini.swift */,
+				14DDF43B2CF1551100A0EBAB /* NukeCloud.swift */,
+				14DDF43C2CF1551100A0EBAB /* SwarmQueenEmitter.swift */,
+				14DDF43D2CF1551100A0EBAB /* TracerEffect.swift */,
+			);
+			path = EmitterNodes;
+			sourceTree = "<group>";
+		};
+		14DDF43F2CF1551100A0EBAB /* Effects */ = {
+			isa = PBXGroup;
+			children = (
+				14DDF43E2CF1551100A0EBAB /* EmitterNodes */,
+			);
+			path = Effects;
 			sourceTree = "<group>";
 		};
 		14ECCEF12CE47BA8005A9627 /* Models */ = {
@@ -411,6 +457,16 @@
 				14ECCEF22CE47BA8005A9627 /* PlayerState.swift in Sources */,
 				14101F082CCA214A00BD8C7D /* GameContext.swift in Sources */,
 				14101F092CCA214A00BD8C7D /* GameType.swift in Sources */,
+				14DDF4402CF1551100A0EBAB /* NanoSwarmMini.swift in Sources */,
+				14DDF4412CF1551100A0EBAB /* BloodDrip.swift in Sources */,
+				14DDF4422CF1551100A0EBAB /* NukeCloud.swift in Sources */,
+				14DDF4432CF1551100A0EBAB /* NanoSwarm.swift in Sources */,
+				14DDF4442CF1551100A0EBAB /* BloodParticle.swift in Sources */,
+				14DDF4452CF1551100A0EBAB /* SwarmQueenEmitter.swift in Sources */,
+				14DDF4462CF1551100A0EBAB /* MissileExplosion.swift in Sources */,
+				14DDF4472CF1551100A0EBAB /* TracerEffect.swift in Sources */,
+				14DDF4482CF1551100A0EBAB /* CodeRain.swift in Sources */,
+				14DDF4492CF1551100A0EBAB /* HologramExplosion.swift in Sources */,
 				14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */,
 				1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */,
 				14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */,
