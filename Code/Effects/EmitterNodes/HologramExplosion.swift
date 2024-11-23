@@ -123,35 +123,54 @@ class HologramExplosionEmitter: SKEmitterNode {
     
     // Texture creation methods...
     private func createGlitchTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 20, height: 2)) { context in
+        let size = CGSize(width: 20, height: 2)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setFillColor(UIColor.cyan.cgColor)
             context.fill(CGRect(x: 0, y: 0, width: 20, height: 2))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createPixelTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 2, height: 2)) { context in
+        let size = CGSize(width: 2, height: 2)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setFillColor(UIColor.cyan.cgColor)
             context.fill(CGRect(x: 0, y: 0, width: 2, height: 2))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createRingTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 32, height: 32)) { context in
+        let size = CGSize(width: 32, height: 32)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setStrokeColor(UIColor.cyan.cgColor)
             context.setLineWidth(2)
             context.strokeEllipse(in: CGRect(x: 2, y: 2, width: 28, height: 28))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createDataTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 8, height: 8)) { context in
+        let size = CGSize(width: 8, height: 8)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             let binary = "10"
             context.setFillColor(UIColor.cyan.cgColor)
-            context.setFont(UIFont.systemFont(ofSize: 6))
-            binary.draw(at: CGPoint(x: 1, y: 1), withAttributes: [
-                .foregroundColor: UIColor.cyan
-            ])
+            (binary as NSString).draw(at: CGPoint(x: 1, y: 1), 
+                withAttributes: [.font: UIFont.systemFont(ofSize: 6),
+                               .foregroundColor: UIColor.cyan])
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
 } 

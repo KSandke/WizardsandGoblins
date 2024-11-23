@@ -64,9 +64,14 @@ class NanoSwarmMiniEmitter: SKEmitterNode {
     }
     
     private func createMiniNaniteTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 3, height: 3)) { context in
+        let size = CGSize(width: 3, height: 3)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setFillColor(UIColor.cyan.cgColor)
             context.fill(CGRect(x: 1, y: 1, width: 1, height: 1))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
 } 

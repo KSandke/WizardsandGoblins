@@ -88,15 +88,17 @@ class CodeRainEmitter: SKEmitterNode {
     }
     
     private func createCodeTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 8, height: 12)) { context in
+        let size = CGSize(width: 8, height: 12)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             let characters = ["0", "1"]
             let character = characters.randomElement() ?? "0"
-            
-            context.setFillColor(UIColor.green.cgColor)
-            context.setFont(UIFont.systemFont(ofSize: 10))
-            character.draw(at: CGPoint(x: 1, y: 1), withAttributes: [
-                .foregroundColor: UIColor.green
-            ])
+            (character as NSString).draw(at: CGPoint(x: 1, y: 1),
+                withAttributes: [.font: UIFont.systemFont(ofSize: 10),
+                               .foregroundColor: UIColor.green])
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
 } 
