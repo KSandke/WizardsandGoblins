@@ -413,4 +413,17 @@ class Goblin {
             return 10
         }
     }
+}
+
+// Add this extension to your Goblin.swift file
+extension Goblin.GoblinContainer: Hashable {
+    static func == (lhs: Goblin.GoblinContainer, rhs: Goblin.GoblinContainer) -> Bool {
+        // Use object identity since each container should be unique
+        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        // Hash using object identity
+        hasher.combine(ObjectIdentifier(self))
+    }
 } 

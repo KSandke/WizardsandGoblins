@@ -211,17 +211,17 @@ class CrucifixionSpell: Spell {
     }
 }
 
-class MindControlSpell: Spell {
-    init() {
-        super.init(
-            name: "MindControlSpell",
-            aoeRadius: 60,
-            duration: 8.0,
-            damage: 0,
-            effect: MindControlEffect()
-        )
-    }
-}
+// class MindControlSpell: Spell {
+//     init() {
+//         super.init(
+//             name: "MindControlSpell",
+//             aoeRadius: 60,
+//             duration: 8.0,
+//             damage: 0,
+//             effect: MindControlEffect()
+//         )
+//     }
+// }
 
 class RiftWalkerSpell: Spell {
     init() {
@@ -934,62 +934,62 @@ class CrucifixionEffect: SpellEffect {
     }
 }
 
-class MindControlEffect: SpellEffect {
-    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
-        guard let scene = goblin.sprite.scene as? GameScene else { return }
+// class MindControlEffect: SpellEffect {
+//     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+//         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
-        // Visual indicator
-        let controlRing = SKShapeNode(circleOfRadius: 25)
-        controlRing.strokeColor = .magenta
-        controlRing.lineWidth = 3
-        controlRing.position = goblin.sprite.position
-        scene.addChild(controlRing)
+//         // Visual indicator
+//         let controlRing = SKShapeNode(circleOfRadius: 25)
+//         controlRing.strokeColor = .magenta
+//         controlRing.lineWidth = 3
+//         controlRing.position = goblin.sprite.position
+//         scene.addChild(controlRing)
 
-        // Store original properties
-        let originalColor = goblin.sprite.color
-        let originalBlend = goblin.sprite.colorBlendFactor
+//         // Store original properties
+//         let originalColor = goblin.sprite.color
+//         let originalBlend = goblin.sprite.colorBlendFactor
 
-        // Mark as controlled
-        goblin.sprite.color = .magenta
-        goblin.sprite.colorBlendFactor = 0.5
+//         // Mark as controlled
+//         goblin.sprite.color = .magenta
+//         goblin.sprite.colorBlendFactor = 0.5
 
-        // Override goblin's behavior
-        let originalUpdate = goblin.update // Store original update if it exists
-        goblin.update = { [weak goblin, weak scene] deltaTime in
-            guard let goblin = goblin, let scene = scene else { return }
+//         // Override goblin's behavior
+//         let originalUpdate = goblin.update // Store original update if it exists
+//         goblin.update = { [weak goblin, weak scene] deltaTime in
+//             guard let goblin = goblin, let scene = scene else { return }
 
-            // Find nearest other goblin
-            if let nearestGoblin = scene.goblinManager.goblinContainers
-                .filter({ $0 !== goblin })
-                .min(by: { $0.sprite.position.distance(to: goblin.sprite.position) <
-                          $1.sprite.position.distance(to: goblin.sprite.position) }) {
+//             // Find nearest other goblin
+//             if let nearestGoblin = scene.goblinManager.goblinContainers
+//                 .filter({ $0 !== goblin })
+//                 .min(by: { $0.sprite.position.distance(to: goblin.sprite.position) <
+//                           $1.sprite.position.distance(to: goblin.sprite.position) }) {
 
-                // Attack other goblins
-                if goblin.sprite.position.distance(to: nearestGoblin.sprite.position) < 50 {
-                    nearestGoblin.applyDamage(goblin.damage * 2) // Double damage!
-                } else {
-                    // Move towards target
-                    let direction = (nearestGoblin.sprite.position - goblin.sprite.position).normalized()
-                    goblin.sprite.position += direction * 200 * CGFloat(deltaTime)
-                }
-            }
-        }
+//                 // Attack other goblins
+//                 if goblin.sprite.position.distance(to: nearestGoblin.sprite.position) < 50 {
+//                     nearestGoblin.applyDamage(goblin.damage * 2) // Double damage!
+//                 } else {
+//                     // Move towards target
+//                     let direction = (nearestGoblin.sprite.position - goblin.sprite.position).normalized()
+//                     goblin.sprite.position += direction * 200 * CGFloat(deltaTime)
+//                 }
+//             }
+//         }
 
-        // Pulse animation
-        controlRing.run(SKAction.repeatForever(SKAction.sequence([
-            SKAction.scale(to: 1.2, duration: 0.5),
-            SKAction.scale(to: 1.0, duration: 0.5)
-        ])))
+//         // Pulse animation
+//         controlRing.run(SKAction.repeatForever(SKAction.sequence([
+//             SKAction.scale(to: 1.2, duration: 0.5),
+//             SKAction.scale(to: 1.0, duration: 0.5)
+//         ])))
 
-        // Cleanup after duration
-        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
-            goblin.update = originalUpdate
-            goblin.sprite.color = originalColor
-            goblin.sprite.colorBlendFactor = originalBlend
-            controlRing.removeFromParent()
-        }
-    }
-}
+//         // Cleanup after duration
+//         DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
+//             goblin.update = originalUpdate
+//             goblin.sprite.color = originalColor
+//             goblin.sprite.colorBlendFactor = originalBlend
+//             controlRing.removeFromParent()
+//         }
+//     }
+// }
 
 class RiftWalkerEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
