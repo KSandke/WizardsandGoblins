@@ -81,7 +81,7 @@ struct ShopItem {
                     ShadowPuppetSpell(),
                     TemporalDistortionSpell(),
                     QuantumCollapseSpell(),
-                    BloodMoonSpell(),
+                    //BloodMoonSpell(),
                     EarthShatterSpell(),
                     MysticBarrierSpell(),
                     DivineWrathSpell(),
