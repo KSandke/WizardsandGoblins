@@ -88,7 +88,7 @@ class CodeRainEmitter: SKEmitterNode {
     }
     
     private func createCodeTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 8, height: 12), imageBlock: { context in
+        return SKTexture(size: CGSize(width: 8, height: 12)) { context in
             let characters = ["0", "1"]
             let character = characters.randomElement() ?? "0"
             
@@ -97,6 +97,6 @@ class CodeRainEmitter: SKEmitterNode {
             character.draw(at: CGPoint(x: 1, y: 1), withAttributes: [
                 .foregroundColor: UIColor.green
             ])
-        })
+        }
     }
 } 

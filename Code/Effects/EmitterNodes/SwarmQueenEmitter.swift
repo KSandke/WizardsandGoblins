@@ -41,9 +41,9 @@ class SwarmQueenEmitter: SKEmitterNode {
     }
     
     private func createSwarmlingTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 10, height: 10), imageBlock: { context in
+        return SKTexture(size: CGSize(width: 10, height: 10)) { context in
             context.setFillColor(UIColor.yellow.cgColor)
             context.fill(CGRect(x: 0, y: 0, width: 10, height: 10))
-        })
+        }
     }
 } 
