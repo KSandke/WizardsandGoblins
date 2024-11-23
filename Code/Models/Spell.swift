@@ -731,7 +731,8 @@ class DriveByEffect: SpellEffect {
 
         // Shooting logic
         var shotsFired = 0
-        let shootTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+        var shootTimer: Timer?
+        shootTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             // Muzzle flash
             flash.position.x = car.position.x + 35
             flash.position.y = car.position.y
@@ -773,7 +774,7 @@ class DriveByEffect: SpellEffect {
 
             shotsFired += 1
             if shotsFired > 30 { // Limit total shots
-                shootTimer.invalidate()
+                shootTimer?.invalidate()
             }
         }
 
