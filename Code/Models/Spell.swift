@@ -135,6 +135,9 @@ class PoisonCloudSpell: Spell {
             duration: 5.0,
             damage: 10,
             effect: PoisonEffect()
+        )
+    }
+}
 
 class AC130Spell: Spell {
     init() {
@@ -248,9 +251,9 @@ class NanoSwarmSpell: Spell {
     init() {
         super.init(
             name: "NanoSwarm",
-            aoeRadius: 80,
+            aoeRadius: 100,
             duration: 5.0,
-            damage: 15,
+            damage: 25,
             effect: NanoSwarmEffect()
         )
     }
@@ -260,9 +263,9 @@ class HologramTrapSpell: Spell {
     init() {
         super.init(
             name: "HologramTrap",
-            aoeRadius: 100,
-            duration: 6.0,
-            damage: 25,
+            aoeRadius: 70,
+            duration: 3.0,
+            damage: 30,
             effect: HologramTrapEffect()
         )
     }
@@ -274,7 +277,7 @@ class SystemOverrideSpell: Spell {
             name: "SystemOverride",
             aoeRadius: 120,
             duration: 4.0,
-            damage: 30,
+            damage: 15,
             effect: SystemOverrideEffect()
         )
     }
