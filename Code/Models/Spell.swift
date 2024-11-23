@@ -1911,27 +1911,25 @@ class MysticBarrierEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
-        // Create barrier around player
-        let barrier = MysticBarrierEmitter(at: scene.playerState.playerPosition, radius: spell.aoeRadius)
+        // Create barrier at the goblin's position (spell landing point) instead of player position
+        let barrier = MysticBarrierEmitter(at: goblin.sprite.position, radius: spell.aoeRadius)
         scene.addChild(barrier)
 
         // Damage goblins who touch the barrier
         let damageAction = SKAction.run {
             let goblins = scene.goblinManager.goblinContainers
             for target in goblins {
-                if target.sprite.position.distance(to: scene.playerState.playerPosition) <= spell.aoeRadius {
+                // Check distance from barrier center (goblin position) instead of player position
+                if target.sprite.position.distance(to: goblin.sprite.position) <= spell.aoeRadius {
                     target.applyDamage(spell.damage)
                 }
             }
         }
-        barrier.run(SKAction.repeat(SKAction.sequence([
-            damageAction,
-            SKAction.wait(forDuration: 0.5)
-        ]), count: Int(spell.duration / 0.5)))
-
-        // Cleanup
         barrier.run(SKAction.sequence([
-            SKAction.wait(forDuration: spell.duration),
+            SKAction.repeat(SKAction.sequence([
+                damageAction,
+                SKAction.wait(forDuration: 0.5)
+            ]), count: Int(spell.duration / 0.5)),
             SKAction.removeFromParent()
         ]))
     }
