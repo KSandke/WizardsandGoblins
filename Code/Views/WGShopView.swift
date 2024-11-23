@@ -78,7 +78,7 @@ struct ShopItem {
                     SteampunkTimeBombSpell(),
                     //HologramTrapSpell(),
                     //SystemOverrideSpell(),
-                    ShadowPuppetSpell(),
+                    //ShadowPuppetSpell(),
                     TemporalDistortionSpell(),
                     QuantumCollapseSpell(),
                     //BloodMoonSpell(),
