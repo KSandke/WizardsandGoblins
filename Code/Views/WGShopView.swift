@@ -80,7 +80,10 @@ struct ShopItem {
                     SystemOverrideSpell(),
                     ShadowPuppetSpell(),
                     TemporalDistortionSpell(),
-                    QuantumCollapseSpell()
+                    QuantumCollapseSpell(),
+                    BloodMoonSpell(),
+                    EarthShatterSpell(),
+                    MysticBarrierSpell()
                 ]
                 if let randomSpell = availableSpells.randomElement() {
                     state.addSpell(randomSpell)

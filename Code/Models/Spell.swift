@@ -355,6 +355,42 @@ class QuantumCollapseSpell: Spell {
     }
 }
 
+class BloodMoonSpell: Spell {
+    init() {
+        super.init(
+            name: "Blood Moon",
+            damage: 35,
+            aoeRadius: 120,
+            duration: 5.0,
+            effect: BloodMoonEffect()
+        )
+    }
+}
+
+class EarthShatterSpell: Spell {
+    init() {
+        super.init(
+            name: "Earth Shatter",
+            damage: 40,
+            aoeRadius: 100,
+            duration: 0,
+            effect: EarthShatterEffect()
+        )
+    }
+}
+
+class MysticBarrierSpell: Spell {
+    init() {
+        super.init(
+            name: "Mystic Barrier",
+            damage: 20,
+            aoeRadius: 80,
+            duration: 8.0,
+            effect: MysticBarrierEffect()
+        )
+    }
+}
+
 // Spell Effect Implementations
 
 class DefaultEffect: SpellEffect {
@@ -1704,6 +1740,93 @@ class QuantumCollapseEffect: SpellEffect {
         quantumEffect.position = goblin.sprite.position
         scene.addChild(quantumEffect)
         quantumEffect.run(SKAction.sequence([
+            SKAction.wait(forDuration: spell.duration),
+            SKAction.removeFromParent()
+        ]))
+    }
+}
+
+
+
+class BloodMoonEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
+
+        // Add visual effect
+        let bloodMoon = BloodMoonEmitter(at: goblin.sprite.position)
+        scene.addChild(bloodMoon)
+
+        // Damage and healing over time
+        let totalTicks = Int(spell.duration)
+        let damagePerTick = spell.damage / CGFloat(totalTicks)
+        let healPerTick = damagePerTick * 0.5
+
+        let action = SKAction.repeat(SKAction.sequence([
+            SKAction.run {
+                goblin.applyDamage(damagePerTick)
+                scene.playerState.health = min(scene.playerState.maxHealth, scene.playerState.health + healPerTick)
+            },
+            SKAction.wait(forDuration: 1.0)
+        ]), count: totalTicks)
+
+        scene.run(action)
+
+        // Cleanup
+        bloodMoon.run(SKAction.sequence([
+            SKAction.wait(forDuration: spell.duration),
+            SKAction.removeFromParent()
+        ]))
+    }
+}
+
+class EarthShatterEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
+
+        // Add visual effect
+        let earthShatter = EarthShatterEmitter(at: goblin.sprite.position)
+        scene.addChild(earthShatter)
+
+        // Damage nearby goblins
+        let nearbyGoblins = scene.goblinManager.goblinContainers.filter {
+            $0.sprite.position.distance(to: goblin.sprite.position) <= spell.aoeRadius
+        }
+        for target in nearbyGoblins {
+            target.applyDamage(spell.damage)
+        }
+
+        // Cleanup
+        earthShatter.run(SKAction.sequence([
+            SKAction.wait(forDuration: 1.0),
+            SKAction.removeFromParent()
+        ]))
+    }
+}
+
+class MysticBarrierEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene else { return }
+
+        // Create barrier around player
+        let barrier = MysticBarrierEmitter(at: scene.playerPosition, radius: spell.aoeRadius)
+        scene.addChild(barrier)
+
+        // Damage goblins who touch the barrier
+        let damageAction = SKAction.run {
+            let goblins = scene.goblinManager.goblinContainers
+            for target in goblins {
+                if target.sprite.position.distance(to: scene.playerPosition) <= spell.aoeRadius {
+                    target.applyDamage(spell.damage)
+                }
+            }
+        }
+        barrier.run(SKAction.repeat(SKAction.sequence([
+            damageAction,
+            SKAction.wait(forDuration: 0.5)
+        ]), count: Int(spell.duration / 0.5)))
+
+        // Cleanup
+        barrier.run(SKAction.sequence([
             SKAction.wait(forDuration: spell.duration),
             SKAction.removeFromParent()
         ]))
