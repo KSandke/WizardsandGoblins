@@ -1072,22 +1072,22 @@ class SwarmQueenEffect: SpellEffect {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
         let swarmCount = 20
-        var swarmNodes: [SKSpriteNode] = []
+        var swarmEmitters: [SwarmQueenEmitter] = []
 
-        // Create swarm particles
+        // Create swarm emitters
         for _ in 0..<swarmCount {
-            let swarmling = SKSpriteNode(color: .yellow, size: CGSize(width: 10, height: 10))
-            swarmling.position = goblin.sprite.position
-            scene.addChild(swarmling)
-            swarmNodes.append(swarmling)
+            let emitter = SwarmQueenEmitter(at: goblin.sprite.position)
+            scene.addChild(emitter)
+            swarmEmitters.append(emitter)
         }
 
         // Swarm behavior
         var time: CGFloat = 0
-        let updateTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) { _ in
+        let updateTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) { [weak scene] _ in
+            guard let scene = scene else { return }
             time += 0.05
 
-            for (index, swarmling) in swarmNodes.enumerated() {
+            for (index, emitter) in swarmEmitters.enumerated() {
                 let angle = time + CGFloat(index) * (2 * .pi / CGFloat(swarmCount))
                 let radius: CGFloat = 50 + sin(time * 2 + CGFloat(index)) * 20
 
@@ -1097,12 +1097,12 @@ class SwarmQueenEffect: SpellEffect {
                 )
 
                 // Smooth movement
-                let direction = (targetPosition - swarmling.position).normalized()
-                swarmling.position += direction * 5
+                let direction = (targetPosition - emitter.position).normalized()
+                emitter.position += direction * 5
 
                 // Damage nearby enemies
                 for target in scene.goblinManager.goblinContainers {
-                    if target.sprite.position.distance(to: swarmling.position) < 20 {
+                    if target.sprite.position.distance(to: emitter.position) < 20 {
                         target.applyDamage(spell.damage * 0.2)
                     }
                 }
@@ -1112,8 +1112,8 @@ class SwarmQueenEffect: SpellEffect {
         // Cleanup
         DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
             updateTimer.invalidate()
-            for swarmling in swarmNodes {
-                swarmling.run(SKAction.sequence([
+            for emitter in swarmEmitters {
+                emitter.run(SKAction.sequence([
                     SKAction.group([
                         SKAction.fadeOut(withDuration: 0.3),
                         SKAction.scale(to: 0, duration: 0.3)
@@ -1129,51 +1129,48 @@ class NanoSwarmEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
-        // Create nanite cloud
+        // Create main nanite cloud
         let swarm = NanoSwarmEmitter(at: goblin.sprite.position)
         scene.addChild(swarm)
 
-        // Infected targets tracking
         var infectedTargets: Set<Goblin.GoblinContainer> = []
-
-        // Digital infection visual
-        let glitchEffect = SKAction.sequence([
-            SKAction.colorize(with: .cyan, colorBlendFactor: 0.5, duration: 0.1),
-            SKAction.wait(forDuration: 0.1),
-            SKAction.colorize(with: .magenta, colorBlendFactor: 0.5, duration: 0.1)
-        ])
+        var miniClouds: [(cloud: NanoSwarmMiniEmitter, target: Goblin.GoblinContainer)] = []
 
         // Nanite behavior
-        let updateTimer = Timer.scheduledTimer(withTimeInterval: 1/30, repeats: true) { _ in
+        let updateTimer = Timer.scheduledTimer(withTimeInterval: 1/30, repeats: true) { [weak scene] _ in
+            guard let scene = scene else { return }
+            
+            // Update mini cloud positions
+            for (cloud, target) in miniClouds {
+                cloud.position = target.sprite.position
+            }
+            
             // Find new targets to infect
             for target in scene.goblinManager.goblinContainers {
                 if !infectedTargets.contains(target) &&
                    target.sprite.position.distance(to: swarm.position) < spell.aoeRadius {
                     infectedTargets.insert(target)
-
+                    
                     // Visual corruption
-                    target.sprite.run(SKAction.repeatForever(glitchEffect))
-
-                    // Spawn mini nanite cloud on new target
+                    target.sprite.run(SKAction.repeatForever(SKAction.sequence([
+                        SKAction.colorize(with: .cyan, colorBlendFactor: 0.5, duration: 0.1),
+                        SKAction.wait(forDuration: 0.1),
+                        SKAction.colorize(with: .magenta, colorBlendFactor: 0.5, duration: 0.1)
+                    ])))
+                    
+                    // Create mini cloud
                     let miniCloud = NanoSwarmMiniEmitter(at: target.sprite.position)
                     scene.addChild(miniCloud)
-
-                    // Clean up mini cloud
-                    DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
-                        miniCloud.run(SKAction.sequence([
-                            SKAction.fadeOut(withDuration: 0.3),
-                            SKAction.removeFromParent()
-                        ]))
-                    }
+                    miniClouds.append((miniCloud, target))
                 }
             }
 
-            // Apply damage and effects to infected targets
+            // Apply effects to infected targets
             for target in infectedTargets {
-                target.applyDamage(spell.damage / 30) // Damage per tick
-                target.sprite.speed *= 0.995 // Progressive slowdown
+                target.applyDamage(spell.damage / 30)
+                target.sprite.speed *= 0.995
 
-                // Chance to spread to nearby uninfected targets
+                // Infection spread logic
                 if Double.random(in: 0...1) < 0.1 {
                     let nearbyTargets = scene.goblinManager.goblinContainers.filter {
                         !infectedTargets.contains($0) &&
@@ -1193,8 +1190,14 @@ class NanoSwarmEffect: SpellEffect {
                 SKAction.fadeOut(withDuration: 0.5),
                 SKAction.removeFromParent()
             ]))
+            
+            for (cloud, _) in miniClouds {
+                cloud.run(SKAction.sequence([
+                    SKAction.fadeOut(withDuration: 0.3),
+                    SKAction.removeFromParent()
+                ]))
+            }
 
-            // Remove effects from infected targets
             for target in infectedTargets {
                 target.sprite.removeAllActions()
                 target.sprite.colorBlendFactor = 0
@@ -1297,18 +1300,17 @@ class SystemOverrideEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
-        // Create matrix-style code rain effect
+        // Create effects
         let codeRain = CodeRainEmitter(at: CGPoint(x: scene.frame.midX, y: scene.frame.maxY))
         scene.addChild(codeRain)
 
-        // System override visual effects
+        // Original overlay effects
         let glitchOverlay = SKSpriteNode(color: .black, size: scene.frame.size)
         glitchOverlay.position = scene.frame.mid
         glitchOverlay.alpha = 0.3
         glitchOverlay.zPosition = 100
         scene.addChild(glitchOverlay)
 
-        // Scanning wave effect
         let scanLine = SKSpriteNode(color: .cyan, size: CGSize(width: scene.frame.width, height: 2))
         scanLine.position = CGPoint(x: scene.frame.midX, y: scene.frame.minY)
         scanLine.zPosition = 101
@@ -1322,32 +1324,33 @@ class SystemOverrideEffect: SpellEffect {
         var affectedTargets: Set<Goblin.GoblinContainer> = []
 
         // System override behavior
-        let overrideTimer = Timer.scheduledTimer(withTimeInterval: 1/30, repeats: true) { _ in
+        let overrideTimer = Timer.scheduledTimer(withTimeInterval: 1/30, repeats: true) { [weak scene] _ in
+            guard let scene = scene else { return }
+            
             for target in scene.goblinManager.goblinContainers {
                 if target.sprite.position.distance(to: goblin.sprite.position) < spell.aoeRadius {
                     if !affectedTargets.contains(target) {
                         affectedTargets.insert(target)
-
-                        // Visual corruption
-                        let glitchSequence = SKAction.sequence([
+                        
+                        // Glitch movement effect
+                        let glitchSequence = SKAction.repeatForever(SKAction.sequence([
                             SKAction.moveBy(x: CGFloat.random(in: -10...10),
                                          y: CGFloat.random(in: -10...10),
                                          duration: 0.05),
                             SKAction.moveBy(x: CGFloat.random(in: -10...10),
                                          y: CGFloat.random(in: -10...10),
                                          duration: 0.05)
-                        ])
-                        target.sprite.run(SKAction.repeatForever(glitchSequence))
+                        ]))
+                        target.sprite.run(glitchSequence)
 
-                        // Random behavior changes
+                        // Behavior modification
                         if Double.random(in: 0...1) < 0.3 {
-                            target.damage *= -0.5 // Make them heal allies
+                            target.damage *= -0.5
                         } else {
-                            target.sprite.speed *= -1 // Reverse movement
+                            target.sprite.speed *= -1
                         }
                     }
-
-                    // Continuous damage
+                    
                     target.applyDamage(spell.damage / 30)
                 }
             }
@@ -1363,7 +1366,6 @@ class SystemOverrideEffect: SpellEffect {
             glitchOverlay.removeFromParent()
             scanLine.removeFromParent()
 
-            // Reset affected targets
             for target in affectedTargets {
                 target.sprite.removeAllActions()
                 target.sprite.speed = abs(target.sprite.speed)
