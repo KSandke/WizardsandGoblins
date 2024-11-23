@@ -2,7 +2,7 @@ import Foundation
 import SpriteKit
 
 class TemporalDistortionEmitter: SKEmitterNode {
-    init() {
+    override init() {
         super.init()
 
         particleBirthRate = 50

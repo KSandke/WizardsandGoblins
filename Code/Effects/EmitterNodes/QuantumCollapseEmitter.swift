@@ -2,7 +2,7 @@ import Foundation
 import SpriteKit
 
 class QuantumCollapseEmitter: SKEmitterNode {
-    init() {
+    override init() {
         super.init()
         
         // Core emission properties
