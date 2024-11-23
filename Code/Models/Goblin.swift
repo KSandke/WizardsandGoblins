@@ -108,7 +108,8 @@ class Goblin {
                         // Move towards the nearest goblin
                         let direction = (nearestGoblin.sprite.position - self.sprite.position).normalized()
                         let speed: CGFloat = 150
-                        self.sprite.position += direction * speed * 1/60
+                        self.sprite.position = self.sprite.position + CGPoint(x: direction.x * speed * 1/60,
+                                                                            y: direction.y * speed * 1/60)
                         
                         // Update sprite facing direction
                         self.sprite.xScale = direction.x < 0 ? -abs(self.sprite.xScale) : abs(self.sprite.xScale)
@@ -485,23 +486,4 @@ extension Goblin.GoblinContainer: Hashable {
     }
 }
 
-// Add CGPoint extension for vector operations if not already present
-extension CGPoint {
-    static func -(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
-        return CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
-    }
-    
-    static func +(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
-        return CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
-    }
-    
-    static func *(lhs: CGPoint, rhs: CGFloat) -> CGPoint {
-        return CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
-    }
-    
-    func normalized() -> CGPoint {
-        let length = sqrt(x*x + y*y)
-        guard length > 0 else { return .zero }
-        return CGPoint(x: x/length, y: y/length)
-    }
-} 
+
