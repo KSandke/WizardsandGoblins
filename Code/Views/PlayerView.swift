@@ -33,6 +33,9 @@ class PlayerView {
     private var primaryCycleButton: SKSpriteNode!
     private var secondaryCycleButton: SKSpriteNode!
     
+    private var primarySpellLabel: SKLabelNode!
+    private var secondarySpellLabel: SKLabelNode!
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -387,15 +390,31 @@ class PlayerView {
         primarySpellIcon = SKSpriteNode(imageNamed: state.primarySpell.name)
         primarySpellIcon.size = CGSize(width: 40, height: 40)
         primarySpellIcon.position = CGPoint(x: playerOne.position.x - 30, y: playerOne.position.y + 50)
-        scene.addChild(primarySpellIcon)
+        
+        // Primary spell name label
+        primarySpellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        primarySpellLabel.fontSize = 12
+        primarySpellLabel.text = state.primarySpell.name
+        primarySpellLabel.position = CGPoint(x: primarySpellIcon.position.x, 
+                                           y: primarySpellIcon.position.y + 25)
         
         // Secondary spell setup
         secondarySpellIcon = SKSpriteNode(imageNamed: state.secondarySpell.name)
         secondarySpellIcon.size = CGSize(width: 40, height: 40)
         secondarySpellIcon.position = CGPoint(x: playerTwo.position.x - 30, y: playerTwo.position.y + 50)
-        scene.addChild(secondarySpellIcon)
         
-        // Cycle buttons
+        // Secondary spell name label
+        secondarySpellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        secondarySpellLabel.fontSize = 12
+        secondarySpellLabel.text = state.secondarySpell.name
+        secondarySpellLabel.position = CGPoint(x: secondarySpellIcon.position.x,
+                                             y: secondarySpellIcon.position.y + 25)
+        
+        scene.addChild(primarySpellIcon)
+        scene.addChild(secondarySpellIcon)
+        scene.addChild(primarySpellLabel)
+        scene.addChild(secondarySpellLabel)
+        
         setupCycleButtons()
     }
 
@@ -434,22 +453,20 @@ class PlayerView {
         
         let currentSpell = isPrimary ? state.primarySpell : state.secondarySpell
         
-        // Find the index of the current spell
         if let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) {
-            // Get the next spell in the rotation
             let nextIndex = (currentIndex + 1) % availableSpells.count
             let nextSpell = availableSpells[nextIndex]
             
-            // Update the state
             if isPrimary {
                 state.primarySpell = nextSpell
                 primarySpellIcon.texture = SKTexture(imageNamed: nextSpell.name)
+                primarySpellLabel.text = nextSpell.name
             } else {
                 state.secondarySpell = nextSpell
                 secondarySpellIcon.texture = SKTexture(imageNamed: nextSpell.name)
+                secondarySpellLabel.text = nextSpell.name
             }
             
-            // Add visual feedback
             let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
             let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
             let sequence = SKAction.sequence([scaleUp, scaleDown])
