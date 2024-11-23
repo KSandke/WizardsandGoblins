@@ -67,7 +67,7 @@ struct ShopItem {
                     //AC130Spell(),
                     TacticalNukeSpell(),
                     //PredatorMissileSpell(),
-                    DriveBySpell(),
+                    //DriveBySpell(),
                     //DroneSwarmSpell(),
                     CrucifixionSpell(),
                     RiftWalkerSpell(),
