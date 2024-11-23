@@ -37,6 +37,10 @@
 		14ECCEEF2CE47B96005A9627 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14ECCEEE2CE47B96005A9627 /* PlayerView.swift */; };
 		14ECCEF22CE47BA8005A9627 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14ECCEF02CE47BA8005A9627 /* PlayerState.swift */; };
 		14EDC1732CE96559002EFCF1 /* WGTutorialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EDC1712CE96559002EFCF1 /* WGTutorialManager.swift */; };
+		14F528CF2CF162850092C18F /* CyberneticOverloadEmitter 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528CE2CF162850092C18F /* CyberneticOverloadEmitter 2.swift */; };
+		14F528D12CF1629A0092C18F /* CyberneticOverloadEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528D02CF1629A0092C18F /* CyberneticOverloadEmitter.swift */; };
+		14F528D32CF162A70092C18F /* IronMaidenEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528D22CF162A70092C18F /* IronMaidenEmitter.swift */; };
+		14F528D52CF162AF0092C18F /* TimeBombEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528D42CF162AF0092C18F /* TimeBombEmitter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,6 +98,10 @@
 		14ECCEEE2CE47B96005A9627 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		14ECCEF02CE47BA8005A9627 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
 		14EDC1712CE96559002EFCF1 /* WGTutorialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGTutorialManager.swift; sourceTree = "<group>"; };
+		14F528CE2CF162850092C18F /* CyberneticOverloadEmitter 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CyberneticOverloadEmitter 2.swift"; sourceTree = "<group>"; };
+		14F528D02CF1629A0092C18F /* CyberneticOverloadEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberneticOverloadEmitter.swift; sourceTree = "<group>"; };
+		14F528D22CF162A70092C18F /* IronMaidenEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IronMaidenEmitter.swift; sourceTree = "<group>"; };
+		14F528D42CF162AF0092C18F /* TimeBombEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeBombEmitter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -257,6 +265,9 @@
 		14DDF43E2CF1551100A0EBAB /* EmitterNodes */ = {
 			isa = PBXGroup;
 			children = (
+				14F528D42CF162AF0092C18F /* TimeBombEmitter.swift */,
+				14F528D22CF162A70092C18F /* IronMaidenEmitter.swift */,
+				14F528D02CF1629A0092C18F /* CyberneticOverloadEmitter.swift */,
 				14DDF4342CF1551100A0EBAB /* BloodDrip.swift */,
 				14DDF4352CF1551100A0EBAB /* BloodParticle.swift */,
 				14DDF4362CF1551100A0EBAB /* CodeRain.swift */,
@@ -267,6 +278,7 @@
 				14DDF43B2CF1551100A0EBAB /* NukeCloud.swift */,
 				14DDF43C2CF1551100A0EBAB /* SwarmQueenEmitter.swift */,
 				14DDF43D2CF1551100A0EBAB /* TracerEffect.swift */,
+				14F528CE2CF162850092C18F /* CyberneticOverloadEmitter 2.swift */,
 			);
 			path = EmitterNodes;
 			sourceTree = "<group>";
@@ -457,6 +469,8 @@
 				14ECCEF22CE47BA8005A9627 /* PlayerState.swift in Sources */,
 				14101F082CCA214A00BD8C7D /* GameContext.swift in Sources */,
 				14101F092CCA214A00BD8C7D /* GameType.swift in Sources */,
+				14F528D52CF162AF0092C18F /* TimeBombEmitter.swift in Sources */,
+				14F528D12CF1629A0092C18F /* CyberneticOverloadEmitter.swift in Sources */,
 				14DDF4402CF1551100A0EBAB /* NanoSwarmMini.swift in Sources */,
 				14DDF4412CF1551100A0EBAB /* BloodDrip.swift in Sources */,
 				14DDF4422CF1551100A0EBAB /* NukeCloud.swift in Sources */,
@@ -468,6 +482,8 @@
 				14DDF4482CF1551100A0EBAB /* CodeRain.swift in Sources */,
 				14DDF4492CF1551100A0EBAB /* HologramExplosion.swift in Sources */,
 				14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */,
+				14F528CF2CF162850092C18F /* CyberneticOverloadEmitter 2.swift in Sources */,
+				14F528D32CF162A70092C18F /* IronMaidenEmitter.swift in Sources */,
 				1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */,
 				14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */,
 				148FAAB72CE4B82A005CCBC3 /* WGShopView.swift in Sources */,
