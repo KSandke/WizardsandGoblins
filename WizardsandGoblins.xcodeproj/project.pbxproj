@@ -70,6 +70,7 @@
 		14DDF42A2CF14C5D00A0EBAB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		14DDF42B2CF14C5D00A0EBAB /* LightningBolt.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = LightningBolt.sks; sourceTree = "<group>"; };
 		14DDF42C2CF14C5D00A0EBAB /* LightningStrike.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = LightningStrike.sks; sourceTree = "<group>"; };
+		14DDF4332CF1529500A0EBAB /* nuclear_siren.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = nuclear_siren.mp3; sourceTree = "<group>"; };
 		14ECCEEE2CE47B96005A9627 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		14ECCEF02CE47BA8005A9627 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
 		14EDC1712CE96559002EFCF1 /* WGTutorialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGTutorialManager.swift; sourceTree = "<group>"; };
@@ -121,6 +122,7 @@
 		14101ECC2CCA066000BD8C7D = {
 			isa = PBXGroup;
 			children = (
+				14DDF4312CF1525300A0EBAB /* Sounds */,
 				14101F0D2CCA216100BD8C7D /* Assets */,
 				14101F0C2CCA215B00BD8C7D /* Code */,
 				14101F022CCA068300BD8C7D /* .gitignore */,
@@ -221,6 +223,14 @@
 				14DDF42C2CF14C5D00A0EBAB /* LightningStrike.sks */,
 			);
 			path = Particles;
+			sourceTree = "<group>";
+		};
+		14DDF4312CF1525300A0EBAB /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				14DDF4332CF1529500A0EBAB /* nuclear_siren.mp3 */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 		14ECCEF12CE47BA8005A9627 /* Models */ = {
