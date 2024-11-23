@@ -391,6 +391,42 @@ class MysticBarrierSpell: Spell {
     }
 }
 
+class DivineWrathSpell: Spell {
+    init() {
+        super.init(
+            name: "Divine Wrath",
+            damage: 50,
+            aoeRadius: 0,
+            duration: 0,
+            effect: DivineWrathEffect()
+        )
+    }
+}
+
+class NecromancersGripSpell: Spell {
+    init() {
+        super.init(
+            name: "Necromancer's Grip",
+            damage: 35,
+            aoeRadius: 0,
+            duration: 5.0,
+            effect: NecromancersGripEffect()
+        )
+    }
+}
+
+class ArcaneStormSpell: Spell {
+    init() {
+        super.init(
+            name: "Arcane Storm",
+            damage: 40,
+            aoeRadius: 150,
+            duration: 4.0,
+            effect: ArcaneStormEffect()
+        )
+    }
+}
+
 // Spell Effect Implementations
 
 class DefaultEffect: SpellEffect {
@@ -1827,6 +1863,90 @@ class MysticBarrierEffect: SpellEffect {
 
         // Cleanup
         barrier.run(SKAction.sequence([
+            SKAction.wait(forDuration: spell.duration),
+            SKAction.removeFromParent()
+        ]))
+    }
+}
+
+
+
+class DivineWrathEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene else { return }
+
+        // Create lightning strike effect
+        let lightning = DivineWrathEmitter(position: goblin.sprite.position)
+        scene.addChild(lightning)
+
+        // Damage the goblin
+        goblin.applyDamage(spell.damage)
+
+        // Remove effect after a short duration
+        lightning.run(SKAction.sequence([
+            SKAction.wait(forDuration: 0.5),
+            SKAction.removeFromParent()
+        ]))
+    }
+}
+
+class NecromancersGripEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene else { return }
+
+        // Immobilize the goblin
+        goblin.sprite.speed = 0
+        goblin.pauseAttacks()
+
+        // Visual effect
+        let grip = NecromancersGripEmitter()
+        grip.position = goblin.sprite.position
+        scene.addChild(grip)
+
+        // Damage over time
+        let damagePerTick = spell.damage / CGFloat(spell.duration)
+        let tickAction = SKAction.repeat(SKAction.sequence([
+            SKAction.run { goblin.applyDamage(damagePerTick) },
+            SKAction.wait(forDuration: 1.0)
+        ]), count: Int(spell.duration))
+
+        goblin.sprite.run(tickAction)
+
+        // Restore movement after duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
+            goblin.sprite.speed = 1.0
+            goblin.resumeAttacks()
+            grip.removeFromParent()
+        }
+    }
+}
+
+class ArcaneStormEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
+
+        // Create storm effect at the goblin's position
+        let storm = ArcaneStormEmitter(position: goblin.sprite.position, radius: spell.aoeRadius)
+        scene.addChild(storm)
+
+        // Damage all goblins within the area over time
+        let damagePerTick = spell.damage / CGFloat(spell.duration)
+        let tickAction = SKAction.repeat(SKAction.sequence([
+            SKAction.run {
+                for target in scene.goblinManager.goblinContainers {
+                    let distance = target.sprite.position.distance(to: goblin.sprite.position)
+                    if distance <= spell.aoeRadius {
+                        target.applyDamage(damagePerTick)
+                    }
+                }
+            },
+            SKAction.wait(forDuration: 1.0)
+        ]), count: Int(spell.duration))
+
+        scene.run(tickAction)
+
+        // Remove storm after duration
+        storm.run(SKAction.sequence([
             SKAction.wait(forDuration: spell.duration),
             SKAction.removeFromParent()
         ]))
