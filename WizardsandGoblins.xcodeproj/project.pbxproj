@@ -43,6 +43,9 @@
 		14F528D72CF1638C0092C18F /* QuantumCollapseEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528D62CF1638C0092C18F /* QuantumCollapseEmitter.swift */; };
 		14F528D92CF163930092C18F /* ShadowPuppetEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528D82CF163930092C18F /* ShadowPuppetEmitter.swift */; };
 		14F528DB2CF1639B0092C18F /* TemporalDistortionEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DA2CF1639B0092C18F /* TemporalDistortionEmitter.swift */; };
+		14F528DF2CF163FA0092C18F /* EarthShatterEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */; };
+		14F528E02CF163FA0092C18F /* BloodMoonEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DC2CF163FA0092C18F /* BloodMoonEmitter.swift */; };
+		14F528E12CF163FA0092C18F /* MysticBarrierEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +109,9 @@
 		14F528D62CF1638C0092C18F /* QuantumCollapseEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantumCollapseEmitter.swift; sourceTree = "<group>"; };
 		14F528D82CF163930092C18F /* ShadowPuppetEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowPuppetEmitter.swift; sourceTree = "<group>"; };
 		14F528DA2CF1639B0092C18F /* TemporalDistortionEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporalDistortionEmitter.swift; sourceTree = "<group>"; };
+		14F528DC2CF163FA0092C18F /* BloodMoonEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloodMoonEmitter.swift; sourceTree = "<group>"; };
+		14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarthShatterEmitter.swift; sourceTree = "<group>"; };
+		14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MysticBarrierEmitter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -269,6 +275,9 @@
 		14DDF43E2CF1551100A0EBAB /* EmitterNodes */ = {
 			isa = PBXGroup;
 			children = (
+				14F528DC2CF163FA0092C18F /* BloodMoonEmitter.swift */,
+				14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */,
+				14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */,
 				14F528DA2CF1639B0092C18F /* TemporalDistortionEmitter.swift */,
 				14F528D82CF163930092C18F /* ShadowPuppetEmitter.swift */,
 				14F528D62CF1638C0092C18F /* QuantumCollapseEmitter.swift */,
@@ -492,6 +501,9 @@
 				14DDF4492CF1551100A0EBAB /* HologramExplosion.swift in Sources */,
 				14101F0A2CCA214A00BD8C7D /* GameModeType.swift in Sources */,
 				14F528D32CF162A70092C18F /* IronMaidenEmitter.swift in Sources */,
+				14F528DF2CF163FA0092C18F /* EarthShatterEmitter.swift in Sources */,
+				14F528E02CF163FA0092C18F /* BloodMoonEmitter.swift in Sources */,
+				14F528E12CF163FA0092C18F /* MysticBarrierEmitter.swift in Sources */,
 				1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */,
 				14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */,
 				148FAAB72CE4B82A005CCBC3 /* WGShopView.swift in Sources */,
