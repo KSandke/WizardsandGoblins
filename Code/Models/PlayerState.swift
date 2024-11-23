@@ -69,8 +69,13 @@ class PlayerState {
     // Add this property to track available spells
     private var availableSpells: [Spell] = []
     
+    // Add playerPosition property
+    var playerPosition: CGPoint = .zero
+    
     // Constructor
-    init() {
+    init(initialPosition: CGPoint = .zero) {
+        self.playerPosition = initialPosition
+        
         // Initialize primary spell (previously spell1)
         primarySpell = Spell(
             name: "spell1",
@@ -207,5 +212,10 @@ class PlayerState {
     // Add this method to get available spells
     func getAvailableSpells() -> [Spell] {
         return availableSpells
+    }
+    
+    // Add method to update player position
+    func updatePlayerPosition(_ newPosition: CGPoint) {
+        playerPosition = newPosition
     }
 } 
