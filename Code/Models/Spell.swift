@@ -1735,45 +1735,75 @@ class ShadowPuppetEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
-        // Create shadow puppet at goblin's position
-        let shadowSprite = goblin.sprite.copy() as! SKSpriteNode
+        // Create shadow puppet sprite
+        let shadowSprite = SKSpriteNode(texture: goblin.sprite.texture)
+        shadowSprite.size = goblin.sprite.size
+        shadowSprite.position = goblin.sprite.position
         shadowSprite.color = .black
         shadowSprite.colorBlendFactor = 1.0
         shadowSprite.alpha = 0.7
-        shadowSprite.position = goblin.sprite.position
         shadowSprite.zPosition = goblin.sprite.zPosition
 
-        // Create a dummy GoblinContainer for the shadow puppet
+        // Add shadow effect
+        let shadowEffect = ShadowPuppetEmitter(at: .zero)
+        shadowSprite.addChild(shadowEffect)
+
+        // Create shadow goblin container
         let shadowGoblin = Goblin.GoblinContainer(
             type: goblin.type,
             sprite: shadowSprite,
-            healthBar: SKShapeNode(),
+            healthBar: SKShapeNode(), // Empty health bar
             healthFill: SKShapeNode(),
             health: goblin.health,
-            damage: goblin.damage * 1.2,
+            damage: goblin.damage * 1.5, // 50% more damage
             maxHealth: goblin.maxHealth,
             goldValue: 0
         )
 
-        // Add to the scene and goblin manager
+        // Add to scene and start behavior
         scene.addChild(shadowSprite)
         scene.goblinManager.addShadowGoblin(shadowGoblin)
 
-        // Shadow attacks other goblins
-        shadowGoblin.startAttackingGoblins(in: scene)
-
-        // Remove shadow puppet after duration
-        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
-            shadowSprite.removeFromParent()
-            scene.goblinManager.removeShadowGoblin(shadowGoblin)
+        // Start attacking behavior
+        let updateAction = SKAction.customAction(withDuration: spell.duration) { _, _ in
+            // Find nearest non-shadow goblin
+            if let nearestGoblin = scene.goblinManager.goblinContainers
+                .filter({ $0 !== goblin })
+                .min(by: { $0.sprite.position.distance(to: shadowSprite.position) <
+                          $1.sprite.position.distance(to: shadowSprite.position) }) {
+                
+                let attackRange: CGFloat = 50
+                let distance = shadowSprite.position.distance(to: nearestGoblin.sprite.position)
+                
+                if distance <= attackRange {
+                    // Attack
+                    nearestGoblin.applyDamage(shadowGoblin.damage)
+                    
+                    // Attack visual
+                    let slash = ShadowPuppetEmitter(at: nearestGoblin.sprite.position)
+                    scene.addChild(slash)
+                    slash.run(SKAction.sequence([
+                        SKAction.wait(forDuration: 0.2),
+                        SKAction.removeFromParent()
+                    ]))
+                } else {
+                    // Move towards target
+                    let direction = (nearestGoblin.sprite.position - shadowSprite.position).normalized()
+                    let speed: CGFloat = 150
+                    shadowSprite.position += direction * speed * 1/60
+                    
+                    // Update facing direction
+                    shadowSprite.xScale = direction.x < 0 ? -abs(shadowSprite.xScale) : abs(shadowSprite.xScale)
+                }
+            }
         }
 
-        // Visual effect
-        let shadowEffect = ShadowPuppetEmitter(at: goblin.sprite.position)
-        scene.addChild(shadowEffect)
-        shadowEffect.run(SKAction.sequence([
-            SKAction.wait(forDuration: spell.duration),
-            SKAction.removeFromParent()
+        // Run the update action
+        shadowSprite.run(SKAction.sequence([
+            updateAction,
+            SKAction.run { [weak scene] in
+                scene?.goblinManager.removeShadowGoblin(shadowGoblin)
+            }
         ]))
     }
 }
