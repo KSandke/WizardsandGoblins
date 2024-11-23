@@ -323,7 +323,7 @@ class ShadowPuppetSpell: Spell {
     init() {
         super.init(
             name: "Shadow Puppet",
-            aoeRadius: 0,
+            aoeRadius: 5,
             duration: 10.0,
             damage: 0,
             effect: ShadowPuppetEffect()
