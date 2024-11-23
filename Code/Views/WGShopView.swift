@@ -73,6 +73,9 @@ struct ShopItem {
                     RiftWalkerSpell(),
                     //SwarmQueenSpell(),
                     NanoSwarmSpell(),
+                    IronMaidenSpell(),
+                    CyberneticOverloadSpell(),
+                    SteampunkTimeBombSpell(),
                     //HologramTrapSpell(),
                     SystemOverrideSpell()
                 ]

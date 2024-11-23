@@ -283,6 +283,42 @@ class SystemOverrideSpell: Spell {
     }
 }
 
+class CyberneticOverloadSpell: Spell {
+    init() {
+        super.init(
+            name: "Cybernetic Overload",
+            damage: 30,
+            aoeRadius: 100,
+            duration: 5.0,
+            spellEffect: CyberneticOverloadEffect()
+        )
+    }
+}
+
+class SteampunkTimeBombSpell: Spell {
+    init() {
+        super.init(
+            name: "Steampunk Time Bomb",
+            damage: 50,
+            aoeRadius: 150,
+            duration: 3.0,
+            spellEffect: SteampunkTimeBombEffect()
+        )
+    }
+}
+
+class IronMaidenSpell: Spell {
+    init() {
+        super.init(
+            name: "Iron Maiden",
+            damage: 35,
+            aoeRadius: 15,
+            duration: 8.0,
+            spellEffect: IronMaidenEffect()
+        )
+    }
+}
+
 // Spell Effect Implementations
 
 class DefaultEffect: SpellEffect {
@@ -1397,6 +1433,155 @@ class SystemOverrideEffect: SpellEffect {
                 target.sprite.speed = abs(target.sprite.speed)
                 target.damage = abs(target.damage)
             }
+        }
+    }
+}
+
+class IronMaidenEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
+
+        // Pause the goblin and remove from parent
+        goblin.pauseAttacks()
+        goblin.sprite.removeAllActions()
+        goblin.sprite.removeFromParent()
+
+        // Create Iron Maiden around the goblin
+        let ironMaiden = IronMaidenEmitter(goblin: goblin)
+        ironMaiden.position = goblin.sprite.position
+        scene.addChild(ironMaiden)
+
+        // Damage over time
+        let damagePerTick = spell.damage / CGFloat(spell.duration)
+        let tickDuration: TimeInterval = 0.5
+        let numberOfTicks = Int(spell.duration / tickDuration)
+
+        let damageAction = SKAction.repeat(SKAction.sequence([
+            SKAction.run {
+                goblin.applyDamage(damagePerTick)
+            },
+            SKAction.wait(forDuration: tickDuration)
+        ]), count: numberOfTicks)
+
+        ironMaiden.run(damageAction)
+
+        // Release goblin after duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
+            goblin.sprite.position = ironMaiden.position
+            scene.addChild(goblin.sprite)
+            ironMaiden.removeFromParent()
+            goblin.resumeAttacks()
+        }
+    }
+}
+
+class CyberneticOverloadEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
+
+        // Apply overload effect
+        let overloadEffect = CyberneticOverloadEmitter(at: goblin.sprite.position)
+        scene.addChild(overloadEffect)
+
+        // Damage over time
+        let damagePerTick = spell.damage / CGFloat(spell.duration)
+        let tickDuration: TimeInterval = 0.5
+        let numberOfTicks = Int(spell.duration / tickDuration)
+
+        let damageAction = SKAction.repeat(SKAction.sequence([
+            SKAction.run {
+                goblin.applyDamage(damagePerTick)
+            },
+            SKAction.wait(forDuration: tickDuration)
+        ]), count: numberOfTicks)
+
+        goblin.sprite.run(damageAction)
+
+        // Chain lightning to nearby goblins
+        let chainAction = SKAction.sequence([
+            SKAction.wait(forDuration: 0.5),
+            SKAction.run { [weak self] in
+                self?.chainLightning(from: goblin, spell: spell)
+            }
+        ])
+        scene.run(SKAction.repeat(chainAction, count: numberOfTicks))
+
+        // Cleanup
+        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
+            overloadEffect.removeFromParent()
+        }
+    }
+
+    private func chainLightning(from goblin: Goblin.GoblinContainer, spell: Spell) {
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
+        let nearbyGoblins = scene.goblinManager.goblinContainers.filter { target in
+            target !== goblin && target.sprite.position.distance(to: goblin.sprite.position) < spell.aoeRadius
+        }
+        for targetGoblin in nearbyGoblins {
+            // Apply damage
+            targetGoblin.applyDamage(spell.damage * 0.5)
+
+            // Create lightning bolt
+            let lightning = SKShapeNode()
+            let path = CGMutablePath()
+            path.move(to: goblin.sprite.position)
+            path.addLine(to: targetGoblin.sprite.position)
+            lightning.path = path
+            lightning.strokeColor = .cyan
+            lightning.lineWidth = 2
+            scene.addChild(lightning)
+
+            lightning.run(SKAction.sequence([
+                SKAction.fadeOut(withDuration: 0.2),
+                SKAction.removeFromParent()
+            ]))
+        }
+    }
+}
+
+class SteampunkTimeBombEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
+
+        // Attach time bomb to goblin
+        let timeBomb = TimeBombEmitter()
+        timeBomb.position = CGPoint(x: 0, y: goblin.sprite.size.height / 2)
+        goblin.sprite.addChild(timeBomb)
+
+        // Ticking animation
+        let tickAction = SKAction.sequence([
+            SKAction.wait(forDuration: 0.5),
+            SKAction.run {
+                // Ticking effect (could add sound here)
+            }
+        ])
+        timeBomb.run(SKAction.repeat(tickAction, count: Int(spell.duration / 0.5)))
+
+        // Explosion after duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
+            // Explosion effect
+            let explosion = SKShapeNode(circleOfRadius: spell.aoeRadius)
+            explosion.fillColor = .orange
+            explosion.position = goblin.sprite.position
+            scene.addChild(explosion)
+
+            // Remove time bomb
+            timeBomb.removeFromParent()
+
+            // Apply area damage
+            for target in scene.goblinManager.goblinContainers {
+                let distance = target.sprite.position.distance(to: explosion.position)
+                if distance <= spell.aoeRadius {
+                    let falloff = 1 - (distance / spell.aoeRadius)
+                    target.applyDamage(spell.damage * CGFloat(falloff))
+                }
+            }
+
+            // Explosion animation
+            explosion.run(SKAction.sequence([
+                SKAction.fadeOut(withDuration: 0.5),
+                SKAction.removeFromParent()
+            ]))
         }
     }
 }
