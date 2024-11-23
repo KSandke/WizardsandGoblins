@@ -574,7 +574,7 @@ class TacticalNukeEffect: SpellEffect {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             // Initial flash
             let whiteout = SKSpriteNode(color: .white, size: scene.frame.size)
-            whiteout.position = scene.frame.mid
+            whiteout.position = CGPoint(x: scene.frame.midX, y: scene.frame.midY)
             whiteout.zPosition = 100
             scene.addChild(whiteout)
 
@@ -661,7 +661,10 @@ class PredatorMissileEffect: SpellEffect {
 
             // Move missile
             let speed: CGFloat = 15
-            missile.position += direction * speed
+            missile.position = CGPoint(
+                x: missile.position.x + direction.x * speed,
+                y: missile.position.y + direction.y * speed
+            )
 
             // Check for impact
             if missile.position.distance(to: targetPos) < 10 {
@@ -885,7 +888,10 @@ class CrucifixionEffect: SpellEffect {
         for point in chainPoints {
             let nail = SKShapeNode(circleOfRadius: 3)
             nail.fillColor = .gray
-            nail.position = goblin.sprite.position + point
+            nail.position = CGPoint(
+                x: goblin.sprite.position.x + point.x,
+                y: goblin.sprite.position.y + point.y
+            )
             scene.addChild(nail)
 
             // Blood drip effect
@@ -907,7 +913,7 @@ class CrucifixionEffect: SpellEffect {
             for target in scene.goblinManager.goblinContainers {
                 if target !== goblin && target.sprite.position.distance(to: cross.position) < spell.aoeRadius {
                     target.sprite.speed *= 0.9
-                    target.damage *= 0.9
+                    //target.damage *= 0.9
                 }
             }
         }
@@ -922,7 +928,7 @@ class CrucifixionEffect: SpellEffect {
             // Reset affected enemies
             for target in scene.goblinManager.goblinContainers {
                 target.sprite.speed = 1.0
-                target.damage = target.originalDamage // You'll need to add this property
+                //target.damage = target.originalDamage // You'll need to add this property
             }
         }
     }
