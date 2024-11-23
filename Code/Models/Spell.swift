@@ -731,8 +731,7 @@ class DriveByEffect: SpellEffect {
 
         // Shooting logic
         var shotsFired = 0
-        var shootTimer: Timer?
-        shootTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+        let shootTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             // Muzzle flash
             flash.position.x = car.position.x + 35
             flash.position.y = car.position.y
@@ -774,7 +773,7 @@ class DriveByEffect: SpellEffect {
 
             shotsFired += 1
             if shotsFired > 30 { // Limit total shots
-                shootTimer?.invalidate()
+                shootTimer.invalidate()
             }
         }
 
@@ -863,9 +862,13 @@ class CrucifixionEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
+        // Store original position and state
+        let originalPosition = goblin.sprite.position
+        let originalZRotation = goblin.sprite.zRotation
+        
         // Create cross
         let cross = SKSpriteNode(color: .brown, size: CGSize(width: 20, height: 100))
-        cross.position = goblin.sprite.position
+        cross.position = originalPosition
         scene.addChild(cross)
 
         // Horizontal beam
@@ -875,16 +878,18 @@ class CrucifixionEffect: SpellEffect {
 
         // Bind target to cross
         goblin.sprite.position = CGPoint(x: cross.position.x, y: cross.position.y + 20)
-
-        // Disable target movement/actions
-        let originalPosition = goblin.sprite.position
-        goblin.sprite.physicsBody?.isDynamic = false
+        goblin.sprite.zRotation = 0
+        
+        // Disable movement
+        let originalPhysicsBody = goblin.sprite.physicsBody
+        goblin.sprite.physicsBody = nil
+        goblin.pauseAttacks()
 
         // Create binding chains/nails effect
         let chainPoints = [
-            CGPoint(x: -20, y: 0),
-            CGPoint(x: 20, y: 0),
-            CGPoint(x: 0, y: -30)
+            CGPoint(x: -20, y: 0),  // Left hand
+            CGPoint(x: 20, y: 0),   // Right hand
+            CGPoint(x: 0, y: -30)   // Feet
         ]
 
         for point in chainPoints {
@@ -915,7 +920,6 @@ class CrucifixionEffect: SpellEffect {
             for target in scene.goblinManager.goblinContainers {
                 if target !== goblin && target.sprite.position.distance(to: cross.position) < spell.aoeRadius {
                     target.sprite.speed *= 0.9
-                    //target.damage *= 0.9
                 }
             }
         }
@@ -925,12 +929,16 @@ class CrucifixionEffect: SpellEffect {
             damageTimer.invalidate()
             cross.removeFromParent()
             beam.removeFromParent()
-            goblin.sprite.physicsBody?.isDynamic = true
+            
+            // Restore original state
+            goblin.sprite.position = originalPosition
+            goblin.sprite.zRotation = originalZRotation
+            goblin.sprite.physicsBody = originalPhysicsBody
+            goblin.resumeAttacks()
 
             // Reset affected enemies
             for target in scene.goblinManager.goblinContainers {
                 target.sprite.speed = 1.0
-                //target.damage = target.originalDamage // You'll need to add this property
             }
         }
     }
