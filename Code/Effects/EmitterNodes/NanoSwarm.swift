@@ -129,7 +129,9 @@ class NanoSwarmEmitter: SKEmitterNode {
     }
     
     private func createNaniteTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 4, height: 4)) { context in
+        let size = CGSize(width: 4, height: 4)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setFillColor(UIColor.cyan.cgColor)
             context.fill(CGRect(x: 1, y: 1, width: 2, height: 2))
             
@@ -140,29 +142,41 @@ class NanoSwarmEmitter: SKEmitterNode {
             context.addLine(to: CGPoint(x: 4, y: 2))
             context.strokePath()
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createDigitalTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 8, height: 8)) { context in
+        let size = CGSize(width: 8, height: 8)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             let binary = "10"
-            context.setFillColor(UIColor.cyan.cgColor)
-            context.setFont(UIFont.systemFont(ofSize: 6))
-            binary.draw(at: CGPoint(x: 1, y: 1), withAttributes: [
-                .foregroundColor: UIColor.cyan
-            ])
+            (binary as NSString).draw(at: CGPoint(x: 1, y: 1),
+                withAttributes: [.font: UIFont.systemFont(ofSize: 6),
+                               .foregroundColor: UIColor.cyan])
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createGlitchTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 20, height: 4)) { context in
+        let size = CGSize(width: 20, height: 4)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setFillColor(UIColor.white.cgColor)
             context.fill(CGRect(x: 0, y: 0, width: 20, height: 4))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createEnergyTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 8, height: 8)) { context in
-            let rect = CGRect(x: 0, y: 0, width: 8, height: 8)
+        let size = CGSize(width: 8, height: 8)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             let colors = [UIColor.white.cgColor, UIColor.clear.cgColor]
             let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                                     colors: colors as CFArray,
@@ -175,5 +189,8 @@ class NanoSwarmEmitter: SKEmitterNode {
                                      endRadius: 4,
                                      options: [])
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
 } 

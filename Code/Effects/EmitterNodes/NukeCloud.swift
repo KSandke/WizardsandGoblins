@@ -167,31 +167,70 @@ class NukeCloudEmitter: SKEmitterNode {
     
     // Texture creation helpers...
     private func createSmokeTexture() -> SKTexture {
-        // Implementation similar to previous emitters but with larger, softer gradient
-        // Return smoke texture
-        return SKTexture(size: CGSize(width: 32, height: 32)) { ctx in 
-            // Create soft circular gradient
+        let size = CGSize(width: 32, height: 32)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
+            let colors = [UIColor.white.cgColor, UIColor.clear.cgColor]
+            let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                                    colors: colors as CFArray,
+                                    locations: [0, 1])!
+            
+            context.drawRadialGradient(gradient,
+                                     startCenter: CGPoint(x: 16, y: 16),
+                                     startRadius: 0,
+                                     endCenter: CGPoint(x: 16, y: 16),
+                                     endRadius: 16,
+                                     options: [])
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createRingTexture() -> SKTexture {
-        // Return ring texture
-        return SKTexture(size: CGSize(width: 16, height: 16)) { ctx in 
-            // Create ring shape
+        let size = CGSize(width: 16, height: 16)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
+            context.setStrokeColor(UIColor.white.cgColor)
+            context.setLineWidth(2)
+            context.strokeEllipse(in: CGRect(x: 2, y: 2, width: 12, height: 12))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createDebrisTexture() -> SKTexture {
-        // Return debris texture
-        return SKTexture(size: CGSize(width: 4, height: 4)) { ctx in 
-            // Create small sharp particles
+        let size = CGSize(width: 4, height: 4)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
+            context.setFillColor(UIColor.white.cgColor)
+            context.fill(CGRect(x: 1, y: 1, width: 2, height: 2))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createGlowTexture() -> SKTexture {
-        // Return glow texture
-        return SKTexture(size: CGSize(width: 16, height: 16)) { ctx in 
-            // Create soft glow gradient
+        let size = CGSize(width: 16, height: 16)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
+            let colors = [UIColor.white.cgColor, UIColor.clear.cgColor]
+            let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                                    colors: colors as CFArray,
+                                    locations: [0, 1])!
+            
+            // Softer glow with larger radius
+            context.drawRadialGradient(gradient,
+                                     startCenter: CGPoint(x: 8, y: 8),
+                                     startRadius: 0,
+                                     endCenter: CGPoint(x: 8, y: 8),
+                                     endRadius: 8,
+                                     options: [])
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
 } 
