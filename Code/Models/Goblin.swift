@@ -15,7 +15,7 @@ class Goblin {
         let healthBar: SKShapeNode
         let healthFill: SKShapeNode
         var health: CGFloat
-        let damage: CGFloat
+        var damage: CGFloat
         let maxHealth: CGFloat
         let goldValue: Int
         private var isAttacksPaused = false
