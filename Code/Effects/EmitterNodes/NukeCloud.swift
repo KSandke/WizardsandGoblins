@@ -132,7 +132,7 @@ class NukeCloudEmitter: SKEmitterNode {
         debris.particleScaleRange = 0.1
         
         debris.particleColorSequence = SKKeyframeSequence(
-            keyframeValues: [.orange, .red, .black],
+            keyframeValues: [SKColor.orange, SKColor.red, SKColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)],
             times: [0, 0.5, 1.0]
         )
         
