@@ -159,8 +159,9 @@ class MissileExplosionEmitter: SKEmitterNode {
     
     // Texture creation methods
     private func createFireballTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 16, height: 16)) { context in
-            let rect = CGRect(x: 0, y: 0, width: 16, height: 16)
+        let size = CGSize(width: 16, height: 16)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             let colors = [UIColor.white.cgColor, UIColor.clear.cgColor]
             let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                                     colors: colors as CFArray,
@@ -173,26 +174,40 @@ class MissileExplosionEmitter: SKEmitterNode {
                                      endRadius: 8,
                                      options: [])
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createRingTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 32, height: 32)) { context in
+        let size = CGSize(width: 32, height: 32)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setStrokeColor(UIColor.white.cgColor)
             context.setLineWidth(2)
             context.strokeEllipse(in: CGRect(x: 2, y: 2, width: 28, height: 28))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createSparkTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 4, height: 4)) { context in
+        let size = CGSize(width: 4, height: 4)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setFillColor(UIColor.white.cgColor)
             context.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createSmokeTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 32, height: 32)) { context in
-            let rect = CGRect(x: 0, y: 0, width: 32, height: 32)
+        let size = CGSize(width: 32, height: 32)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             let colors = [UIColor.gray.cgColor, UIColor.clear.cgColor]
             let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                                     colors: colors as CFArray,
@@ -205,12 +220,20 @@ class MissileExplosionEmitter: SKEmitterNode {
                                      endRadius: 16,
                                      options: [])
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
     
     private func createDebrisTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 4, height: 4)) { context in
+        let size = CGSize(width: 4, height: 4)
+        UIGraphicsBeginImageContext(size)
+        if let context = UIGraphicsGetCurrentContext() {
             context.setFillColor(UIColor.darkGray.cgColor)
             context.fill(CGRect(x: 1, y: 1, width: 2, height: 2))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image ?? UIImage())
     }
 } 
