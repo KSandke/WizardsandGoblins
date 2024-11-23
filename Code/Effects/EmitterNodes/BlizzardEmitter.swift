@@ -18,7 +18,7 @@ class BlizzardEmitter: SKNode {
         snowEmitter.particleScale = 0.5
         snowEmitter.particleScaleRange = 0.3
         snowEmitter.particleColor = .white
-        snowEmitter.particleTexture = SKTexture(imageNamed: "snowflake")
+        snowEmitter.particleTexture = createSnowflakeTexture()
         snowEmitter.particlePositionRange = CGVector(dx: 800, dy: 0)
         addChild(snowEmitter)
 
@@ -54,6 +54,46 @@ class BlizzardEmitter: SKNode {
             context.setFillColor(UIColor.white.cgColor)
             context.fill(CGRect(origin: .zero, size: size))
         }
+        let image = UIGraphicsGetImageFromCurrentImageContext() ?? UIImage()
+        UIGraphicsEndImageContext()
+        return SKTexture(image: image)
+    }
+
+    private func createSnowflakeTexture() -> SKTexture {
+        let size = CGSize(width: 20, height: 20)
+        UIGraphicsBeginImageContext(size)
+        guard let context = UIGraphicsGetCurrentContext() else { 
+            return SKTexture(imageNamed: "snowflake") // fallback
+        }
+        
+        context.setStrokeColor(UIColor.white.cgColor)
+        context.setLineWidth(1.5)
+        
+        // Draw six arms of the snowflake
+        for i in 0..<6 {
+            context.saveGState()
+            context.translateBy(x: size.width/2, y: size.height/2)
+            context.rotate(by: CGFloat(i) * .pi / 3)
+            
+            // Main arm
+            context.move(to: CGPoint(x: 0, y: 0))
+            context.addLine(to: CGPoint(x: 0, y: 8))
+            
+            // Side branches
+            context.move(to: CGPoint(x: 0, y: 3))
+            context.addLine(to: CGPoint(x: 3, y: 5))
+            context.move(to: CGPoint(x: 0, y: 3))
+            context.addLine(to: CGPoint(x: -3, y: 5))
+            
+            context.move(to: CGPoint(x: 0, y: 6))
+            context.addLine(to: CGPoint(x: 2, y: 8))
+            context.move(to: CGPoint(x: 0, y: 6))
+            context.addLine(to: CGPoint(x: -2, y: 8))
+            
+            context.strokePath()
+            context.restoreGState()
+        }
+        
         let image = UIGraphicsGetImageFromCurrentImageContext() ?? UIImage()
         UIGraphicsEndImageContext()
         return SKTexture(image: image)
