@@ -57,13 +57,24 @@ struct ShopItem {
             name: "Random Spell",
             description: "Get a random new spell",
             basePrice: 15,
-            icon: "random_spell",  // You'll need to add this asset
+            icon: "random_spell",
             effect: { state in
                 let availableSpells = [
                     FireballSpell(),
                     IceSpell(),
                     LightningSpell(),
-                    PoisonCloudSpell()
+                    PoisonCloudSpell(),
+                    AC130Spell(),
+                    TacticalNukeSpell(),
+                    PredatorMissileSpell(),
+                    DriveBySpell(),
+                    DroneSwarmSpell(),
+                    CrucifixionSpell(),
+                    RiftWalkerSpell(),
+                    SwarmQueenSpell(),
+                    NanoSwarmSpell(),
+                    HologramTrapSpell(),
+                    SystemOverrideSpell()
                 ]
                 if let randomSpell = availableSpells.randomElement() {
                     state.addSpell(randomSpell)
