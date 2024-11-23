@@ -123,35 +123,35 @@ class HologramExplosionEmitter: SKEmitterNode {
     
     // Texture creation methods...
     private func createGlitchTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 20, height: 2)) { context in
+        return SKTexture(size: CGSize(width: 20, height: 2), imageBlock: { context in
             context.setFillColor(UIColor.cyan.cgColor)
             context.fill(CGRect(x: 0, y: 0, width: 20, height: 2))
-        }
+        })
     }
     
     private func createPixelTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 2, height: 2)) { context in
+        return SKTexture(size: CGSize(width: 2, height: 2), imageBlock: { context in
             context.setFillColor(UIColor.cyan.cgColor)
             context.fill(CGRect(x: 0, y: 0, width: 2, height: 2))
-        }
+        })
     }
     
     private func createRingTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 32, height: 32)) { context in
+        return SKTexture(size: CGSize(width: 32, height: 32), imageBlock: { context in
             context.setStrokeColor(UIColor.cyan.cgColor)
             context.setLineWidth(2)
             context.strokeEllipse(in: CGRect(x: 2, y: 2, width: 28, height: 28))
-        }
+        })
     }
     
     private func createDataTexture() -> SKTexture {
-        return SKTexture(size: CGSize(width: 8, height: 8)) { context in
+        return SKTexture(size: CGSize(width: 8, height: 8), imageBlock: { context in
             let binary = "10"
             context.setFillColor(UIColor.cyan.cgColor)
             context.setFont(UIFont.systemFont(ofSize: 6))
             binary.draw(at: CGPoint(x: 1, y: 1), withAttributes: [
                 .foregroundColor: UIColor.cyan
             ])
-        }
+        })
     }
 } 
