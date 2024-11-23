@@ -60,20 +60,20 @@ struct ShopItem {
             icon: "random_spell",
             effect: { state in
                 let availableSpells = [
-                    FireballSpell(),
-                    IceSpell(),
-                    LightningSpell(),
-                    PoisonCloudSpell(),
+                    //FireballSpell(),
+                    //IceSpell(),
+                    //LightningSpell(),
+                    //PoisonCloudSpell(),
                     AC130Spell(),
                     TacticalNukeSpell(),
                     PredatorMissileSpell(),
                     DriveBySpell(),
-                    DroneSwarmSpell(),
+                    //DroneSwarmSpell(),
                     CrucifixionSpell(),
                     RiftWalkerSpell(),
-                    SwarmQueenSpell(),
+                    //SwarmQueenSpell(),
                     NanoSwarmSpell(),
-                    HologramTrapSpell(),
+                    //HologramTrapSpell(),
                     SystemOverrideSpell()
                 ]
                 if let randomSpell = availableSpells.randomElement() {
