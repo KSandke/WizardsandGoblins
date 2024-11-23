@@ -653,7 +653,10 @@ class PredatorMissileEffect: SpellEffect {
             crosshair.position = targetPos
 
             // Update missile direction
-            let direction = (targetPos - missile.position).normalized()
+            let direction = CGPoint(
+                x: targetPos.x - missile.position.x,
+                y: targetPos.y - missile.position.y
+            ).normalized()
             missile.zRotation = atan2(direction.y, direction.x)
 
             // Move missile
@@ -1097,8 +1100,14 @@ class SwarmQueenEffect: SpellEffect {
                 )
 
                 // Smooth movement
-                let direction = (targetPosition - emitter.position).normalized()
-                emitter.position += direction * 5
+                let direction = CGPoint(
+                    x: targetPosition.x - emitter.position.x,
+                    y: targetPosition.y - emitter.position.y
+                ).normalized()
+                emitter.position = CGPoint(
+                    x: emitter.position.x + direction.x * 5,
+                    y: emitter.position.y + direction.y * 5
+                )
 
                 // Damage nearby enemies
                 for target in scene.goblinManager.goblinContainers {
@@ -1306,7 +1315,7 @@ class SystemOverrideEffect: SpellEffect {
 
         // Original overlay effects
         let glitchOverlay = SKSpriteNode(color: .black, size: scene.frame.size)
-        glitchOverlay.position = scene.frame.mid
+        glitchOverlay.position = CGPoint(x: scene.frame.midX, y: scene.frame.midY)
         glitchOverlay.alpha = 0.3
         glitchOverlay.zPosition = 100
         scene.addChild(glitchOverlay)

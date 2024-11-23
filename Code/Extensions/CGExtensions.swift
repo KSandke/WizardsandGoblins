@@ -18,4 +18,9 @@ extension CGPoint {
         let dy = self.y - point.y
         return sqrt(dx * dx + dy * dy)
     }
+    
+    func normalized() -> CGPoint {
+        let length = sqrt(x * x + y * y)
+        return length > 0 ? CGPoint(x: x / length, y: y / length) : .zero
+    }
 } 
