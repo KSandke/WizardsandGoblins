@@ -1790,7 +1790,10 @@ class ShadowPuppetEffect: SpellEffect {
                     // Move towards target
                     let direction = (nearestGoblin.sprite.position - shadowSprite.position).normalized()
                     let speed: CGFloat = 150
-                    shadowSprite.position += direction * speed * 1/60
+                    shadowSprite.position = CGPoint(
+                        x: shadowSprite.position.x + direction.x * speed * 1/60,
+                        y: shadowSprite.position.y + direction.y * speed * 1/60
+                    )
                     
                     // Update facing direction
                     shadowSprite.xScale = direction.x < 0 ? -abs(shadowSprite.xScale) : abs(shadowSprite.xScale)
