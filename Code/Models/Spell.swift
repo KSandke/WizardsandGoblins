@@ -1835,7 +1835,7 @@ class BloodMoonEffect: SpellEffect {
         let action = SKAction.repeat(SKAction.sequence([
             SKAction.run {
                 goblin.applyDamage(damagePerTick)
-                scene.playerState.casteHealth = min(scene.playerState.maxHealth, scene.playerState.casteHealth + healPerTick)
+                scene.playerState.castleHealth = min(scene.playerState.maxHealth, scene.playerState.castleHealth + healPerTick)
             },
             SKAction.wait(forDuration: 1.0)
         ]), count: totalTicks)
@@ -1876,7 +1876,7 @@ class EarthShatterEffect: SpellEffect {
 
 class MysticBarrierEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
-        guard let scene = goblin.sprite.scene else { return }
+        guard let scene = goblin.sprite.scene as? GameScene else { return }
 
         // Create barrier around player
         let barrier = MysticBarrierEmitter(at: scene.playerPosition, radius: spell.aoeRadius)
