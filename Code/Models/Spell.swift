@@ -648,7 +648,8 @@ class PredatorMissileEffect: SpellEffect {
 
         // Target tracking
         var targetPos = goblin.sprite.position
-        let trackingTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) { _ in
+        var trackingTimer: Timer?
+        trackingTimer = Timer.scheduledTimer(withTimeInterval: 1/60, repeats: true) { _ in
             targetPos = goblin.sprite.position
             crosshair.position = targetPos
 
@@ -668,7 +669,7 @@ class PredatorMissileEffect: SpellEffect {
 
             // Check for impact
             if missile.position.distance(to: targetPos) < 10 {
-                trackingTimer.invalidate()
+                trackingTimer?.invalidate()
 
                 // Explosion
                 let explosion = MissileExplosionEmitter(at: missile.position)
@@ -699,7 +700,7 @@ class PredatorMissileEffect: SpellEffect {
 
         // Failsafe cleanup
         DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
-            trackingTimer.invalidate()
+            trackingTimer?.invalidate()
             missile.removeFromParent()
             crosshair.removeFromParent()
             cameraView.removeFromParent()
@@ -730,7 +731,8 @@ class DriveByEffect: SpellEffect {
 
         // Shooting logic
         var shotsFired = 0
-        let shootTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+        var shootTimer: Timer?
+        shootTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             // Muzzle flash
             flash.position.x = car.position.x + 35
             flash.position.y = car.position.y
@@ -772,7 +774,7 @@ class DriveByEffect: SpellEffect {
 
             shotsFired += 1
             if shotsFired > 30 { // Limit total shots
-                shootTimer.invalidate()
+                shootTimer?.invalidate()
             }
         }
 
