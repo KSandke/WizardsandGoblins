@@ -78,6 +78,51 @@ class Goblin {
                 sprite.run(repeatAttack, withKey: "rangedAttack")
             }
         }
+        
+        func startAttackingGoblins(in scene: GameScene) {
+            // Create an attack sequence
+            let attackAction = SKAction.run { [weak self] in
+                guard let self = self else { return }
+                
+                // Find the nearest non-shadow goblin
+                if let nearestGoblin = scene.goblinManager.goblinContainers
+                    .filter({ $0 !== self })
+                    .min(by: { $0.sprite.position.distance(to: self.sprite.position) <
+                              $1.sprite.position.distance(to: self.sprite.position) }) {
+                    
+                    let attackRange: CGFloat = 50
+                    
+                    if self.sprite.position.distance(to: nearestGoblin.sprite.position) <= attackRange {
+                        // Attack the goblin
+                        nearestGoblin.applyDamage(self.damage)
+                        
+                        // Visual feedback for attack
+                        let slash = SKSpriteNode(color: .red, size: CGSize(width: 20, height: 20))
+                        slash.position = nearestGoblin.sprite.position
+                        scene.addChild(slash)
+                        slash.run(SKAction.sequence([
+                            SKAction.fadeOut(withDuration: 0.2),
+                            SKAction.removeFromParent()
+                        ]))
+                    } else {
+                        // Move towards the nearest goblin
+                        let direction = (nearestGoblin.sprite.position - self.sprite.position).normalized()
+                        let speed: CGFloat = 150
+                        self.sprite.position += direction * speed * 1/60
+                        
+                        // Update sprite facing direction
+                        self.sprite.xScale = direction.x < 0 ? -abs(self.sprite.xScale) : abs(self.sprite.xScale)
+                    }
+                }
+            }
+            
+            // Run the attack sequence continuously
+            let sequence = SKAction.sequence([
+                attackAction,
+                SKAction.wait(forDuration: 1/60) // 60 FPS update rate
+            ])
+            sprite.run(SKAction.repeatForever(sequence), withKey: "shadowAttack")
+        }
     }
     
     weak var scene: SKScene?
@@ -102,6 +147,9 @@ class Goblin {
     
     // Add property to track arrows
     var arrowContainers: [ArrowContainer] = []
+    
+    // Add property to track shadow goblins separately
+    private var shadowGoblins: [GoblinContainer] = []
     
     init(scene: SKScene, probabilities: [GoblinType: Double] = [
         .normal: 60.0,
@@ -413,6 +461,15 @@ class Goblin {
             return 10
         }
     }
+
+    func addShadowGoblin(_ shadowGoblin: GoblinContainer) {
+        shadowGoblins.append(shadowGoblin)
+    }
+    
+    func removeShadowGoblin(_ shadowGoblin: GoblinContainer) {
+        shadowGoblins.removeAll { $0 === shadowGoblin }
+        shadowGoblin.sprite.removeFromParent()
+    }
 }
 
 // Add this extension to your Goblin.swift file
@@ -425,5 +482,26 @@ extension Goblin.GoblinContainer: Hashable {
     func hash(into hasher: inout Hasher) {
         // Hash using object identity
         hasher.combine(ObjectIdentifier(self))
+    }
+}
+
+// Add CGPoint extension for vector operations if not already present
+extension CGPoint {
+    static func -(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+        return CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+    }
+    
+    static func +(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+        return CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+    }
+    
+    static func *(lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+        return CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
+    }
+    
+    func normalized() -> CGPoint {
+        let length = sqrt(x*x + y*y)
+        guard length > 0 else { return .zero }
+        return CGPoint(x: x/length, y: y/length)
     }
 } 

@@ -1835,7 +1835,7 @@ class BloodMoonEffect: SpellEffect {
         let action = SKAction.repeat(SKAction.sequence([
             SKAction.run {
                 goblin.applyDamage(damagePerTick)
-                scene.playerState.health = min(scene.playerState.maxHealth, scene.playerState.health + healPerTick)
+                scene.playerState.casteHealth = min(scene.playerState.maxHealth, scene.playerState.casteHealth + healPerTick)
             },
             SKAction.wait(forDuration: 1.0)
         ]), count: totalTicks)
