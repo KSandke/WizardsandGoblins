@@ -28,7 +28,7 @@ class QuantumCollapseEmitter: SKEmitterNode {
         particleTexture = createQuantumParticleTexture()
     }
 
-    required init?(coder aDecoder: NSCoder) {
+    required override init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
 

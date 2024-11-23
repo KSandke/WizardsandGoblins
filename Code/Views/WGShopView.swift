@@ -86,7 +86,10 @@ struct ShopItem {
                     MysticBarrierSpell(),
                     DivineWrathSpell(),
                     NecromancersGripSpell(),
-                    ArcaneStormSpell()
+                    ArcaneStormSpell(),
+                    MeteorShowerSpell(),
+                    BlizzardSpell(),
+                    InfernoSpell()
                 ]
                 if let randomSpell = availableSpells.randomElement() {
                     state.addSpell(randomSpell)

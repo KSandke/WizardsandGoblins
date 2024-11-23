@@ -426,6 +426,41 @@ class ArcaneStormSpell: Spell {
         )
     }
 }
+class MeteorShowerSpell: Spell {
+    init() {
+        super.init(
+            name: "Meteor Shower",
+            aoeRadius: 200,
+            duration: 5.0,
+            damage: 80,
+            effect: MeteorShowerEffect()
+        )
+    }
+}
+
+class BlizzardSpell: Spell {
+    init() {
+        super.init(
+            name: "Blizzard",
+            aoeRadius: 150,
+            duration: 8.0,
+            damage: 40,
+            effect: BlizzardEffect()
+        )
+    }
+}
+
+class InfernoSpell: Spell {
+    init() {
+        super.init(
+            name: "Inferno",
+            aoeRadius: 100,
+            duration: 6.0,
+            damage: 60,
+            effect: InfernoEffect()
+        )
+    }
+}
 
 // Spell Effect Implementations
 
@@ -1950,5 +1985,100 @@ class ArcaneStormEffect: SpellEffect {
             SKAction.wait(forDuration: spell.duration),
             SKAction.removeFromParent()
         ]))
+    }
+}
+
+
+
+// Effect implementations
+class MeteorShowerEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene else { return }
+        
+        let meteor = MeteorShowerEmitter(at: goblin.sprite.position)
+        scene.addChild(meteor)
+        
+        // Area damage over time
+        let damagePerTick = spell.damage / CGFloat(spell.duration)
+        let tickAction = SKAction.repeat(SKAction.sequence([
+            SKAction.run { [weak scene] in
+                guard let gameScene = scene as? GameScene else { return }
+                for target in gameScene.goblinManager.goblinContainers {
+                    let distance = target.sprite.position.distance(to: goblin.sprite.position)
+                    if distance <= spell.aoeRadius {
+                        target.applyDamage(damagePerTick)
+                    }
+                }
+            },
+            SKAction.wait(forDuration: 1.0)
+        ]), count: Int(spell.duration))
+        
+        scene.run(tickAction)
+    }
+}
+
+class BlizzardEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene else { return }
+        
+        let blizzard = BlizzardEmitter(at: goblin.sprite.position)
+        scene.addChild(blizzard)
+        
+        // Slow and damage affected goblins
+        let damagePerTick = spell.damage / CGFloat(spell.duration)
+        let tickAction = SKAction.repeat(SKAction.sequence([
+            SKAction.run { [weak scene] in
+                guard let gameScene = scene as? GameScene else { return }
+                for target in gameScene.goblinManager.goblinContainers {
+                    let distance = target.sprite.position.distance(to: goblin.sprite.position)
+                    if distance <= spell.aoeRadius {
+                        target.sprite.speed = 0.5
+                        target.applyDamage(damagePerTick)
+                    }
+                }
+            },
+            SKAction.wait(forDuration: 1.0)
+        ]), count: Int(spell.duration))
+        
+        scene.run(tickAction)
+        
+        // Restore normal speed after duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + spell.duration) {
+            guard let gameScene = scene as? GameScene else { return }
+            for target in gameScene.goblinManager.goblinContainers {
+                let distance = target.sprite.position.distance(to: goblin.sprite.position)
+                if distance <= spell.aoeRadius {
+                    target.sprite.speed = 1.0
+                }
+            }
+        }
+    }
+}
+
+class InfernoEffect: SpellEffect {
+    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+        guard let scene = goblin.sprite.scene else { return }
+        
+        let inferno = InfernoEmitter(at: goblin.sprite.position)
+        scene.addChild(inferno)
+        
+        // High damage over time in area
+        let damagePerTick = spell.damage / CGFloat(spell.duration)
+        let tickAction = SKAction.repeat(SKAction.sequence([
+            SKAction.run { [weak scene] in
+                guard let gameScene = scene as? GameScene else { return }
+                for target in gameScene.goblinManager.goblinContainers {
+                    let distance = target.sprite.position.distance(to: goblin.sprite.position)
+                    if distance <= spell.aoeRadius {
+                        target.applyDamage(damagePerTick)
+                        // Apply burning effect
+                        target.applyDamage(damagePerTick * 0.2) // Additional burn damage
+                    }
+                }
+            },
+            SKAction.wait(forDuration: 0.5) // Faster damage ticks
+        ]), count: Int(spell.duration * 2)) // Double the ticks due to faster interval
+        
+        scene.run(tickAction)
     }
 }
