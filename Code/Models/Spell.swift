@@ -287,9 +287,9 @@ class CyberneticOverloadSpell: Spell {
     init() {
         super.init(
             name: "Cybernetic Overload",
-            damage: 30,
             aoeRadius: 100,
             duration: 5.0,
+            damage: 30,
             effect: CyberneticOverloadEffect()
         )
     }
@@ -299,9 +299,9 @@ class SteampunkTimeBombSpell: Spell {
     init() {
         super.init(
             name: "Steampunk Time Bomb",
-            damage: 50,
             aoeRadius: 150,
             duration: 3.0,
+            damage: 50,
             effect: SteampunkTimeBombEffect()
         )
     }
@@ -311,9 +311,9 @@ class IronMaidenSpell: Spell {
     init() {
         super.init(
             name: "Iron Maiden",
-            damage: 35,
             aoeRadius: 15,
             duration: 8.0,
+            damage: 35,
             effect: IronMaidenEffect()
         )
     }
@@ -323,9 +323,9 @@ class ShadowPuppetSpell: Spell {
     init() {
         super.init(
             name: "Shadow Puppet",
-            damage: 0,
             aoeRadius: 0,
             duration: 10.0,
+            damage: 0,
             effect: ShadowPuppetEffect()
         )
     }
@@ -335,9 +335,9 @@ class TemporalDistortionSpell: Spell {
     init() {
         super.init(
             name: "Temporal Distortion",
-            damage: 0,
             aoeRadius: 120,
             duration: 5.0,
+            damage: 0,
             effect: TemporalDistortionEffect()
         )
     }
@@ -347,9 +347,9 @@ class QuantumCollapseSpell: Spell {
     init() {
         super.init(
             name: "Quantum Collapse",
-            damage: 50,
             aoeRadius: 100,
             duration: 3.0,
+            damage: 50,
             effect: QuantumCollapseEffect()
         )
     }
@@ -359,9 +359,9 @@ class BloodMoonSpell: Spell {
     init() {
         super.init(
             name: "Blood Moon",
-            damage: 35,
             aoeRadius: 120,
             duration: 5.0,
+            damage: 35,
             effect: BloodMoonEffect()
         )
     }
@@ -371,9 +371,9 @@ class EarthShatterSpell: Spell {
     init() {
         super.init(
             name: "Earth Shatter",
-            damage: 40,
             aoeRadius: 100,
-            duration: 0,
+            duration: 1.0,
+            damage: 40,
             effect: EarthShatterEffect()
         )
     }
@@ -383,9 +383,9 @@ class MysticBarrierSpell: Spell {
     init() {
         super.init(
             name: "Mystic Barrier",
-            damage: 20,
             aoeRadius: 80,
             duration: 8.0,
+            damage: 20,
             effect: MysticBarrierEffect()
         )
     }
@@ -395,9 +395,9 @@ class DivineWrathSpell: Spell {
     init() {
         super.init(
             name: "Divine Wrath",
+            aoeRadius: 5,
+            duration: 2.0,
             damage: 50,
-            aoeRadius: 0,
-            duration: 0,
             effect: DivineWrathEffect()
         )
     }
@@ -407,9 +407,9 @@ class NecromancersGripSpell: Spell {
     init() {
         super.init(
             name: "Necromancer's Grip",
-            damage: 35,
-            aoeRadius: 0,
+            aoeRadius: 5,
             duration: 5.0,
+            damage: 35,
             effect: NecromancersGripEffect()
         )
     }
@@ -419,9 +419,9 @@ class ArcaneStormSpell: Spell {
     init() {
         super.init(
             name: "Arcane Storm",
-            damage: 40,
             aoeRadius: 150,
             duration: 4.0,
+            damage: 40,
             effect: ArcaneStormEffect()
         )
     }
