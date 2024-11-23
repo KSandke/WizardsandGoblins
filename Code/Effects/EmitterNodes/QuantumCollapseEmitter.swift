@@ -4,43 +4,82 @@ import SpriteKit
 class QuantumCollapseEmitter: SKEmitterNode {
     init() {
         super.init()
-
-        particleBirthRate = 200
-        particleLifetime = 0.5
-        particleLifetimeRange = 0.2
-
-        particlePositionRange = CGVector(dx: 40, dy: 40)
+        
+        // Core emission properties
+        particleBirthRate = 400
+        particleLifetime = 0.8
+        particleLifetimeRange = 0.4
+        
+        // Movement and spread
+        particlePositionRange = CGVector(dx: 20, dy: 20)
         emissionAngleRange = .pi * 2
-        particleSpeed = 100
-        particleSpeedRange = 50
-
-        particleScale = 0.3
-        particleScaleRange = 0.1
-        particleScaleSpeed = -0.2
-
-        particleAlpha = 0.8
-        particleAlphaRange = 0.2
-        particleAlphaSpeed = -1.0
-
-        particleColor = .magenta
+        particleSpeed = 150
+        particleSpeedRange = 80
+        
+        // Rotation for more quantum-like behavior
+        particleRotationRange = .pi * 2
+        particleRotationSpeed = 4.0
+        
+        // Size variation
+        particleScale = 0.4
+        particleScaleRange = 0.3
+        particleScaleSpeed = -0.3
+        
+        // Opacity with pulse effect
+        particleAlpha = 1.0
+        particleAlphaRange = 0.3
+        particleAlphaSpeed = -0.8
+        
+        // Color and blending
+        let colors: [UIColor] = [.magenta, .cyan, .purple]
+        particleColorSequence = SKKeyframeSequence(
+            keyframeValues: colors,
+            times: [0, 0.5, 1.0]
+        )
         particleBlendMode = .add
-
+        
+        // Custom texture
         particleTexture = createQuantumParticleTexture()
+        
+        // Physics behavior
+        xAcceleration = 0
+        yAcceleration = -50
+        particleAction = createParticleAction()
     }
-
-    required override init?(coder aDecoder: NSCoder) {
+    
+    required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-
+    
     private func createQuantumParticleTexture() -> SKTexture {
-        let size = CGSize(width: 8, height: 8)
-        UIGraphicsBeginImageContext(size)
-        if let context = UIGraphicsGetCurrentContext() {
-            context.setFillColor(UIColor.magenta.cgColor)
-            context.fill(CGRect(x: 0, y: 0, width: size.width, height: size.height))
+        let size = CGSize(width: 16, height: 16)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        
+        let image = renderer.image { context in
+            let bounds = CGRect(origin: .zero, size: size)
+            let gradient = CGGradient(
+                colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                colors: [UIColor.white.cgColor, UIColor.clear.cgColor] as CFArray,
+                locations: [0, 1]
+            )!
+            
+            context.cgContext.drawRadialGradient(
+                gradient,
+                startCenter: CGPoint(x: size.width/2, y: size.height/2),
+                startRadius: 0,
+                endCenter: CGPoint(x: size.width/2, y: size.height/2),
+                endRadius: size.width/2,
+                options: []
+            )
         }
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return SKTexture(image: image ?? UIImage())
+        
+        return SKTexture(image: image)
+    }
+    
+    private func createParticleAction() -> SKAction {
+        let scaleUp = SKAction.scale(to: 1.2, duration: 0.2)
+        let scaleDown = SKAction.scale(to: 0.8, duration: 0.2)
+        let sequence = SKAction.sequence([scaleUp, scaleDown])
+        return SKAction.repeatForever(sequence)
     }
 } 
