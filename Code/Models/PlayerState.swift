@@ -98,7 +98,7 @@ class PlayerState {
         maxHealth = maxCastleHealth
         
         // Add initial spells to available spells
-        availableSpells = [primarySpell, secondarySpell, TacticalNukeSpell(), CrucifixionSpell(), RiftWalkerSpell(), NanoSwarmSpell(), IronMaidenSpell(), CyberneticOverloadSpell(), SteampunkTimeBombSpell(), TemporalDistortionSpell(), QuantumCollapseSpell(), EarthShatterSpell(), MysticBarrierSpell(), DivineWrathSpell(), NecromancersGripSpell(), ArcaneStormSpell(), MeteorShowerSpell(), BlizzardSpell(), InfernoSpell()]
+        availableSpells = [primarySpell, secondarySpell, LightningSpell(), PoisonCloudSpell(), AC130Spell(), PredatorMissileSpell(), DriveBySpell(), DroneSwarmSpell(), SwarmQueenSpell(), HologramTrapSpell(), ShadowPuppetSpell(), TacticalNukeSpell(), CrucifixionSpell(), RiftWalkerSpell(), NanoSwarmSpell(), IronMaidenSpell(), CyberneticOverloadSpell(), SteampunkTimeBombSpell(), TemporalDistortionSpell(), QuantumCollapseSpell(), EarthShatterSpell(), MysticBarrierSpell(), DivineWrathSpell(), NecromancersGripSpell(), ArcaneStormSpell(), MeteorShowerSpell(), BlizzardSpell(), InfernoSpell()]
     }
     
     // Callbacks for binding
