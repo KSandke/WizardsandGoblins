@@ -19,8 +19,11 @@ class Goblin {
         let maxHealth: CGFloat
         let goldValue: Int
         private var isAttacksPaused = false
+        var isRanged: Bool
+        var isAttacking: Bool = false
+        private var attackTimer: Timer?
                 
-        init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat, goldValue: Int) {
+        init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat, goldValue: Int, isRanged: Bool = false) {
             self.type = type
             self.sprite = sprite
             self.healthBar = healthBar
@@ -29,6 +32,7 @@ class Goblin {
             self.damage = damage
             self.maxHealth = maxHealth
             self.goldValue = goldValue
+            self.isRanged = isRanged
         }
         
         func applyDamage(_ damage: CGFloat) {
@@ -124,6 +128,67 @@ class Goblin {
             ])
             sprite.run(SKAction.repeatForever(sequence), withKey: "shadowAttack")
         }
+        
+        func startAttacking(castle: Castle) {
+            isAttacking = true
+            
+            if isRanged {
+                startRangedAttack(castle: castle)
+            } else {
+                startMeleeAttack(castle: castle)
+            }
+        }
+        
+        private func startRangedAttack(castle: Castle) {
+            guard let scene = sprite.scene as? GameScene else { return }
+            
+            // Recreate the attack sequence
+            let spawnArrow = SKAction.run { [weak self] in
+                guard let self = self else { return }
+                scene.goblinManager.spawnArrow(from: self.sprite.position, 
+                                             to: scene.playerView.castlePosition)
+            }
+            let waitAction = SKAction.wait(forDuration: 1.5)
+            let attackSequence = SKAction.sequence([spawnArrow, waitAction])
+            let repeatAttack = SKAction.repeatForever(attackSequence)
+            sprite.run(repeatAttack, withKey: "rangedAttack")
+        }
+        
+        private func startMeleeAttack(castle: Castle) {
+            // Create melee attack timer
+            attackTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                castle.takeDamage(self.damage)
+                
+                // Visual feedback for melee attack
+                let attackAnimation = SKAction.sequence([
+                    SKAction.scale(to: 1.2, duration: 0.1),
+                    SKAction.scale(to: 1.0, duration: 0.1)
+                ])
+                self.sprite.run(attackAnimation)
+            }
+        }
+        
+        func stopAttacking() {
+            isAttacking = false
+            sprite.removeAction(forKey: "rangedAttack")
+            attackTimer?.invalidate()
+            attackTimer = nil
+        }
+        
+        func pauseAttacks() {
+            if isRanged {
+                sprite.removeAction(forKey: "rangedAttack")
+            }
+            attackTimer?.invalidate()
+        }
+        
+        func resumeAttacks() {
+            if isAttacking {
+                guard let scene = sprite.scene as? GameScene else { return }
+                startAttacking(castle: scene.castle)
+            }
+        }
     }
     
     weak var scene: SKScene?
@@ -210,7 +275,8 @@ class Goblin {
             health: health,
             damage: damage,
             maxHealth: health,
-            goldValue: goblinGoldValue(for: nextGoblinType)
+            goldValue: goblinGoldValue(for: nextGoblinType),
+            isRanged: nextGoblinType == .ranged
         )
         goblinContainers.append(container)
         
