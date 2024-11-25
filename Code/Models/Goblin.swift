@@ -63,23 +63,14 @@ class Goblin {
         func pauseAttacks() {
             isAttacksPaused = true
             sprite.removeAction(forKey: "rangedAttack") // Stops ranged attacks if applicable
+            attackTimer?.invalidate()
         }
         
         func resumeAttacks() {
             isAttacksPaused = false
-            // Only restart attacks for ranged goblins
-            if type == .ranged {
-                // Recreate the attack sequence
-                let spawnArrow = SKAction.run { [weak self] in
-                    guard let self = self,
-                          let scene = self.sprite.scene as? GameScene else { return }
-                    scene.goblinManager.spawnArrow(from: self.sprite.position, 
-                                                 to: scene.playerView.castlePosition)
-                }
-                let waitAction = SKAction.wait(forDuration: 1.5)
-                let attackSequence = SKAction.sequence([spawnArrow, waitAction])
-                let repeatAttack = SKAction.repeatForever(attackSequence)
-                sprite.run(repeatAttack, withKey: "rangedAttack")
+            if isAttacking {
+                guard let scene = sprite.scene as? GameScene else { return }
+                startAttacking()
             }
         }
         
@@ -129,19 +120,18 @@ class Goblin {
             sprite.run(SKAction.repeatForever(sequence), withKey: "shadowAttack")
         }
         
-        func startAttacking(castle: Castle) {
+        func startAttacking() {
+            guard let scene = sprite.scene as? GameScene else { return }
             isAttacking = true
             
             if isRanged {
-                startRangedAttack(castle: castle)
+                startRangedAttack(scene: scene)
             } else {
-                startMeleeAttack(castle: castle)
+                startMeleeAttack(scene: scene)
             }
         }
         
-        private func startRangedAttack(castle: Castle) {
-            guard let scene = sprite.scene as? GameScene else { return }
-            
+        private func startRangedAttack(scene: GameScene) {
             // Recreate the attack sequence
             let spawnArrow = SKAction.run { [weak self] in
                 guard let self = self else { return }
@@ -154,11 +144,11 @@ class Goblin {
             sprite.run(repeatAttack, withKey: "rangedAttack")
         }
         
-        private func startMeleeAttack(castle: Castle) {
+        private func startMeleeAttack(scene: GameScene) {
             // Create melee attack timer
             attackTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
-                castle.takeDamage(self.damage)
+                scene.castleTakeDamage(damage: self.damage)
                 
                 // Visual feedback for melee attack
                 let attackAnimation = SKAction.sequence([
@@ -174,20 +164,6 @@ class Goblin {
             sprite.removeAction(forKey: "rangedAttack")
             attackTimer?.invalidate()
             attackTimer = nil
-        }
-        
-        func pauseAttacks() {
-            if isRanged {
-                sprite.removeAction(forKey: "rangedAttack")
-            }
-            attackTimer?.invalidate()
-        }
-        
-        func resumeAttacks() {
-            if isAttacking {
-                guard let scene = sprite.scene as? GameScene else { return }
-                startAttacking(castle: scene.castle)
-            }
         }
     }
     
