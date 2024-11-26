@@ -1,5 +1,7 @@
 import SpriteKit
 import Foundation
+import WizardsandGoblins
+
 
 struct ShopItem {
     let name: String
@@ -119,23 +121,29 @@ class ShopView: SKNode {
     private let waveInfoLabel: SKLabelNode
     private let goblinTypeLabels: [SKLabelNode]
     
-    init(size: CGSize, playerState: PlayerState, waveConfig: WaveConfig, onClose: @escaping () -> Void) {
-        // Initialize new properties
-        waveInfoLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        goblinTypeLabels = []
-        
-        // Call existing init
-        super.init()
-        
+    init(size: CGSize, playerState: PlayerState, config: WaveConfig, onClose: @escaping () -> Void) {
+        // Initialize all properties before super.init()
         self.playerState = playerState
         self.onClose = onClose
+        self.background = SKSpriteNode(color: .black.withAlphaComponent(0.8), size: size)
+        self.statsLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        self.closeButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        self.waveInfoLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        self.goblinTypeLabels = []
         
-        // Create semi-transparent background
-        background = SKSpriteNode(color: .black.withAlphaComponent(0.8), size: size)
+        // Call super.init()
+        super.init()
         
+        // Setup UI after initialization
         setupUI(size: size)
-        setupWaveInfo(waveConfig, size: size)
+        setupWaveInfo(config, size: size)
         updateStats()
+        
+        // Configure close button
+        closeButton.text = "Close Shop"
+        closeButton.name = "closeShopButton"
+        closeButton.fontSize = 24
+        closeButton.fontColor = .white
     }
     
     required init?(coder aDecoder: NSCoder) {

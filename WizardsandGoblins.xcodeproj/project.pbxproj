@@ -18,6 +18,7 @@
 		145402872CCB60BA00624AF9 /* WGGameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145402862CCB60B700624AF9 /* WGGameScene.swift */; };
 		145402892CCB675200624AF9 /* WGMainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145402882CCB675200624AF9 /* WGMainMenuView.swift */; };
 		1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454028B2CCB67B300624AF9 /* WGGameView.swift */; };
+		145E596D2CF576FB009A6A09 /* WaveConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FB8F672CF55EDD00281ACF /* WaveConfig.swift */; };
 		1488B8342CE46E40007F0D4C /* CGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1488B8322CE46E40007F0D4C /* CGExtensions.swift */; };
 		148974842CE49467001F7350 /* Goblin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148974832CE49467001F7350 /* Goblin.swift */; };
 		148FAAB72CE4B82A005CCBC3 /* WGShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148FAAB62CE4B82A005CCBC3 /* WGShopView.swift */; };
@@ -232,7 +233,6 @@
 		14101F0F2CCAE60200BD8C7D /* Helper */ = {
 			isa = PBXGroup;
 			children = (
-				14FB8F672CF55EDD00281ACF /* WaveConfig.swift */,
 				1454028D2CCB7DFF00624AF9 /* Vector.swift */,
 				14101F112CCAE64100BD8C7D /* WGLayoutInfo.swift */,
 				14101F102CCAE61200BD8C7D /* WGGameInfo.swift */,
@@ -329,6 +329,7 @@
 		14ECCEF12CE47BA8005A9627 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				14FB8F672CF55EDD00281ACF /* WaveConfig.swift */,
 				148974832CE49467001F7350 /* Goblin.swift */,
 				1443E97D2CE48A9E001C028C /* Spell.swift */,
 				14ECCEF02CE47BA8005A9627 /* PlayerState.swift */,
@@ -515,6 +516,7 @@
 				14DDF4442CF1551100A0EBAB /* BloodParticle.swift in Sources */,
 				14DDF4452CF1551100A0EBAB /* SwarmQueenEmitter.swift in Sources */,
 				14DDF4462CF1551100A0EBAB /* MissileExplosion.swift in Sources */,
+				145E596D2CF576FB009A6A09 /* WaveConfig.swift in Sources */,
 				14DDF4472CF1551100A0EBAB /* TracerEffect.swift in Sources */,
 				14F528D72CF1638C0092C18F /* QuantumCollapseEmitter.swift in Sources */,
 				14DDF4482CF1551100A0EBAB /* CodeRain.swift in Sources */,

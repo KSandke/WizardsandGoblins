@@ -438,7 +438,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let shopView = ShopView(
             size: self.size, 
             playerState: playerState,
-            waveConfig: nextWaveConfig
+            config: nextWaveConfig
         ) { [weak self] in
             self?.closeShopView()
         }

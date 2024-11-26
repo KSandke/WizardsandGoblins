@@ -46,12 +46,7 @@ public struct WaveConfig {
     public var baseSpawnInterval: TimeInterval
     public var spawnPatterns: [SpawnPatternConfig]
     
-    public init(
-        goblinTypeProbabilities: [Goblin.GoblinType: Double],
-        maxGoblins: Int,
-        baseSpawnInterval: TimeInterval,
-        spawnPatterns: [SpawnPatternConfig]
-    ) {
+    public init(goblinTypeProbabilities: [Goblin.GoblinType: Double], maxGoblins: Int, baseSpawnInterval: TimeInterval, spawnPatterns: [SpawnPatternConfig]) {
         self.goblinTypeProbabilities = goblinTypeProbabilities
         self.maxGoblins = maxGoblins
         self.baseSpawnInterval = baseSpawnInterval

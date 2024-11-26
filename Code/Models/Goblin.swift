@@ -1,15 +1,15 @@
 import Foundation
 import SpriteKit
 
-class Goblin {
-    enum GoblinType {
+public class Goblin {
+    public enum GoblinType {
         case normal
         case large
         case small
         case ranged
     }
     
-    class GoblinContainer {
+    public class GoblinContainer {
         let sprite: SKSpriteNode
         let type: GoblinType
         let healthBar: SKShapeNode
@@ -474,12 +474,12 @@ class Goblin {
 
 // Add this extension to your Goblin.swift file
 extension Goblin.GoblinContainer: Hashable {
-    static func == (lhs: Goblin.GoblinContainer, rhs: Goblin.GoblinContainer) -> Bool {
+    public static func == (lhs: Goblin.GoblinContainer, rhs: Goblin.GoblinContainer) -> Bool {
         // Use object identity since each container should be unique
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
     
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         // Hash using object identity
         hasher.combine(ObjectIdentifier(self))
     }
