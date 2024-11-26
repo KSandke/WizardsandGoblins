@@ -87,6 +87,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var tutorialManager: TutorialManager!
     private var hasTutorialBeenShown: Bool = false
     
+    var castlePosition: CGPoint {
+        return CGPoint(x: size.width / 2, y: 100) // Adjust Y position as needed
+    }
+    
     override func didMove(to view: SKView) {
         // Initialize Player State and View
         playerState = PlayerState()
@@ -144,7 +148,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 ]
             ),
             2: WaveConfig( //use this config for testing
-                goblinTypeProbabilities: [.normal: 100.0],
+                goblinTypeProbabilities: [.ranged: 100.0],
                 maxGoblins: 10,
                 baseSpawnInterval: 2.0,
                 spawnPatterns: [

@@ -121,13 +121,13 @@ class Goblin {
         }
         
         func startAttacking() {
-            guard let scene = sprite.scene as? GameScene else { return }
+            guard let gameScene = sprite.scene as? GameScene else { return }
             isAttacking = true
             
             if isRanged {
-                startRangedAttack(scene: scene)
+                startRangedAttack(scene: gameScene)
             } else {
-                startMeleeAttack(scene: scene)
+                startMeleeAttack(scene: gameScene)
             }
         }
         
@@ -135,8 +135,9 @@ class Goblin {
             // Recreate the attack sequence
             let spawnArrow = SKAction.run { [weak self] in
                 guard let self = self else { return }
+                let targetPosition = CGPoint(x: scene.size.width / 2, y: 100) // Use same position as castlePosition
                 scene.goblinManager.spawnArrow(from: self.sprite.position, 
-                                             to: scene.playerView.castlePosition)
+                                             to: targetPosition)
             }
             let waitAction = SKAction.wait(forDuration: 1.5)
             let attackSequence = SKAction.sequence([spawnArrow, waitAction])
@@ -204,12 +205,10 @@ class Goblin {
     }
 
     func spawnGoblin(at position: CGPoint, specificType: GoblinType? = nil) {
-        guard let scene = scene else { return }
-        
-        // Use specificType if provided, otherwise use the probability-based type
-        nextGoblinType = specificType ?? getRandomGoblinType()
+        guard let gameScene = scene as? GameScene else { return }
         
         // Create a goblin of that type
+        let nextGoblinType = specificType ?? getRandomGoblinType()
         let goblinSprite = SKSpriteNode(imageNamed: imageName(for: nextGoblinType))
         goblinSprite.size = goblinSize(for: nextGoblinType)
         goblinSprite.position = position
@@ -233,6 +232,7 @@ class Goblin {
         goblinSprite.addChild(healthBar)
         goblinSprite.addChild(healthFill)
         
+        // Setup physics body
         let physicsBody = SKPhysicsBody(rectangleOf: goblinSprite.size)
         physicsBody.isDynamic = false
         physicsBody.affectedByGravity = false
@@ -243,6 +243,7 @@ class Goblin {
         
         let health = goblinHealth(for: nextGoblinType)
         let damage = goblinDamage(for: nextGoblinType)
+        
         let container = GoblinContainer(
             type: nextGoblinType,
             sprite: goblinSprite,
@@ -254,11 +255,12 @@ class Goblin {
             goldValue: goblinGoldValue(for: nextGoblinType),
             isRanged: nextGoblinType == .ranged
         )
+        
         goblinContainers.append(container)
+        gameScene.addChild(goblinSprite)
         
-        scene.addChild(goblinSprite)
-        
-        moveGoblin(container: container)
+        let targetPosition = CGPoint(x: gameScene.size.width / 2, y: 100)
+        moveGoblin(container: container, to: targetPosition, in: gameScene)
     }
     
     private func getRandomGoblinType() -> GoblinType {
@@ -277,61 +279,16 @@ class Goblin {
         return .normal
     }
     
-    private func moveGoblin(container: GoblinContainer) {
-        guard let scene = scene as? GameScene else { return }
-        let targetPosition = scene.playerView.castlePosition
+    private func moveGoblin(container: GoblinContainer, to targetPosition: CGPoint, in gameScene: GameScene) {
+        let moveDuration = TimeInterval(container.sprite.position.distance(to: targetPosition) / goblinSpeed(for: container.type))
+        let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
         
-        // Calculate the final position for the goblin
-        let finalPosition: CGPoint
-        if container.type == .ranged {
-            let vector = CGVector(dx: targetPosition.x - container.sprite.position.x,
-                                  dy: targetPosition.y - container.sprite.position.y)
-            let distance = sqrt(vector.dx * vector.dx + vector.dy * vector.dy)
-            let ratio = max(0, (distance - 500) / distance)
-            finalPosition = CGPoint(
-                x: container.sprite.position.x + vector.dx * ratio,
-                y: container.sprite.position.y + vector.dy * ratio
-            )
-        } else {
-            finalPosition = targetPosition
+        let startAttackAction = SKAction.run { [weak container] in
+            container?.startAttacking()
         }
         
-        let moveDuration = TimeInterval(container.sprite.position.distance(to: finalPosition) / goblinSpeed(for: container.type))
-        let moveAction = SKAction.move(to: finalPosition, duration: moveDuration)
-        
-        if container.type == .ranged {
-            // Create completion block for after movement
-            let startShooting = SKAction.run { [weak self] in
-                guard let self = self else { return }
-                // Ensure the goblin is still alive
-                guard self.goblinContainers.contains(where: { $0 === container }) else { return }
-                
-                // Create repeating arrow attack
-                let spawnArrow = SKAction.run { [weak self] in
-                    guard let self = self else { return }
-                    guard self.goblinContainers.contains(where: { $0 === container }) else { return }
-                    self.spawnArrow(from: container.sprite.position, to: scene.playerView.castlePosition)
-                }
-                
-                let waitAction = SKAction.wait(forDuration: 1.5)
-                let attackSequence = SKAction.sequence([spawnArrow, waitAction])
-                let repeatAttack = SKAction.repeatForever(attackSequence)
-                container.sprite.run(repeatAttack, withKey: "rangedAttack")
-            }
-            
-            // Run move action first, then start shooting
-            let sequence = SKAction.sequence([moveAction, startShooting])
-            container.sprite.run(sequence)
-        } else {
-            // Other goblins move and damage the castle upon arrival
-            let damageAction = SKAction.run { [weak self] in
-                scene.castleTakeDamage(damage: container.damage)
-                scene.goblinDied(container: container, goblinKilled: false)
-                self?.removeGoblin(container: container)
-            }
-            let sequence = SKAction.sequence([moveAction, damageAction])
-            container.sprite.run(sequence)
-        }
+        let sequence = SKAction.sequence([moveAction, startAttackAction])
+        container.sprite.run(sequence)
     }
     
     func goblinSpeed(for type: GoblinType) -> CGFloat {
@@ -456,7 +413,7 @@ class Goblin {
     }
 
     private func spawnArrow(from startPosition: CGPoint, to targetPosition: CGPoint) {
-        guard let scene = scene as? GameScene else { return }
+        guard let gameScene = scene as? GameScene else { return }
 
         // Create the arrow sprite
         let arrowSprite = SKSpriteNode(imageNamed: "Arrow")
@@ -474,13 +431,13 @@ class Goblin {
         // Define the movement action
         let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
         let damageAction = SKAction.run { [weak self] in
-            scene.castleTakeDamage(damage: arrowContainer.damage)
+            gameScene.castleTakeDamage(damage: arrowContainer.damage)
             self?.removeArrow(container: arrowContainer)
         }
         let sequence = SKAction.sequence([moveAction, damageAction])
 
         arrowSprite.run(sequence)
-        scene.addChild(arrowSprite)
+        gameScene.addChild(arrowSprite)
     }
 
     func removeArrow(container: ArrowContainer) {
