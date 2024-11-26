@@ -1,6 +1,5 @@
 import SpriteKit
 import Foundation
-import WizardsandGoblins
 
 
 struct ShopItem {

@@ -132,17 +132,23 @@ public class Goblin {
         }
         
         private func startRangedAttack(scene: GameScene) {
-            // Recreate the attack sequence
-            let spawnArrow = SKAction.run { [weak self] in
-                guard let self = self else { return }
-                let targetPosition = CGPoint(x: scene.size.width / 2, y: 100) // Use same position as castlePosition
-                scene.goblinManager.spawnArrow(from: self.sprite.position, 
-                                             to: targetPosition)
+            let targetPosition = CGPoint(x: scene.size.width / 2, y: 100) // Use same position as castlePosition
+            let distanceToTarget = sprite.position.distance(to: targetPosition)
+            
+            if distanceToTarget <= 400 { // change stopdistance in moveGoblin as well.
+                print("Ranged goblin is within range and starts shooting.")
+                let spawnArrow = SKAction.run { [weak self] in
+                    guard let self = self else { return }
+                    scene.goblinManager.spawnArrow(from: self.sprite.position, 
+                                                   to: targetPosition)
+                }
+                let waitAction = SKAction.wait(forDuration: 1.5)
+                let attackSequence = SKAction.sequence([spawnArrow, waitAction])
+                let repeatAttack = SKAction.repeatForever(attackSequence)
+                sprite.run(repeatAttack, withKey: "rangedAttack")
+            } else {
+                print("Ranged goblin is not within range. Current distance: \(distanceToTarget)")
             }
-            let waitAction = SKAction.wait(forDuration: 1.5)
-            let attackSequence = SKAction.sequence([spawnArrow, waitAction])
-            let repeatAttack = SKAction.repeatForever(attackSequence)
-            sprite.run(repeatAttack, withKey: "rangedAttack")
         }
         
         private func startMeleeAttack(scene: GameScene) {
@@ -280,15 +286,32 @@ public class Goblin {
     }
     
     private func moveGoblin(container: GoblinContainer, to targetPosition: CGPoint, in gameScene: GameScene) {
-        let moveDuration = TimeInterval(container.sprite.position.distance(to: targetPosition) / goblinSpeed(for: container.type))
-        let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
-        
-        let startAttackAction = SKAction.run { [weak container] in
-            container?.startAttacking()
+        let distanceToTarget = container.sprite.position.distance(to: targetPosition)
+        let stopDistance: CGFloat = container.isRanged ? 400 : 0
+
+        if distanceToTarget > stopDistance {
+            // Calculate the actual stop position for ranged goblins
+            let finalPosition: CGPoint
+            if container.isRanged {
+                let direction = (targetPosition - container.sprite.position).normalized()
+                let stopPoint = targetPosition - (direction * stopDistance)
+                finalPosition = stopPoint
+            } else {
+                finalPosition = targetPosition
+            }
+
+            let moveDuration = TimeInterval((distanceToTarget - stopDistance) / goblinSpeed(for: container.type))
+            let moveAction = SKAction.move(to: finalPosition, duration: moveDuration)
+            
+            let startAttackAction = SKAction.run { [weak container] in
+                container?.startAttacking()
+            }
+            
+            let sequence = SKAction.sequence([moveAction, startAttackAction])
+            container.sprite.run(sequence)
+        } else {
+            container.startAttacking()
         }
-        
-        let sequence = SKAction.sequence([moveAction, startAttackAction])
-        container.sprite.run(sequence)
     }
     
     func goblinSpeed(for type: GoblinType) -> CGFloat {
