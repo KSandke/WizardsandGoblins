@@ -118,6 +118,7 @@
 		14F528DC2CF163FA0092C18F /* BloodMoonEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BloodMoonEmitter.swift; sourceTree = "<group>"; };
 		14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarthShatterEmitter.swift; sourceTree = "<group>"; };
 		14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MysticBarrierEmitter.swift; sourceTree = "<group>"; };
+		14FB8F672CF55EDD00281ACF /* WaveConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveConfig.swift; sourceTree = "<group>"; };
 		925D72EC2CF1668D00E11E34 /* ArcaneStormEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcaneStormEmitter.swift; sourceTree = "<group>"; };
 		925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlizzardEmitter.swift; sourceTree = "<group>"; };
 		925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DivineWrathEmitter.swift; sourceTree = "<group>"; };
@@ -231,6 +232,7 @@
 		14101F0F2CCAE60200BD8C7D /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				14FB8F672CF55EDD00281ACF /* WaveConfig.swift */,
 				1454028D2CCB7DFF00624AF9 /* Vector.swift */,
 				14101F112CCAE64100BD8C7D /* WGLayoutInfo.swift */,
 				14101F102CCAE61200BD8C7D /* WGGameInfo.swift */,

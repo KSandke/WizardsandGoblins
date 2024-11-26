@@ -38,43 +38,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var isInShop = false  // To track if the shop view is active
     var isGameOver = false
 
-    enum SpawnPattern {
-        case single
-        case line(count: Int)
-        case surrounded(centerCount: Int, surroundCount: Int)
-        case stream(count: Int, interval: TimeInterval)
-        
-        var goblinCount: Int {
-            switch self {
-            case .single:
-                return 1
-            case .line(let count):
-                return count
-            case .surrounded(let centerCount, let surroundCount):
-                return centerCount + surroundCount
-            case .stream(let count, _):
-                return count
-            }
-        }
-    }
-
-    // Add spawn pattern probability struct
-    struct SpawnPatternConfig {
-        let pattern: SpawnPattern
-        let probability: Double
-    }
-    
-    // Define the WaveConfig struct
-    struct WaveConfig {
-        var goblinTypeProbabilities: [Goblin.GoblinType: Double]
-        var maxGoblins: Int
-        var baseSpawnInterval: TimeInterval
-        var spawnPatterns: [SpawnPatternConfig]
-    }
-    
     // Update the property declaration
-    var waveConfigs: [Int: WaveConfig] = [:]  // Changed from array to dictionary
-
+    var waveConfigs: [Int: WaveConfig] = [:]
+    
     // Add properties for mana potion drop chance and spell charge restore amount
     var manaPotionDropChance: Double = 0.1  // 10% chance by default
     var spellChargeRestoreAmount: Int = 2
@@ -129,87 +95,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func setupWaves() {
-        waveConfigs = [ // Default wave configuration
-            -1: WaveConfig( 
-                goblinTypeProbabilities: [.normal: 60.0, .small: 20.0, .large: 20.0],
-                maxGoblins: 7,  // Will be modified based on wave number
-                baseSpawnInterval: 2.0,  // Will be modified based on wave number
-                spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 70.0),
-                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
-                ]
-            ),
-            1: WaveConfig(
-                goblinTypeProbabilities: [.normal: 100.0],
-                maxGoblins: 3,
-                baseSpawnInterval: 3.0,
-                spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 100.0)
-                ]
-            ),
-            2: WaveConfig( //use this config for testing
-                goblinTypeProbabilities: [.ranged: 100.0],
-                maxGoblins: 10,
-                baseSpawnInterval: 2.0,
-                spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 70.0),
-                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
-                ]
-            ),
-            3: WaveConfig(
-                goblinTypeProbabilities: [.normal: 100.0],
-                maxGoblins: 10,
-                baseSpawnInterval: 2.0,
-                spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 70.0),
-                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
-                ]
-            ),
-            4: WaveConfig(
-                goblinTypeProbabilities: [.normal: 70.0, .small: 15.0, .large: 15.0],
-                maxGoblins: 15,
-                baseSpawnInterval: 1.8,
-                spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 50.0),
-                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0),
-                    SpawnPatternConfig(pattern: .surrounded(centerCount: 1, surroundCount: 4), probability: 20.0)
-                ]
-            ),
-            5: WaveConfig(
-                goblinTypeProbabilities: [.small: 100.0],
-                maxGoblins: 20,
-                baseSpawnInterval: 1.5,
-                spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 70.0),
-                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
-                ]
-            ),
-            6: WaveConfig(
-                goblinTypeProbabilities: [.normal: 40.0, .small: 25.0, .large: 25.0, .ranged: 10.0],
-                maxGoblins: 25,
-                baseSpawnInterval: 1.5,
-                spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 60.0),
-                    SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0),
-                    SpawnPatternConfig(pattern: .surrounded(centerCount: 1, surroundCount: 4), probability: 10.0)
-                ]
-            ),
-            7: WaveConfig(
-                goblinTypeProbabilities: [.small: 40.0, .large: 60.0],
-                maxGoblins: 30,
-                baseSpawnInterval: 1.2,
-                spawnPatterns: [
-                    SpawnPatternConfig(pattern: .single, probability: 80.0),
-                    SpawnPatternConfig(pattern: .line(count: 3), probability: 20.0)
-                ]
-            ),
-            8: WaveConfig(
-                goblinTypeProbabilities: [.ranged: 100.0],
-                maxGoblins: 30,
-                baseSpawnInterval: 1.2,
-                spawnPatterns: [SpawnPatternConfig(pattern: .single, probability: 100.0)]
-            )
-        ]
+        waveConfigs = WaveConfig.createWaveConfigs()
     }
     
     func startWave() {
@@ -262,15 +148,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             modifiedConfig.baseSpawnInterval = max(2.0 - 0.1 * Double(wave - 1), 0.5)
             return modifiedConfig
         }
-// If no config found, create a basic default config
-        return WaveConfig(
-            goblinTypeProbabilities: [.normal: 100.0],
-            maxGoblins: 10,
-            baseSpawnInterval: 2.0,
-            spawnPatterns: [
-                SpawnPatternConfig(pattern: .single, probability: 100.0)
-            ]
-        )
+        
+        // If no config found, create a basic default config
+        return WaveConfig.createDefaultConfig(forWave: wave)
     }
     
     func endWave() {
@@ -552,7 +432,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func showShopView() {
-        let shopView = ShopView(size: self.size, playerState: playerState) { [weak self] in
+        // Get the configuration for the next wave
+        let nextWaveConfig = getWaveConfig(forWave: currentWave + 1)
+        
+        let shopView = ShopView(
+            size: self.size, 
+            playerState: playerState,
+            waveConfig: nextWaveConfig
+        ) { [weak self] in
             self?.closeShopView()
         }
         shopView.zPosition = 200

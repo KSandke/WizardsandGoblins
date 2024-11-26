@@ -1,4 +1,5 @@
 import SpriteKit
+import Foundation
 
 struct ShopItem {
     let name: String
@@ -114,27 +115,26 @@ class ShopView: SKNode {
     private var itemButtons: [SKNode] = []
     private let closeButton: SKLabelNode
     
-    init(size: CGSize, playerState: PlayerState, onClose: @escaping () -> Void) {
+    // Add new properties
+    private let waveInfoLabel: SKLabelNode
+    private let goblinTypeLabels: [SKLabelNode]
+    
+    init(size: CGSize, playerState: PlayerState, waveConfig: WaveConfig, onClose: @escaping () -> Void) {
+        // Initialize new properties
+        waveInfoLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        goblinTypeLabels = []
+        
+        // Call existing init
+        super.init()
+        
         self.playerState = playerState
         self.onClose = onClose
         
         // Create semi-transparent background
         background = SKSpriteNode(color: .black.withAlphaComponent(0.8), size: size)
         
-        // Initialize stats label
-        statsLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        statsLabel.fontSize = 24
-        
-        // Initialize close button
-        closeButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        closeButton.text = "Close Shop & Start Next Wave"
-        closeButton.fontSize = 24
-        closeButton.fontColor = .white
-        closeButton.name = "closeShopButton"
-        
-        super.init()
-        
         setupUI(size: size)
+        setupWaveInfo(waveConfig, size: size)
         updateStats()
     }
     
@@ -334,5 +334,51 @@ class ShopView: SKNode {
         let remove = SKAction.removeFromParent()
         
         message.run(SKAction.sequence([fadeIn, wait, fadeOut, remove]))
+    }
+    
+    private func setupWaveInfo(_ config: WaveConfig, size: CGSize) {
+        // Add "Next Wave:" header
+        waveInfoLabel.text = "Next Wave Composition:"
+        waveInfoLabel.fontSize = 24
+        waveInfoLabel.fontColor = .white
+        waveInfoLabel.position = CGPoint(x: size.width/2, y: size.height - 200)
+        addChild(waveInfoLabel)
+        
+        // Calculate total goblins
+        let totalGoblins = config.maxGoblins
+        
+        // Create labels for each goblin type
+        var yOffset: CGFloat = waveInfoLabel.position.y - 40
+        for (type, probability) in config.goblinTypeProbabilities {
+            let count = Int(round(Double(totalGoblins) * probability / 100.0))
+            let typeLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+            typeLabel.fontSize = 18
+            typeLabel.fontColor = .white
+            typeLabel.text = "\(goblinTypeName(type)): \(count)"
+            typeLabel.position = CGPoint(x: size.width/2, y: yOffset)
+            addChild(typeLabel)
+            yOffset -= 25
+        }
+        
+        // Add total count
+        let totalLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        totalLabel.fontSize = 20
+        totalLabel.fontColor = .yellow
+        totalLabel.text = "Total Goblins: \(totalGoblins)"
+        totalLabel.position = CGPoint(x: size.width/2, y: yOffset - 10)
+        addChild(totalLabel)
+    }
+    
+    private func goblinTypeName(_ type: Goblin.GoblinType) -> String {
+        switch type {
+        case .normal:
+            return "Normal Goblins"
+        case .large:
+            return "Large Goblins"
+        case .small:
+            return "Small Goblins"
+        case .ranged:
+            return "Ranged Goblins"
+        }
     }
 } 
