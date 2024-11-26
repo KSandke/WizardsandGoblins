@@ -256,15 +256,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         
-        // Debug print for touch location
-        print("Touch location: \(location)")
-        
-        // Check inventory button first with converted position
-        if let inventoryButton = childNode(withName: "inventoryButton"),
-           inventoryButton.contains(location) {
-            print("Inventory button touched")  // Debug print
+        // Check for inventory button first
+        if let node = nodes(at: location).first(where: { $0.name == "inventoryButton" }) {
             playerView.toggleInventory()
             return
+        }
+        
+        // Check for inventory-related touches
+        if let node = nodes(at: location).first {
+            if node.name == "closeInventory" {
+                playerView.toggleInventory()
+                return
+            } else if let name = node.name {
+                if name.hasPrefix("primary_") {
+                    let spellName = String(name.dropFirst(8))
+                    playerView.assignSpell(spellName, isPrimary: true)
+                    return
+                } else if name.hasPrefix("secondary_") {
+                    let spellName = String(name.dropFirst(10))
+                    playerView.assignSpell(spellName, isPrimary: false)
+                    return
+                } else if name.hasPrefix("spell_") {
+                    playerView.handleSpellSelection(at: location)
+                    return
+                }
+            }
         }
         
         // Handle tutorial taps first

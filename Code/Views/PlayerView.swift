@@ -36,9 +36,9 @@ class PlayerView: SKNode {
     private var primarySpellLabel: SKLabelNode!
     private var secondarySpellLabel: SKLabelNode!
     
+    var isInventoryOpen = false
     private var inventoryButton: SKSpriteNode!
     private var inventoryView: SKNode?
-    private var isInventoryOpen = false
     
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
@@ -492,7 +492,10 @@ class PlayerView: SKNode {
     }
 
     private func setupInventoryButton() {
-        guard let scene = parentScene else { return }
+        guard let scene = parentScene else { 
+            print("No parent scene available for inventory button")
+            return 
+        }
         
         inventoryButton = SKSpriteNode(imageNamed: "inventory_icon")
         inventoryButton.size = CGSize(width: 40, height: 40)
@@ -501,41 +504,52 @@ class PlayerView: SKNode {
         inventoryButton.zPosition = 100
         scene.addChild(inventoryButton)
         
-        // Add debug shape to verify position and touch area
-        let debugShape = SKShapeNode(rectOf: inventoryButton.size)
-        debugShape.strokeColor = .red
-        debugShape.fillColor = .clear
-        debugShape.position = .zero
-        inventoryButton.addChild(debugShape)
-        
-        print("Inventory button added at position: \(inventoryButton.position)")
+        print("Inventory button setup at position: \(inventoryButton.position)")
     }
 
     func toggleInventory() {
-        print("Toggling inventory")
+        print("toggleInventory called")  // Debug print
         
         if isInventoryOpen {
+            print("Closing inventory")
             inventoryView?.removeFromParent()
             inventoryView = nil
         } else {
+            print("Opening inventory")
             createInventoryView()
         }
         
         isInventoryOpen = !isInventoryOpen
+        print("Inventory is now \(isInventoryOpen ? "open" : "closed")")
     }
 
     private func createInventoryView() {
-        guard let scene = parentScene else { return }
+        print("Creating inventory view")
+        guard let scene = parentScene else {
+            print("No parent scene found")
+            return
+        }
         
         // Create inventory container
         inventoryView = SKNode()
         
+        // Calculate size that fits within screen
+        let padding: CGFloat = 20
+        let inventoryWidth = min(300, scene.size.width - padding * 2)
+        let inventoryHeight = min(400, scene.size.height - padding * 2)
+        
         // Create background
-        let background = SKShapeNode(rectOf: CGSize(width: 300, height: 400))
+        let background = SKShapeNode(rectOf: CGSize(width: inventoryWidth, height: inventoryHeight))
         background.fillColor = .black
         background.strokeColor = .white
         background.alpha = 0.9
-        background.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
+        
+        // Center the inventory on screen
+        let centerX = scene.size.width/2
+        let centerY = scene.size.height/2
+        inventoryView?.position = CGPoint(x: centerX, y: centerY)
+        
+        // Add background first
         inventoryView?.addChild(background)
         
         // Add title
@@ -543,33 +557,46 @@ class PlayerView: SKNode {
         titleLabel.fontName = "HelveticaNeue-Bold"
         titleLabel.fontSize = 24
         titleLabel.fontColor = .white
-        titleLabel.position = CGPoint(x: 0, y: 160)
+        titleLabel.position = CGPoint(x: 0, y: inventoryHeight/2 - 40)
         inventoryView?.addChild(titleLabel)
         
-        // Add close button
-        let closeButton = SKShapeNode(circleOfRadius: 15)
+        // Add close button with better touch area
+        let closeButtonRadius: CGFloat = 15
+        let closeButton = SKShapeNode(circleOfRadius: closeButtonRadius)
         closeButton.fillColor = .red
         closeButton.strokeColor = .white
-        closeButton.position = CGPoint(x: 130, y: 160)
+        closeButton.position = CGPoint(x: inventoryWidth/2 - 30, y: inventoryHeight/2 - 30)
         closeButton.name = "closeInventory"
+        closeButton.zPosition = 101  // Make sure it's above other inventory elements
+        
+        // Add an X symbol to the close button
+        let xSymbol = SKLabelNode(text: "×")
+        xSymbol.fontSize = 20
+        xSymbol.fontName = "HelveticaNeue-Bold"
+        xSymbol.fontColor = .white
+        xSymbol.verticalAlignmentMode = .center
+        xSymbol.horizontalAlignmentMode = .center
+        xSymbol.position = CGPoint(x: 0, y: 0)
+        closeButton.addChild(xSymbol)
+        
         inventoryView?.addChild(closeButton)
         
-        // Display spells
-        displaySpellInventory()
+        // Display spells with adjusted positioning
+        displaySpellInventory(containerSize: CGSize(width: inventoryWidth, height: inventoryHeight))
         
-        // Position the entire inventory view
-        inventoryView?.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
         scene.addChild(inventoryView!)
+        print("Inventory view added to scene")
     }
 
-    private func displaySpellInventory() {
+    private func displaySpellInventory(containerSize: CGSize) {
         guard let gameScene = parentScene as? GameScene else { return }
         
         let itemsPerRow = 3
-        let itemSize: CGFloat = 60
+        let itemSize: CGFloat = min(60, (containerSize.width - 80) / CGFloat(itemsPerRow))
         let padding: CGFloat = 20
+        
         let startX = -((itemSize + padding) * CGFloat(itemsPerRow-1)/2)
-        let startY: CGFloat = 100
+        let startY = containerSize.height/2 - 100
         
         var currentRow = 0
         var currentCol = 0
@@ -578,20 +605,34 @@ class PlayerView: SKNode {
             let x = startX + CGFloat(currentCol) * (itemSize + padding)
             let y = startY - CGFloat(currentRow) * (itemSize + padding)
             
+            // Create container node for spell
+            let spellContainer = SKNode()
+            spellContainer.position = CGPoint(x: x, y: y)
+            spellContainer.name = "spell_\(spellName)"  // Add identifier for touch detection
+            
             // Spell icon
             let spellIcon = SKSpriteNode(imageNamed: spellName)
             spellIcon.size = CGSize(width: itemSize, height: itemSize)
-            spellIcon.position = CGPoint(x: x, y: CGFloat(y))
-            inventoryView?.addChild(spellIcon)
+            spellContainer.addChild(spellIcon)
+            
+            // Add selection background (initially invisible)
+            let selectionBg = SKShapeNode(rectOf: CGSize(width: itemSize + 10, height: itemSize + 10))
+            selectionBg.fillColor = .clear
+            selectionBg.strokeColor = .yellow
+            selectionBg.lineWidth = 2
+            selectionBg.name = "selection_\(spellName)"
+            selectionBg.alpha = 0
+            spellContainer.addChild(selectionBg)
             
             // Quantity label
             let quantityLabel = SKLabelNode(text: "x\(quantity)")
             quantityLabel.fontSize = 16
             quantityLabel.fontName = "HelveticaNeue-Bold"
             quantityLabel.fontColor = .white
-            quantityLabel.position = CGPoint(x: x + itemSize/2 - 10,
-                                           y: CGFloat(y) - itemSize/2 + 5)
-            inventoryView?.addChild(quantityLabel)
+            quantityLabel.position = CGPoint(x: itemSize/2 - 10, y: -itemSize/2 + 5)
+            spellContainer.addChild(quantityLabel)
+            
+            inventoryView?.addChild(spellContainer)
             
             currentCol += 1
             if currentCol >= itemsPerRow {
@@ -604,6 +645,90 @@ class PlayerView: SKNode {
     // Add method to check if a point is within the inventory button
     func isInventoryButtonTouched(at point: CGPoint) -> Bool {
         return inventoryButton.contains(point)
+    }
+
+    // Add method to handle spell selection
+    func handleSpellSelection(at point: CGPoint) {
+        guard let inventoryView = inventoryView else { return }
+        
+        // Convert point to inventory view's coordinate space
+        let localPoint = inventoryView.convert(point, from: parentScene!)
+        
+        if let touchedNode = inventoryView.nodes(at: localPoint).first,
+           let spellName = touchedNode.parent?.name,
+           spellName.hasPrefix("spell_") {
+            
+            let actualSpellName = String(spellName.dropFirst(6)) // Remove "spell_" prefix
+            
+            // Show selection options
+            showSpellSelectionOptions(spellName: actualSpellName, at: touchedNode.parent!.position)
+        }
+    }
+
+    private func showSpellSelectionOptions(spellName: String, at position: CGPoint) {
+        let optionsMenu = SKNode()
+        
+        // Create buttons for primary and secondary selection
+        let buttonSize = CGSize(width: 120, height: 40)
+        let padding: CGFloat = 10
+        
+        // Primary spell button
+        let primaryButton = SKShapeNode(rectOf: buttonSize)
+        primaryButton.fillColor = .blue
+        primaryButton.strokeColor = .white
+        primaryButton.position = CGPoint(x: 0, y: padding + buttonSize.height/2)
+        primaryButton.name = "primary_\(spellName)"
+        
+        let primaryLabel = SKLabelNode(text: "Primary Spell")
+        primaryLabel.fontSize = 14
+        primaryLabel.fontColor = .white
+        primaryLabel.verticalAlignmentMode = .center
+        primaryButton.addChild(primaryLabel)
+        
+        // Secondary spell button
+        let secondaryButton = SKShapeNode(rectOf: buttonSize)
+        secondaryButton.fillColor = .purple
+        secondaryButton.strokeColor = .white
+        secondaryButton.position = CGPoint(x: 0, y: -padding - buttonSize.height/2)
+        secondaryButton.name = "secondary_\(spellName)"
+        
+        let secondaryLabel = SKLabelNode(text: "Secondary Spell")
+        secondaryLabel.fontSize = 14
+        secondaryLabel.fontColor = .white
+        secondaryLabel.verticalAlignmentMode = .center
+        secondaryButton.addChild(secondaryLabel)
+        
+        optionsMenu.addChild(primaryButton)
+        optionsMenu.addChild(secondaryButton)
+        optionsMenu.position = position
+        
+        inventoryView?.addChild(optionsMenu)
+    }
+
+    // Add method to handle spell assignment
+    func assignSpell(_ spellName: String, isPrimary: Bool) {
+        guard let gameScene = parentScene as? GameScene else { return }
+        
+        if isPrimary {
+            gameScene.playerState.primarySpell = createSpell(named: spellName)
+        } else {
+            gameScene.playerState.secondarySpell = createSpell(named: spellName)
+        }
+        
+        // Close inventory after selection
+        toggleInventory()
+    }
+
+    // Helper method to create spell instance
+    private func createSpell(named spellName: String) -> Spell {
+        // Add cases for each spell type
+        switch spellName {
+        case "AC130": return AC130Spell()
+        case "TacticalNuke": return TacticalNukeSpell()
+        case "PredatorMissile": return PredatorMissileSpell()
+        // Add cases for other spells...
+        default: return FireballSpell() // Default fallback
+        }
     }
 
 } 
