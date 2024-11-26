@@ -7,7 +7,7 @@ struct ShopItem {
     let description: String
     var basePrice: Int
     let icon: String  // Name of image asset
-    let effect: (PlayerState) -> Void
+    let effect: (PlayerState, @escaping (String) -> Void) -> Void
     
     // Add current price tracking
     private static var purchaseCounts: [String: Int] = [:]
@@ -28,7 +28,7 @@ struct ShopItem {
             description: "Increase maximum health",
             basePrice: 5,
             icon: "health_upgrade",
-            effect: { state in
+            effect: { state, showMessage in
                 let level = ShopItem.purchaseCounts["Max Health +20"] ?? 0
                 state.maxHealth += 20 + (CGFloat(level) * 5)
             }
@@ -38,7 +38,7 @@ struct ShopItem {
             description: "Increase spell charges by 1",
             basePrice: 10,
             icon: "SpellCharges",
-            effect: { state in
+            effect: { state, showMessage in
                 let level = ShopItem.purchaseCounts["Max Spell Charges +1"] ?? 0
                 state.maxSpellCharges += 1
                 state.playerOneSpellCharges += 1
@@ -50,7 +50,7 @@ struct ShopItem {
             description: "Increase spell damage",
             basePrice: 5,
             icon: "power_upgrade",
-            effect: { state in
+            effect: { state, showMessage in
                 let level = ShopItem.purchaseCounts["Spell Power +10%"] ?? 0
                 state.spellPowerMultiplier *= 1.1 + (CGFloat(level) * 0.05)
             }
@@ -60,41 +60,31 @@ struct ShopItem {
             description: "Get a random new spell",
             basePrice: 15,
             icon: "random_spell",
-            effect: { state in
-                let availableSpells = [
-                    //FireballSpell(),
-                    //IceSpell(),
-                    //LightningSpell(),
-                    //PoisonCloudSpell(),
-                    //AC130Spell(),
+            effect: { state, showMessage in
+                let oneTimeUseSpells = [
+                    AC130Spell(),
                     TacticalNukeSpell(),
-                    //PredatorMissileSpell(),
-                    //DriveBySpell(),
-                    //DroneSwarmSpell(),
-                    CrucifixionSpell(),
-                    RiftWalkerSpell(),
-                    //SwarmQueenSpell(),
+                    PredatorMissileSpell(),
+                    CrowSwarmSpell(),
                     NanoSwarmSpell(),
-                    IronMaidenSpell(),
+                    HologramTrapSpell(),
+                    SystemOverrideSpell(),
                     CyberneticOverloadSpell(),
                     SteampunkTimeBombSpell(),
-                    //HologramTrapSpell(),
-                    //SystemOverrideSpell(),
-                    //ShadowPuppetSpell(),
+                    ShadowPuppetSpell(),
                     TemporalDistortionSpell(),
                     QuantumCollapseSpell(),
-                    //BloodMoonSpell(),
-                    EarthShatterSpell(),
                     MysticBarrierSpell(),
                     DivineWrathSpell(),
-                    NecromancersGripSpell(),
                     ArcaneStormSpell(),
                     MeteorShowerSpell(),
                     BlizzardSpell(),
                     InfernoSpell()
                 ]
-                if let randomSpell = availableSpells.randomElement() {
-                    state.addSpell(randomSpell)
+                
+                if let randomSpell = oneTimeUseSpells.randomElement() {
+                    state.addConsumableSpell(randomSpell.name)
+                    showMessage("Obtained: \(randomSpell.name)!")
                 }
             }
         )
@@ -273,7 +263,7 @@ class ShopView: SKNode {
         }
         
         playerState.coins -= item.currentPrice
-        item.effect(playerState)
+        item.effect(playerState, showMessage)
         ShopItem.recordPurchase(of: item.name)
         
         // Show level up message

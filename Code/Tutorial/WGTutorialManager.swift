@@ -51,6 +51,7 @@ class TutorialManager {
     private func endTutorial() {
         isActive = false
         cleanup()
+        hasCompletedTutorial = true
         completionHandler?()
     }
     
@@ -150,8 +151,6 @@ class TutorialManager {
         guard let messageBox = messageBox else { return }
         let touchLocation = touch.location(in: messageBox.parent!)
         
-        if messageBox.contains(touchLocation) {
-            // Advance to next step
             switch currentStep {
             case .welcome:
                 currentStep = .castleHealth
@@ -168,8 +167,7 @@ class TutorialManager {
                 return
             }
             
-            transitionToNextStep()
-        }
+        transitionToNextStep()
     }
     
     private func transitionToNextStep() {

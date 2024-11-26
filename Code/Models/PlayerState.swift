@@ -72,6 +72,8 @@ class PlayerState {
     // Add playerPosition property
     var playerPosition: CGPoint = .zero
     
+    var consumableSpells: [String: Int] = [:] // Tracks spell name and quantity
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
@@ -98,7 +100,34 @@ class PlayerState {
         maxHealth = maxCastleHealth
         
         // Add initial spells to available spells
-        availableSpells = [primarySpell, secondarySpell, LightningSpell(), PoisonCloudSpell(), AC130Spell(), PredatorMissileSpell(), DriveBySpell(), DroneSwarmSpell(), SwarmQueenSpell(), HologramTrapSpell(), ShadowPuppetSpell(), TacticalNukeSpell(), CrucifixionSpell(), RiftWalkerSpell(), NanoSwarmSpell(), IronMaidenSpell(), CyberneticOverloadSpell(), SteampunkTimeBombSpell(), TemporalDistortionSpell(), QuantumCollapseSpell(), EarthShatterSpell(), MysticBarrierSpell(), DivineWrathSpell(), NecromancersGripSpell(), ArcaneStormSpell(), MeteorShowerSpell(), BlizzardSpell(), InfernoSpell()]
+        availableSpells = [
+            primarySpell,
+            secondarySpell,
+            FireballSpell(),
+            IceSpell(),
+            LightningSpell(),
+            PoisonCloudSpell(),
+            AC130Spell(),
+            TacticalNukeSpell(),
+            PredatorMissileSpell(),
+            CrowSwarmSpell(),
+            SwarmQueenSpell(),
+            NanoSwarmSpell(),
+            HologramTrapSpell(),
+            SystemOverrideSpell(),
+            CyberneticOverloadSpell(),
+            SteampunkTimeBombSpell(),
+            ShadowPuppetSpell(),
+            TemporalDistortionSpell(),
+            QuantumCollapseSpell(),
+            EarthShatterSpell(),
+            MysticBarrierSpell(),
+            DivineWrathSpell(),
+            ArcaneStormSpell(),
+            MeteorShowerSpell(),
+            BlizzardSpell(),
+            InfernoSpell()
+        ]
     }
     
     // Callbacks for binding
@@ -155,20 +184,32 @@ class PlayerState {
     }
     
     // Update useSpell function
-    func useSpell(isPlayerOne: Bool, cost: CGFloat) -> Bool {
-        let currentCharges = isPlayerOne ? playerOneSpellCharges : playerTwoSpellCharges
-        
-        if currentCharges < 1 {
-            return false
+    func useSpell(isPlayerOne: Bool, cost: Int, spellName: String? = nil) -> Bool {
+        if let name = spellName {
+            // Find the spell in available spells
+            if let spell = availableSpells.first(where: { $0.name == name }), spell.isOneTimeUse {
+                // Check if player has the consumable spell
+                if let quantity = consumableSpells[name], quantity > 0 {
+                    consumableSpells[name] = quantity - 1
+                    return true
+                }
+                return false
+            }
         }
         
+        // Regular spell logic
         if isPlayerOne {
-            playerOneSpellCharges -= 1
+            if playerOneSpellCharges >= cost {
+                playerOneSpellCharges -= cost
+                return true
+            }
         } else {
-            playerTwoSpellCharges -= 1
+            if playerTwoSpellCharges >= cost {
+                playerTwoSpellCharges -= cost
+                return true
+            }
         }
-        
-        return true
+        return false
     }
 
     // Replace getSpell function
@@ -217,5 +258,17 @@ class PlayerState {
     // Add method to update player position
     func updatePlayerPosition(_ newPosition: CGPoint) {
         playerPosition = newPosition
+    }
+    
+    func addConsumableSpell(_ spellName: String, quantity: Int = 1) {
+        consumableSpells[spellName] = (consumableSpells[spellName] ?? 0) + quantity
+    }
+    
+    func hasConsumableSpell(_ spellName: String) -> Bool {
+        return (consumableSpells[spellName] ?? 0) > 0
+    }
+    
+    func getConsumableSpellCount(_ spellName: String) -> Int {
+        return consumableSpells[spellName] ?? 0
     }
 } 

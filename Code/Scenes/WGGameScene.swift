@@ -254,7 +254,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
-        let touchLocation = touch.location(in: self)
+        let location = touch.location(in: self)
+        
+        // Debug print for touch location
+        print("Touch location: \(location)")
+        
+        // Check inventory button first with converted position
+        if let inventoryButton = childNode(withName: "inventoryButton"),
+           inventoryButton.contains(location) {
+            print("Inventory button touched")  // Debug print
+            playerView.toggleInventory()
+            return
+        }
         
         // Handle tutorial taps first
         if tutorialManager.isTutorialActive {
@@ -265,14 +276,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if isInShop {
             // Forward touch to shop view if it exists
             if let shopView = self.children.first(where: { $0 is ShopView }) as? ShopView {
-                shopView.handleTap(at: touchLocation)
+                shopView.handleTap(at: location)
             }
             return
         }
         
         // Handle spell cycling
-        let touchedNodes = nodes(at: touchLocation)
-        for node in touchedNodes {
+        for node in nodes(at: location) {
             if node.name == "primaryCycle" || node.name == "secondaryCycle" {
                 playerView.handleSpellCycleTouch(node)
                 return
@@ -280,7 +290,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // Handle button taps
-        let touchedNode = nodes(at: touchLocation).first
+        let touchedNode = nodes(at: location).first
         if let name = touchedNode?.name {
             switch name {
             case "restartButton":
@@ -299,26 +309,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let p2Position = playerView.playerTwoPosition
         
         // Check if either wizard was tapped
-        if touchLocation.distance(to: p1Position) < 30 { // Adjust radius as needed
+        if location.distance(to: p1Position) < 30 { // Adjust radius as needed
             playerState.swapSpells(isPlayerOne: true)
             updateSpellIcons()
             return
-        } else if touchLocation.distance(to: p2Position) < 30 { // Adjust radius as needed
+        } else if location.distance(to: p2Position) < 30 { // Adjust radius as needed
             playerState.swapSpells(isPlayerOne: false)
             updateSpellIcons()
             return
         }
         
         // Calculate distances for spell casting
-        let distance1 = touchLocation.distance(to: p1Position)
-        let distance2 = touchLocation.distance(to: p2Position)
+        let distance1 = location.distance(to: p1Position)
+        let distance2 = location.distance(to: p2Position)
         
         // Determine primary and backup casters based on distance
         let isPlayerOnePrimary = distance1 < distance2
         
         // Try to cast with primary caster, if fails try backup caster
-        if !castSpell(isPlayerOne: isPlayerOnePrimary, to: touchLocation) {
-            _ = castSpell(isPlayerOne: !isPlayerOnePrimary, to: touchLocation)
+        if !castSpell(isPlayerOne: isPlayerOnePrimary, to: location) {
+            _ = castSpell(isPlayerOne: !isPlayerOnePrimary, to: location)
         }
     }
     

@@ -7,17 +7,19 @@ class Spell {
     var duration: TimeInterval
     var damage: CGFloat
     let effect: SpellEffect?
+    let isOneTimeUse: Bool
 
-    init(name: String, aoeRadius: CGFloat, duration: TimeInterval, damage: CGFloat, effect: SpellEffect?) {
+    init(name: String, aoeRadius: CGFloat, duration: TimeInterval, damage: CGFloat, effect: SpellEffect?, isOneTimeUse: Bool = false) {
         self.name = name
         self.aoeRadius = aoeRadius
         self.duration = duration
         self.damage = damage
         self.effect = effect
+        self.isOneTimeUse = isOneTimeUse
     }
 
     func cast(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, isPlayerOne: Bool, in scene: SKScene) -> Bool {
-        if !playerState.useSpell(isPlayerOne: isPlayerOne, cost: 1) {
+        if !playerState.useSpell(isPlayerOne: isPlayerOne, cost: 1, spellName: isOneTimeUse ? name : nil) {
             return false
         }
 
@@ -63,7 +65,8 @@ class Spell {
                 aoeRadius: self.aoeRadius,
                 duration: self.duration,
                 damage: self.damage * gameScene.playerState.spellPowerMultiplier,
-                effect: self.effect
+                effect: self.effect,
+                isOneTimeUse: self.isOneTimeUse
             )
             gameScene.applySpell(modifiedSpell, at: position)
         }
@@ -98,7 +101,8 @@ class FireballSpell: Spell {
             aoeRadius: 50,
             duration: 1.0,
             damage: 25,
-            effect: DefaultEffect()
+            effect: DefaultEffect(),
+            isOneTimeUse: false
         )
     }
 }
@@ -110,7 +114,8 @@ class IceSpell: Spell {
             aoeRadius: 50,
             duration: 1.0,
             damage: 20,
-            effect: IceEffect()
+            effect: IceEffect(),
+            isOneTimeUse: false
         )
     }
 }
@@ -122,7 +127,8 @@ class LightningSpell: Spell {
             aoeRadius: 40,
             duration: 1.0,
             damage: 30,
-            effect: LightningEffect()
+            effect: LightningEffect(),
+            isOneTimeUse: false
         )
     }
 }
@@ -134,7 +140,8 @@ class PoisonCloudSpell: Spell {
             aoeRadius: 80,
             duration: 5.0,
             damage: 10,
-            effect: PoisonEffect()
+            effect: PoisonEffect(),
+            isOneTimeUse: false
         )
     }
 }
@@ -146,7 +153,8 @@ class AC130Spell: Spell {
             aoeRadius: 80,
             duration: 6.0,
             damage: 35,
-            effect: AC130Effect()
+            effect: AC130Effect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -158,7 +166,8 @@ class TacticalNukeSpell: Spell {
             aoeRadius: 200,
             duration: 3.0,
             damage: 100,
-            effect: TacticalNukeEffect()
+            effect: TacticalNukeEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -170,67 +179,21 @@ class PredatorMissileSpell: Spell {
             aoeRadius: 60,
             duration: 2.0,
             damage: 45,
-            effect: PredatorMissileEffect()
+            effect: PredatorMissileEffect(),
+            isOneTimeUse: true
         )
     }
 }
 
-class DriveBySpell: Spell {
+class CrowSwarmSpell: Spell {
     init() {
         super.init(
-            name: "DriveBy",
-            aoeRadius: 40,
-            duration: 3.0,
-            damage: 15,
-            effect: DriveByEffect()
-        )
-    }
-}
-
-class DroneSwarmSpell: Spell {
-    init() {
-        super.init(
-            name: "DroneSwarm",
+            name: "CrowSwarm",
             aoeRadius: 150,
             duration: 5.0,
             damage: 20,
-            effect: DroneSwarmEffect()
-        )
-    }
-}
-
-class CrucifixionSpell: Spell {
-    init() {
-        super.init(
-            name: "Crucifixion",
-            aoeRadius: 60,
-            duration: 4.0,
-            damage: 40,
-            effect: CrucifixionEffect()
-        )
-    }
-}
-
-// class MindControlSpell: Spell {
-//     init() {
-//         super.init(
-//             name: "MindControlSpell",
-//             aoeRadius: 60,
-//             duration: 8.0,
-//             damage: 0,
-//             effect: MindControlEffect()
-//         )
-//     }
-// }
-
-class RiftWalkerSpell: Spell {
-    init() {
-        super.init(
-            name: "RiftWalkerSpell",
-            aoeRadius: 40,
-            duration: 0.5,
-            damage: 15,
-            effect: RiftWalkerEffect()
+            effect: DroneSwarmEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -254,7 +217,8 @@ class NanoSwarmSpell: Spell {
             aoeRadius: 100,
             duration: 5.0,
             damage: 25,
-            effect: NanoSwarmEffect()
+            effect: NanoSwarmEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -266,7 +230,8 @@ class HologramTrapSpell: Spell {
             aoeRadius: 70,
             duration: 3.0,
             damage: 30,
-            effect: HologramTrapEffect()
+            effect: HologramTrapEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -278,7 +243,8 @@ class SystemOverrideSpell: Spell {
             aoeRadius: 120,
             duration: 4.0,
             damage: 15,
-            effect: SystemOverrideEffect()
+            effect: SystemOverrideEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -290,7 +256,8 @@ class CyberneticOverloadSpell: Spell {
             aoeRadius: 100,
             duration: 5.0,
             damage: 30,
-            effect: CyberneticOverloadEffect()
+            effect: CyberneticOverloadEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -302,22 +269,12 @@ class SteampunkTimeBombSpell: Spell {
             aoeRadius: 150,
             duration: 3.0,
             damage: 50,
-            effect: SteampunkTimeBombEffect()
+            effect: SteampunkTimeBombEffect(),
+            isOneTimeUse: true
         )
     }
 }
 
-class IronMaidenSpell: Spell {
-    init() {
-        super.init(
-            name: "Iron Maiden",
-            aoeRadius: 15,
-            duration: 8.0,
-            damage: 35,
-            effect: IronMaidenEffect()
-        )
-    }
-}
 
 class ShadowPuppetSpell: Spell {
     init() {
@@ -326,7 +283,8 @@ class ShadowPuppetSpell: Spell {
             aoeRadius: 5,
             duration: 10.0,
             damage: 0,
-            effect: ShadowPuppetEffect()
+            effect: ShadowPuppetEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -338,7 +296,8 @@ class TemporalDistortionSpell: Spell {
             aoeRadius: 120,
             duration: 5.0,
             damage: 0,
-            effect: TemporalDistortionEffect()
+            effect: TemporalDistortionEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -350,19 +309,8 @@ class QuantumCollapseSpell: Spell {
             aoeRadius: 100,
             duration: 3.0,
             damage: 50,
-            effect: QuantumCollapseEffect()
-        )
-    }
-}
-
-class BloodMoonSpell: Spell {
-    init() {
-        super.init(
-            name: "Blood Moon",
-            aoeRadius: 120,
-            duration: 5.0,
-            damage: 35,
-            effect: BloodMoonEffect()
+            effect: QuantumCollapseEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -374,7 +322,8 @@ class EarthShatterSpell: Spell {
             aoeRadius: 100,
             duration: 1.0,
             damage: 40,
-            effect: EarthShatterEffect()
+            effect: EarthShatterEffect(),
+            isOneTimeUse: false
         )
     }
 }
@@ -386,7 +335,8 @@ class MysticBarrierSpell: Spell {
             aoeRadius: 80,
             duration: 8.0,
             damage: 20,
-            effect: MysticBarrierEffect()
+            effect: MysticBarrierEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -398,19 +348,8 @@ class DivineWrathSpell: Spell {
             aoeRadius: 5,
             duration: 2.0,
             damage: 50,
-            effect: DivineWrathEffect()
-        )
-    }
-}
-
-class NecromancersGripSpell: Spell {
-    init() {
-        super.init(
-            name: "Necromancer's Grip",
-            aoeRadius: 5,
-            duration: 5.0,
-            damage: 35,
-            effect: NecromancersGripEffect()
+            effect: DivineWrathEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -422,7 +361,8 @@ class ArcaneStormSpell: Spell {
             aoeRadius: 150,
             duration: 4.0,
             damage: 40,
-            effect: ArcaneStormEffect()
+            effect: ArcaneStormEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -433,7 +373,8 @@ class MeteorShowerSpell: Spell {
             aoeRadius: 200,
             duration: 5.0,
             damage: 80,
-            effect: MeteorShowerEffect()
+            effect: MeteorShowerEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -445,7 +386,8 @@ class BlizzardSpell: Spell {
             aoeRadius: 150,
             duration: 8.0,
             damage: 40,
-            effect: BlizzardEffect()
+            effect: BlizzardEffect(),
+            isOneTimeUse: true
         )
     }
 }
@@ -457,7 +399,8 @@ class InfernoSpell: Spell {
             aoeRadius: 100,
             duration: 6.0,
             damage: 60,
-            effect: InfernoEffect()
+            effect: InfernoEffect(),
+            isOneTimeUse: true
         )
     }
 }
