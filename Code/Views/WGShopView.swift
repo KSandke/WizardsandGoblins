@@ -14,7 +14,7 @@ struct ShopItem {
     
     var currentPrice: Int {
         let purchases = ShopItem.purchaseCounts[name] ?? 0
-        return basePrice + (purchases * 5)
+        return basePrice + (purchases * basePrice)
     }
     
     var level: Int {
@@ -22,76 +22,57 @@ struct ShopItem {
     }
     
     // Predefined shop items
-    static let items: [ShopItem] = [
-        ShopItem(
-            name: "Max Health +20",
-            description: "Increase maximum health",
-            basePrice: 5,
-            icon: "health_upgrade",
-            effect: { state, showMessage in
-                let level = ShopItem.purchaseCounts["Max Health +20"] ?? 0
-                state.maxHealth += 20 + (CGFloat(level) * 5)
-            }
-        ),
+    static let permanentUpgrades: [ShopItem] = [
         ShopItem(
             name: "Max Spell Charges +1",
-            description: "Increase spell charges by 1",
+            description: "Increase spell charges",
             basePrice: 10,
             icon: "SpellCharges",
             effect: { state, showMessage in
-                let level = ShopItem.purchaseCounts["Max Spell Charges +1"] ?? 0
                 state.maxSpellCharges += 1
                 state.spellCharges += 1
             }
         ),
         ShopItem(
-            name: "Spell Power +10%",
-            description: "Increase spell damage",
-            basePrice: 5,
-            icon: "power_upgrade",
+            name: "Spell AOE +10%",
+            description: "Increase spell area",
+            basePrice: 8,
+            icon: "aoe_upgrade",
             effect: { state, showMessage in
-                let level = ShopItem.purchaseCounts["Spell Power +10%"] ?? 0
-                state.spellPowerMultiplier *= 1.1 + (CGFloat(level) * 0.05)
+                state.spellAOEMultiplier *= 1.1
             }
         ),
         ShopItem(
-            name: "Random Spell",
-            description: "Get a random new spell",
-            basePrice: 15,
-            icon: "random_spell",
+            name: "Spell Speed +15%",
+            description: "Cast spells faster",
+            basePrice: 12,
+            icon: "speed_upgrade",
             effect: { state, showMessage in
-                let oneTimeUseSpells = [
-                    AC130Spell(),
-                    TacticalNukeSpell(),
-                    PredatorMissileSpell(),
-                    CrowSwarmSpell(),
-                    NanoSwarmSpell(),
-                    HologramTrapSpell(),
-                    SystemOverrideSpell(),
-                    CyberneticOverloadSpell(),
-                    SteampunkTimeBombSpell(),
-                    ShadowPuppetSpell(),
-                    TemporalDistortionSpell(),
-                    QuantumCollapseSpell(),
-                    MysticBarrierSpell(),
-                    DivineWrathSpell(),
-                    ArcaneStormSpell(),
-                    MeteorShowerSpell(),
-                    BlizzardSpell(),
-                    InfernoSpell()
-                ]
-                
-                if let randomSpell = oneTimeUseSpells.randomElement() {
-                    state.addConsumableSpell(randomSpell.name)
-                    showMessage("Obtained: \(randomSpell.name)!")
-                }
+                state.spellSpeedMultiplier *= 1.15
+            }
+        ),
+        ShopItem(
+            name: "Mana Regen +20%",
+            description: "Regenerate mana faster",
+            basePrice: 15,
+            icon: "regen_upgrade",
+            effect: { state, showMessage in
+                state.manaRegenRate *= 1.2
+            }
+        ),
+        ShopItem(
+            name: "Spell Power +10%",
+            description: "Increase spell damage",
+            basePrice: 10,
+            icon: "power_upgrade",
+            effect: { state, showMessage in
+                state.spellPowerMultiplier *= 1.1
             }
         )
     ]
     
-    // Add method to track purchases
     static func recordPurchase(of itemName: String) {
-        purchaseCounts[itemName, default: 0] += 1
+        purchaseCounts[itemName] = (purchaseCounts[itemName] ?? 0) + 1
     }
 }
 
@@ -109,7 +90,9 @@ class ShopView: SKNode {
     private let waveInfoLabel: SKLabelNode
     private let goblinTypeLabels: [SKLabelNode]
     
-    init(size: CGSize, playerState: PlayerState, config: WaveConfig, onClose: @escaping () -> Void) {
+    private var currentWaveUpgrades: [ShopItem] = []
+    
+    init(size: CGSize, playerState: PlayerState, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
         // Initialize all properties before super.init()
         self.playerState = playerState
         self.onClose = onClose
@@ -126,6 +109,7 @@ class ShopView: SKNode {
         setupUI(size: size)
         setupWaveInfo(config, size: size)
         updateStats()
+        selectRandomUpgrades(currentWave: currentWave)
         
         // Configure close button
         closeButton.text = "Close Shop"
@@ -165,7 +149,7 @@ class ShopView: SKNode {
         let startX = size.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
         let startY = size.height/2 + CGFloat(gridHeight-1) * (buttonHeight + padding)/2
         
-        for (index, item) in ShopItem.items.enumerated() {
+        for (index, item) in ShopItem.permanentUpgrades.enumerated() {
             let row = index / gridWidth
             let col = index % gridWidth
             
@@ -248,7 +232,7 @@ class ShopView: SKNode {
             
             if let buttonName = node.name,
                buttonName.starts(with: "itemButton_"),
-               let item = ShopItem.items.first(where: { "itemButton_\($0.name)" == buttonName }) {
+               let item = ShopItem.permanentUpgrades.first(where: { "itemButton_\($0.name)" == buttonName }) {
                 purchaseItem(item)
                 return
             }
@@ -288,7 +272,7 @@ class ShopView: SKNode {
         let startX = background.frame.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
         let startY = background.frame.height/2 + CGFloat(gridHeight-1) * (buttonHeight + padding)/2
         
-        for (index, item) in ShopItem.items.enumerated() {
+        for (index, item) in ShopItem.permanentUpgrades.enumerated() {
             let row = index / gridWidth
             let col = index % gridWidth
             
@@ -375,6 +359,23 @@ class ShopView: SKNode {
             return "Small Goblins"
         case .ranged:
             return "Ranged Goblins"
+        }
+    }
+    
+    private func selectRandomUpgrades(currentWave: Int) {
+        // Randomly select 2 permanent upgrades
+        currentWaveUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
+        
+        // Add consumable powerup if it's a reset wave (every 2 waves)
+        if currentWave % 2 == 0 {
+            // TODO: Implement powerUpItems
+            // currentWaveUpgrades.append(powerUpItems.randomElement()!)
+        }
+        
+        // Add rare item on boss waves (every 4 waves)
+        if currentWave % 4 == 0 {
+            // TODO: Implement rareItems
+            // currentWaveUpgrades.append(rareItems.randomElement()!)
         }
     }
 } 

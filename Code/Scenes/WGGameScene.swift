@@ -420,10 +420,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let shopView = ShopView(
             size: self.size, 
             playerState: playerState,
-            config: nextWaveConfig
-        ) { [weak self] in
-            self?.closeShopView()
-        }
+            config: nextWaveConfig,
+            currentWave: currentWave,
+            onClose: { [weak self] in
+                self?.closeShopView()
+            }
+        )
         shopView.zPosition = 200
         addChild(shopView)
         isInShop = true

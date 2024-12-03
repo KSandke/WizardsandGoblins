@@ -63,6 +63,11 @@ class PlayerState {
     
     var consumableSpells: [String: Int] = [:] // Tracks spell name and quantity
     
+    // Add after the existing properties
+    var spellAOEMultiplier: CGFloat = 1.0
+    var spellSpeedMultiplier: CGFloat = 1.0
+    var manaRegenRate: CGFloat = 1.0
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
