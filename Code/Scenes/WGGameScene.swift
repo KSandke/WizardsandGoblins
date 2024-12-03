@@ -52,6 +52,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return CGPoint(x: size.width / 2, y: 100) // Adjust Y position as needed
     }
     
+    // Add this property with other game properties
+    private var currentWaveDamageTaken: CGFloat = 0
+    
     override func didMove(to view: SKView) {
         // Initialize Player State and View
         playerState = PlayerState()
@@ -121,6 +124,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Start goblin spawning
         startSpawnPatterns(with: waveConfig)
+        
+        // Add this line with other reset operations
+        currentWaveDamageTaken = 0
     }
     
     func getWaveConfig(forWave wave: Int) -> WaveConfig {
@@ -187,6 +193,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func castleTakeDamage(damage: CGFloat) {
+        currentWaveDamageTaken += damage
         if playerState.takeDamage(damage) {
             gameOver()
         }
@@ -278,6 +285,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
+        // Handle score screen taps
+        if let scoreScreen = self.children.first(where: { $0 is ScoreScreen }) as? ScoreScreen {
+            scoreScreen.handleTap(at: location)
+            return
+        }
+        
         if isInShop {
             // Forward touch to shop view if it exists
             if let shopView = self.children.first(where: { $0 is ShopView }) as? ShopView {
@@ -324,12 +337,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         castSpell(to: location)
-        
-        // Handle score screen taps
-        if let scoreScreen = self.children.first(where: { $0 is ScoreScreen }) as? ScoreScreen {
-            scoreScreen.handleTap(at: location)
-            return
-        }
     }
     
     func castSpell(to location: CGPoint) {
@@ -422,6 +429,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             size: self.size,
             playerState: playerState,
             waveNumber: currentWave,
+            damageTaken: currentWaveDamageTaken,
             onContinue: { [weak self] in
                 self?.showShopView()
                 // Remove score screen

@@ -6,11 +6,13 @@ class ScoreScreen: SKNode {
     private let waveNumber: Int
     private let onContinue: () -> Void
     private let size: CGSize
+    private let damageTaken: CGFloat
     
-    init(size: CGSize, playerState: PlayerState, waveNumber: Int, onContinue: @escaping () -> Void) {
+    init(size: CGSize, playerState: PlayerState, waveNumber: Int, damageTaken: CGFloat, onContinue: @escaping () -> Void) {
         self.size = size
         self.playerState = playerState
         self.waveNumber = waveNumber
+        self.damageTaken = damageTaken
         self.onContinue = onContinue
         super.init()
         setupUI()
@@ -50,11 +52,28 @@ class ScoreScreen: SKNode {
         coinsLabel.position = CGPoint(x: size.width/2, y: size.height * 0.5)
         addChild(coinsLabel)
         
+        // Castle damage taken
+        let damageLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        damageLabel.text = "Castle Damage Taken: \(Int(damageTaken))"
+        damageLabel.fontSize = 28
+        damageLabel.fontColor = .red
+        damageLabel.position = CGPoint(x: size.width/2, y: size.height * 0.4)
+        addChild(damageLabel)
+        
+        // Castle health remaining
+        let healthLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        let healthPercentage = Int((playerState.castleHealth / playerState.maxCastleHealth) * 100)
+        healthLabel.text = "Castle Health: \(healthPercentage)%"
+        healthLabel.fontSize = 28
+        healthLabel.fontColor = healthPercentage > 50 ? .green : .red
+        healthLabel.position = CGPoint(x: size.width/2, y: size.height * 0.3)
+        addChild(healthLabel)
+        
         // Continue to shop button
         let continueButton = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 10)
         continueButton.fillColor = .blue
         continueButton.strokeColor = .white
-        continueButton.position = CGPoint(x: size.width/2, y: size.height * 0.3)
+        continueButton.position = CGPoint(x: size.width/2, y: size.height * 0.2)
         continueButton.name = "continueButton"
         
         let buttonLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
