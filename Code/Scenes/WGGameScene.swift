@@ -28,7 +28,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var mainMenuButton: SKLabelNode!
     var currentWave: Int = 1
     var remainingGoblins: Int = 10
-    var goblinCountLabel: SKLabelNode!
     
     var isSpawningEnabled = true
     var totalGoblinsSpawned = 0
@@ -60,7 +59,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         setupBackground()
         setupWaves()
-        goblinCounterSetup()
         
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
@@ -102,7 +100,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.remainingGoblins = self.maxGoblinsPerWave
         self.totalGoblinsSpawned = 0
         self.goblinSpawnInterval = waveConfig.baseSpawnInterval
-        self.updateGoblinCounter()
         
         // Reset spell charges
         self.playerState.spellCharges = self.playerState.maxSpellCharges
@@ -395,13 +392,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if Double.random(in: 0...1) < manaPotionDropChance {
                 handlePotionCollection(at: container.sprite.position)
             }
-
         }
         
         // Only decrease if counter is greater than 0
         if remainingGoblins > 0 {
             remainingGoblins -= 1
-            updateGoblinCounter()
             
             // Check if wave is complete when counter reaches 0
             if remainingGoblins == 0 {
@@ -469,7 +464,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         playerView = PlayerView(scene: self, state: playerState)
         
         setupWaves()
-        goblinCounterSetup()
         
         physicsWorld.gravity = .zero
         physicsWorld.contactDelegate = self
@@ -488,18 +482,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let mainMenuScene = WGMainMenu(size: self.size)
         mainMenuScene.scaleMode = SKSceneScaleMode.aspectFill
         view?.presentScene(mainMenuScene, transition: SKTransition.fade(withDuration: 0.5))
-    }
-    
-    func goblinCounterSetup() {
-        goblinCountLabel = SKLabelNode(text: "Goblins: \(remainingGoblins)")
-        goblinCountLabel.fontSize = 24
-        goblinCountLabel.fontColor = .black
-        goblinCountLabel.position = CGPoint(x: size.width - 100, y: size.height - 60)
-        addChild(goblinCountLabel)
-    }
-    
-    func updateGoblinCounter() {
-        goblinCountLabel.text = "Goblins: \(remainingGoblins)"
     }
     
     func startNextWave() {

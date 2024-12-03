@@ -96,12 +96,12 @@ class PlayerView: SKNode {
     private func setupCastle() {
         guard let scene = parentScene else { return }
         
-        castle.position = CGPoint(x: scene.size.width/2, y: 50)
+        castle.position = CGPoint(x: scene.size.width/2, y: 75)
         scene.addChild(castle)
         
         castleHealthBar.fillColor = .gray
         castleHealthBar.strokeColor = .black
-        castleHealthBar.position = CGPoint(x: scene.size.width/2, y: 20)
+        castleHealthBar.position = CGPoint(x: scene.size.width/2, y: 45)
         scene.addChild(castleHealthBar)
         
         castleHealthFill.fillColor = .red

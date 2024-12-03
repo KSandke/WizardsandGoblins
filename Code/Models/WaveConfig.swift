@@ -74,7 +74,7 @@ public struct WaveConfig {
                 ]
             ),
             2: WaveConfig( //use this config for testing
-                goblinTypeProbabilities: [.ranged: 100.0],
+                goblinTypeProbabilities: [.normal: 100.0],
                 maxGoblins: 10,
                 baseSpawnInterval: 2.0,
                 spawnPatterns: [
