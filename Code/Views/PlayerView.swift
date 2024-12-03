@@ -36,7 +36,7 @@ class PlayerView: SKNode {
         self.state = state
         
         // Initialize UI components
-        castle = SKSpriteNode(color: .gray, size: CGSize(width: scene.size.width, height: 100))
+        castle = SKSpriteNode(color: .gray, size: CGSize(width: scene.size.width, height: 125))
         castleHealthBar = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
         castleHealthFill = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
         
@@ -96,21 +96,20 @@ class PlayerView: SKNode {
     private func setupCastle() {
         guard let scene = parentScene else { return }
         
-        // Adjust castle size to reach bottom of screen
-        let castleHeight = castle.position.y // Use current Y position as height
-        castle = SKSpriteNode(color: .gray, size: CGSize(width: scene.size.width, height: castleHeight))
-        castle.position = CGPoint(x: scene.size.width/2, y: castleHeight/2) // Adjust position to account for anchor point
+        castle.position = CGPoint(x: scene.size.width/2, y: 60)
         scene.addChild(castle)
         
         castleHealthBar.fillColor = .gray
         castleHealthBar.strokeColor = .black
-        castleHealthBar.position = CGPoint(x: scene.size.width/2, y: 45)
+        castleHealthBar.position = CGPoint(x: scene.size.width/2, y: 25)
         scene.addChild(castleHealthBar)
         
         castleHealthFill.fillColor = .red
         castleHealthFill.strokeColor = .clear
         castleHealthFill.position = castleHealthBar.position
         scene.addChild(castleHealthFill)
+
+
         
         updateCastleHealthBar(health: state.castleHealth)
     }
