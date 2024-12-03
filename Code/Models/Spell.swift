@@ -18,8 +18,8 @@ class Spell {
         self.isOneTimeUse = isOneTimeUse
     }
 
-    func cast(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, isPlayerOne: Bool, in scene: SKScene) -> Bool {
-        if !playerState.useSpell(isPlayerOne: isPlayerOne, cost: 1, spellName: isOneTimeUse ? name : nil) {
+    func cast(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, in scene: SKScene) -> Bool {
+        if !playerState.useSpell( cost: 1, spellName: isOneTimeUse ? name : nil) {
             return false
         }
 

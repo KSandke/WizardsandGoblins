@@ -126,14 +126,14 @@ class TutorialManager {
                              description: "This is your castle's health.\nDon't let goblins reach it!")
             
         case .manaSystem:
-            if let firstSegment = gameScene.playerView.tutorialPlayerOneCharges.first {
+            if let firstSegment = gameScene.playerView.tutorialChargeSegments.first {
                 highlightUIElement(node: firstSegment, 
                                  description: "Mana bars show available spell charges.\nThey regenerate over time.")
             }
             
         case .spellTypes:
-            highlightUIElement(node: gameScene.playerOneSpellIcon, 
-                             description: "Tap wizards to switch spell types.\nDifferent spells have different effects!")
+            highlightUIElement(node: gameScene.playerView.spellIcon, 
+                             description: "Tap the wizard to cycle through spell types.\nDifferent spells have different effects!")
             
         case .scoring:
             highlightUIElement(node: gameScene.playerView.tutorialScoreLabel, 

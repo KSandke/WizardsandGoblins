@@ -41,8 +41,7 @@ struct ShopItem {
             effect: { state, showMessage in
                 let level = ShopItem.purchaseCounts["Max Spell Charges +1"] ?? 0
                 state.maxSpellCharges += 1
-                state.playerOneSpellCharges += 1
-                state.playerTwoSpellCharges += 1
+                state.spellCharges += 1
             }
         ),
         ShopItem(

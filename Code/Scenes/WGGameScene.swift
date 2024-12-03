@@ -45,10 +45,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var manaPotionDropChance: Double = 0.1  // 10% chance by default
     var spellChargeRestoreAmount: Int = 2
     
-    // Add properties for spell icons
-    internal var playerOneSpellIcon: SKSpriteNode!
-    internal var playerTwoSpellIcon: SKSpriteNode!
-    
     // Add to your existing properties
     private var tutorialManager: TutorialManager!
     private var hasTutorialBeenShown: Bool = false
@@ -71,9 +67,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Initialize Goblin Manager with initial probabilities
         goblinManager = Goblin(scene: self)
-        
-        // Setup spell icons
-        setupSpellIcons()
         
         // Initialize tutorial manager
         tutorialManager = TutorialManager(scene: self)
@@ -111,9 +104,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.goblinSpawnInterval = waveConfig.baseSpawnInterval
         self.updateGoblinCounter()
         
-        // Reset spell charges instead of mana
-        self.playerState.playerOneSpellCharges = self.playerState.maxSpellCharges
-        self.playerState.playerTwoSpellCharges = self.playerState.maxSpellCharges
+        // Reset spell charges
+        self.playerState.spellCharges = self.playerState.maxSpellCharges
         
         // Update wave label in PlayerView
         playerView.updateWaveLabel(wave: currentWave)
@@ -299,7 +291,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Handle spell cycling
         for node in nodes(at: location) {
-            if node.name == "primaryCycle" || node.name == "secondaryCycle" {
+            if node.name == "cycleSpell" {
                 playerView.handleSpellCycleTouch(node)
                 return
             }
@@ -320,46 +312,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         
-        // Get wizard positions
-        let p1Position = playerView.playerOnePosition
-        let p2Position = playerView.playerTwoPosition
+        // Simplified wizard position check
+        let wizardPosition = playerView.playerPosition  // You'll need to rename this in PlayerView
         
-        // Check if either wizard was tapped
-        if location.distance(to: p1Position) < 30 { // Adjust radius as needed
-            playerState.swapSpells(isPlayerOne: true)
-            updateSpellIcons()
-            return
-        } else if location.distance(to: p2Position) < 30 { // Adjust radius as needed
-            playerState.swapSpells(isPlayerOne: false)
-            updateSpellIcons()
+        // Check if wizard was tapped
+        if location.distance(to: wizardPosition) < 30 {
+            playerState.cycleSpell()  // Modify this to handle single wizard
             return
         }
         
-        // Calculate distances for spell casting
-        let distance1 = location.distance(to: p1Position)
-        let distance2 = location.distance(to: p2Position)
-        
-        // Determine primary and backup casters based on distance
-        let isPlayerOnePrimary = distance1 < distance2
-        
-        // Try to cast with primary caster, if fails try backup caster
-        if !castSpell(isPlayerOne: isPlayerOnePrimary, to: location) {
-            _ = castSpell(isPlayerOne: !isPlayerOnePrimary, to: location)
+        // Simplified spell casting - no need to check distances or determine primary caster
+        if !isSpawningEnabled || isGameOver {
+            return
         }
+        
+        castSpell(to: location)
     }
     
-    func castSpell(isPlayerOne: Bool, to location: CGPoint) -> Bool {
-        // Check if the wave is active and game is not over
-        guard isSpawningEnabled && !isGameOver else { return false }
-        // Get caster's position
-        let casterPosition = isPlayerOne ? playerView.playerOnePosition : playerView.playerTwoPosition
-        
-        // Get the player's spell
-        let spell = playerState.getSpell(isPlayerOne: isPlayerOne)
-        
-        // Cast the spell
-        let success = spell.cast(from: casterPosition, to: location, by: playerState, isPlayerOne: isPlayerOne, in: self)
-        return success
+    func castSpell(to location: CGPoint) {
+        let casterPosition = playerView.playerPosition
+        let spell = playerState.getCurrentSpell()
+        spell.cast(from: casterPosition, to: location, by: playerState, in: self)
     }
     
     func applySpell(_ spell: Spell, at position: CGPoint) {
@@ -391,30 +364,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func handlePotionCollection(at position: CGPoint) {
-        // Determine which wizard has fewer charges
-        let playerOneCharges = playerState.playerOneSpellCharges
-        let playerTwoCharges = playerState.playerTwoSpellCharges
+        // Simply add charges up to max for single wizard
+        playerState.spellCharges = min(
+            playerState.maxSpellCharges,
+            playerState.spellCharges + spellChargeRestoreAmount
+        )
         
-        // Give charges to the wizard with fewer charges
-        // If equal, give to player one
-        if playerOneCharges <= playerTwoCharges {
-            playerState.playerOneSpellCharges = min(
-                playerState.maxSpellCharges,
-                playerState.playerOneSpellCharges + spellChargeRestoreAmount
-            )
-        } else {
-            playerState.playerTwoSpellCharges = min(
-                playerState.maxSpellCharges,
-                playerState.playerTwoSpellCharges + spellChargeRestoreAmount
-            )
-        }
-        
-        // Replace particle effect with larger frame animation
+        // Create collection effect
         createFrameAnimation(at: position,
                             framePrefix: "ManaPot",
                             frameCount: 4,
-                             duration: 0.6,
-                            size: CGSize(width: 100, height: 100))  // Adjust size as needed
+                            duration: 0.6,
+                            size: CGSize(width: 100, height: 100))
     }
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
@@ -690,38 +651,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let wait = SKAction.wait(forDuration: interval * Double(i))
             run(SKAction.sequence([wait, spawnAction]))
         }
-    }
-    
-    func setupSpellIcons() {
-        // Create spell icons
-        playerOneSpellIcon = SKSpriteNode(imageNamed: playerState.getCurrentSpellName())
-        playerTwoSpellIcon = SKSpriteNode(imageNamed: playerState.getCurrentSpellName())
-        
-        // Set size for icons
-        let iconSize = CGSize(width: 30, height: 30) // Adjust size as needed
-        playerOneSpellIcon.size = iconSize
-        playerTwoSpellIcon.size = iconSize
-        
-        // Position icons next to wizards
-        playerOneSpellIcon.position = CGPoint(
-            x: playerView.playerOnePosition.x + 40, // Adjust offset as needed
-            y: playerView.playerOnePosition.y
-        )
-        playerTwoSpellIcon.position = CGPoint(
-            x: playerView.playerTwoPosition.x + 40, // Adjust offset as needed
-            y: playerView.playerTwoPosition.y
-        )
-        
-        // Add to scene
-        addChild(playerOneSpellIcon)
-        addChild(playerTwoSpellIcon)
-    }
-    
-    // Update the spell icons when spells are swapped
-    func updateSpellIcons() {
-        let spellTexture = SKTexture(imageNamed: playerState.getCurrentSpellName())
-        playerOneSpellIcon.texture = spellTexture
-        playerTwoSpellIcon.texture = spellTexture
     }
     
     func createFrameAnimation(at position: CGPoint, 

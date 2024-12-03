@@ -6,11 +6,9 @@ class PlayerView: SKNode {
     private var castleHealthBar: SKShapeNode
     private var castleHealthFill: SKShapeNode
     
-    private var playerOne: SKSpriteNode
-    private var playerTwo: SKSpriteNode
+    private var wizard: SKSpriteNode
+    private var chargeSegments: [SKShapeNode] = []
     
-    private var playerOneChargeSegments: [SKShapeNode] = []
-    private var playerTwoChargeSegments: [SKShapeNode] = []
     private var scoreLabel: SKLabelNode!
     private var coinLabel: SKLabelNode!
     private var waveLabel: SKLabelNode!
@@ -19,22 +17,15 @@ class PlayerView: SKNode {
     private var state: PlayerState
     // Add public getters for tutorial access
     var tutorialCastleHealthBar: SKShapeNode { castleHealthBar }
-    var tutorialPlayerOneCharges: [SKShapeNode] { playerOneChargeSegments }
-    var tutorialPlayerTwoCharges: [SKShapeNode] { playerTwoChargeSegments }
+    var tutorialPlayerCharges: [SKShapeNode] { chargeSegments }
     var tutorialScoreLabel: SKLabelNode { scoreLabel }
     var tutorialWaveLabel: SKLabelNode { waveLabel }
     var tutorialCoinLabel: SKLabelNode { coinLabel }
+    var tutorialChargeSegments: [SKShapeNode] { chargeSegments }
 
-    var playerOnePosition: CGPoint { playerOne.position }
-    var playerTwoPosition: CGPoint { playerTwo.position }
+    var playerPosition: CGPoint { wizard.position }
     
-    private var primarySpellIcon: SKSpriteNode!
-    private var secondarySpellIcon: SKSpriteNode!
-    private var primaryCycleButton: SKSpriteNode!
-    private var secondaryCycleButton: SKSpriteNode!
-    
-    private var primarySpellLabel: SKLabelNode!
-    private var secondarySpellLabel: SKLabelNode!
+    internal var spellIcon: SKSpriteNode!
     
     var isInventoryOpen = false
     private var inventoryButton: SKSpriteNode!
@@ -49,8 +40,7 @@ class PlayerView: SKNode {
         castleHealthBar = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
         castleHealthFill = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
         
-        playerOne = SKSpriteNode(imageNamed: "Wizard1")
-        playerTwo = SKSpriteNode(imageNamed: "Wizard2")
+        wizard = SKSpriteNode(imageNamed: "Wizard1")
         
         super.init()
         
@@ -69,12 +59,8 @@ class PlayerView: SKNode {
             self?.updateCastleHealthBar(health: health)
         }
         
-        state.onPlayerOneChargesChanged = { [weak self] charges in
-            self?.updatePlayerOneCharges(charges: charges)
-        }
-        
-        state.onPlayerTwoChargesChanged = { [weak self] charges in
-            self?.updatePlayerTwoCharges(charges: charges)
+        state.onPlayerChargesChanged = { [weak self] charges in
+            self?.updateCharges(charges: charges)
         }
 
         state.onScoreChanged = { [weak self] score in
@@ -88,6 +74,11 @@ class PlayerView: SKNode {
         // Add new binding for max charges
         state.onMaxSpellChargesChanged = { [weak self] maxCharges in
             self?.updateMaxCharges(maxCharges: maxCharges)
+        }
+
+        // Add this with the other bindings
+        state.onSpellChanged = { [weak self] spell in
+            self?.updateSpellIcon()
         }
     }
     
@@ -126,41 +117,21 @@ class PlayerView: SKNode {
     private func setupWizards() {
         guard let scene = parentScene else { return }
         
-        playerOne.size = CGSize(width: 75, height: 75)
-        playerOne.position = CGPoint(x: scene.size.width * 0.25, y: 100)
-        scene.addChild(playerOne)
-        
-        playerTwo.size = CGSize(width: 75, height: 75)
-        playerTwo.position = CGPoint(x: scene.size.width * 0.75, y: 100)
-        scene.addChild(playerTwo)
+        wizard.size = CGSize(width: 75, height: 75)
+        wizard.position = CGPoint(x: scene.size.width * 0.5, y: 100)
+        scene.addChild(wizard)
     }
     
     private func setupManaBars() {
-        setupChargeSegments(segments: &playerOneChargeSegments, atPosition: playerOne.position)
-        setupChargeSegments(segments: &playerTwoChargeSegments, atPosition: playerTwo.position)
-        
-        updatePlayerOneCharges(charges: state.playerOneSpellCharges)
-        updatePlayerTwoCharges(charges: state.playerTwoSpellCharges)
+        setupChargeSegments(segments: &chargeSegments, atPosition: wizard.position)
+        updateCharges(charges: state.spellCharges)
     }
     
     private func setupChargeSegments(segments: inout [SKShapeNode], atPosition pos: CGPoint) {
         guard let scene = parentScene else { return }
         
-        let screenMidX = scene.size.width / 2
-        
-        // Calculate maximum available width based on whether this is player one or two
-        let maxAvailableWidth: CGFloat
-        if pos.x < screenMidX {  // Player One (left side)
-            maxAvailableWidth = min(
-                pos.x * 1.4,  // Distance from left edge
-                screenMidX - pos.x - 20  // Distance to middle, with 20pt buffer
-            )
-        } else {  // Player Two (right side)
-            maxAvailableWidth = min(
-                (scene.size.width - pos.x) * 1.4,  // Distance from right edge
-                pos.x - screenMidX - 20  // Distance from middle, with 20pt buffer
-            )
-        }
+        // Calculate maximum available width
+        let maxAvailableWidth = scene.size.width * 0.3  // 30% of screen width
         
         // Base segment sizes
         let baseSegmentWidth: CGFloat = 18
@@ -183,13 +154,8 @@ class PlayerView: SKNode {
         let totalWidth = (segmentWidth * CGFloat(state.maxSpellCharges)) + 
                         (spacing * CGFloat(state.maxSpellCharges - 1))
         
-        // Adjust startX to ensure segments stay on their respective sides
-        let startX: CGFloat
-        if pos.x < screenMidX {  // Player One (left side)
-            startX = min(pos.x - (totalWidth / 2), screenMidX - totalWidth - 20)
-        } else {  // Player Two (right side)
-            startX = max(pos.x - (totalWidth / 2), screenMidX + 20)
-        }
+        // Center the segments below the wizard
+        let startX = pos.x - (totalWidth / 2)
         
         for i in 0..<state.maxSpellCharges {
             let segment = SKShapeNode(rectOf: CGSize(width: segmentWidth, height: segmentHeight))
@@ -204,19 +170,15 @@ class PlayerView: SKNode {
         }
     }
     
-    private func updatePlayerOneCharges(charges: Int) {
-        // Get the previous charge count by counting blue segments
-        let previousCharges = playerOneChargeSegments.filter { $0.fillColor == .blue }.count
+    private func updateCharges(charges: Int) {
+        let previousCharges = chargeSegments.filter { $0.fillColor == .blue }.count
         
-        // If charges increased, animate the new segments
         if charges > previousCharges {
-            for (index, segment) in playerOneChargeSegments.enumerated() {
+            for (index, segment) in chargeSegments.enumerated() {
                 if index < charges {
                     if index >= previousCharges {
-                        // Animate new charge segments
                         animateChargeSegment(segment)
                     } else {
-                        // Keep existing charged segments blue
                         segment.fillColor = .blue
                     }
                 } else {
@@ -224,35 +186,7 @@ class PlayerView: SKNode {
                 }
             }
         } else {
-            // Regular update without animation
-            for (index, segment) in playerOneChargeSegments.enumerated() {
-                segment.fillColor = index < charges ? .blue : .gray
-            }
-        }
-    }
-    
-    private func updatePlayerTwoCharges(charges: Int) {
-        // Get the previous charge count by counting blue segments
-        let previousCharges = playerTwoChargeSegments.filter { $0.fillColor == .blue }.count
-        
-        // If charges increased, animate the new segments
-        if charges > previousCharges {
-            for (index, segment) in playerTwoChargeSegments.enumerated() {
-                if index < charges {
-                    if index >= previousCharges {
-                        // Animate new charge segments
-                        animateChargeSegment(segment)
-                    } else {
-                        // Keep existing charged segments blue
-                        segment.fillColor = .blue
-                    }
-                } else {
-                    segment.fillColor = .gray
-                }
-            }
-        } else {
-            // Regular update without animation
-            for (index, segment) in playerTwoChargeSegments.enumerated() {
+            for (index, segment) in chargeSegments.enumerated() {
                 segment.fillColor = index < charges ? .blue : .gray
             }
         }
@@ -381,114 +315,50 @@ class PlayerView: SKNode {
     // Add new function to handle max charges change
     private func updateMaxCharges(maxCharges: Int) {
         // Remove existing charge segments
-        playerOneChargeSegments.forEach { $0.removeFromParent() }
-        playerTwoChargeSegments.forEach { $0.removeFromParent() }
-        playerOneChargeSegments.removeAll()
-        playerTwoChargeSegments.removeAll()
+        chargeSegments.forEach { $0.removeFromParent() }
+        chargeSegments.removeAll()
         
         // Setup new charge segments
-        setupChargeSegments(segments: &playerOneChargeSegments, atPosition: playerOne.position)
-        setupChargeSegments(segments: &playerTwoChargeSegments, atPosition: playerTwo.position)
+        setupChargeSegments(segments: &chargeSegments, atPosition: wizard.position)
         
         // Update visual state
-        updatePlayerOneCharges(charges: state.playerOneSpellCharges)
-        updatePlayerTwoCharges(charges: state.playerTwoSpellCharges)
+        updateCharges(charges: state.spellCharges)
     }
 
     private func setupSpellIcons() {
         guard let scene = parentScene else { return }
         
-        // Primary spell setup
-        primarySpellIcon = SKSpriteNode(imageNamed: state.primarySpell.name)
-        primarySpellIcon.size = CGSize(width: 40, height: 40)
-        primarySpellIcon.position = CGPoint(x: playerOne.position.x - 30, y: playerOne.position.y + 50)
+        spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
+        spellIcon.size = CGSize(width: 40, height: 40)
+        spellIcon.position = CGPoint(x: wizard.position.x + 50, y: wizard.position.y)
+        spellIcon.name = "cycleSpell"
         
-        // Primary spell name label
-        primarySpellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        primarySpellLabel.fontSize = 12
-        primarySpellLabel.text = state.primarySpell.name
-        primarySpellLabel.position = CGPoint(x: primarySpellIcon.position.x, 
-                                           y: primarySpellIcon.position.y + 25)
+        let spellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        spellLabel.fontSize = 12
+        spellLabel.text = state.getCurrentSpell().name
+        spellLabel.position = CGPoint(x: 0, y: 25)
+        spellIcon.addChild(spellLabel)
         
-        // Secondary spell setup
-        secondarySpellIcon = SKSpriteNode(imageNamed: state.secondarySpell.name)
-        secondarySpellIcon.size = CGSize(width: 40, height: 40)
-        secondarySpellIcon.position = CGPoint(x: playerTwo.position.x - 30, y: playerTwo.position.y + 50)
-        
-        // Secondary spell name label
-        secondarySpellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        secondarySpellLabel.fontSize = 12
-        secondarySpellLabel.text = state.secondarySpell.name
-        secondarySpellLabel.position = CGPoint(x: secondarySpellIcon.position.x,
-                                             y: secondarySpellIcon.position.y + 25)
-        
-        scene.addChild(primarySpellIcon)
-        scene.addChild(secondarySpellIcon)
-        scene.addChild(primarySpellLabel)
-        scene.addChild(secondarySpellLabel)
-        
-        setupCycleButtons()
-    }
-
-    private func setupCycleButtons() {
-        guard let scene = parentScene else { return }
-        
-        // Primary cycle button
-        primaryCycleButton = SKSpriteNode(imageNamed: "cycle_arrow")  // Create this asset
-        primaryCycleButton.size = CGSize(width: 20, height: 20)
-        primaryCycleButton.position = CGPoint(x: primarySpellIcon.position.x + 30, y: primarySpellIcon.position.y)
-        primaryCycleButton.name = "primaryCycle"
-        scene.addChild(primaryCycleButton)
-        
-        // Secondary cycle button
-        secondaryCycleButton = SKSpriteNode(imageNamed: "cycle_arrow")
-        secondaryCycleButton.size = CGSize(width: 20, height: 20)
-        secondaryCycleButton.position = CGPoint(x: secondarySpellIcon.position.x + 30, y: secondarySpellIcon.position.y)
-        secondaryCycleButton.name = "secondaryCycle"
-        scene.addChild(secondaryCycleButton)
+        scene.addChild(spellIcon)
     }
 
     func handleSpellCycleTouch(_ touchedNode: SKNode) {
-        switch touchedNode.name {
-        case "primaryCycle":
-            cycleSpell(isPrimary: true)
-        case "secondaryCycle":
-            cycleSpell(isPrimary: false)
-        default:
-            break
+        if touchedNode.name == "cycleSpell" {
+            state.cycleSpell()
+            updateSpellIcon()
         }
     }
 
-    private func cycleSpell(isPrimary: Bool) {
-        let availableSpells = state.getAvailableSpells()
-        guard availableSpells.count > 1 else { return }
-        
-        let currentSpell = isPrimary ? state.primarySpell : state.secondarySpell
-        
-        if let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) {
-            let nextIndex = (currentIndex + 1) % availableSpells.count
-            let nextSpell = availableSpells[nextIndex]
-            
-            if isPrimary {
-                state.primarySpell = nextSpell
-                primarySpellIcon.texture = SKTexture(imageNamed: nextSpell.name)
-                primarySpellLabel.text = nextSpell.name
-            } else {
-                state.secondarySpell = nextSpell
-                secondarySpellIcon.texture = SKTexture(imageNamed: nextSpell.name)
-                secondarySpellLabel.text = nextSpell.name
-            }
-            
-            let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
-            let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
-            let sequence = SKAction.sequence([scaleUp, scaleDown])
-            
-            if isPrimary {
-                primarySpellIcon.run(sequence)
-            } else {
-                secondarySpellIcon.run(sequence)
-            }
+    private func updateSpellIcon() {
+        let nextSpell = state.getCurrentSpell()
+        spellIcon.texture = SKTexture(imageNamed: nextSpell.name)
+        if let spellLabel = spellIcon.children.first as? SKLabelNode {
+            spellLabel.text = nextSpell.name
         }
+        
+        let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
+        let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
+        spellIcon.run(SKAction.sequence([scaleUp, scaleDown]))
     }
 
     private func setupInventoryButton() {
@@ -668,54 +538,29 @@ class PlayerView: SKNode {
     private func showSpellSelectionOptions(spellName: String, at position: CGPoint) {
         let optionsMenu = SKNode()
         
-        // Create buttons for primary and secondary selection
         let buttonSize = CGSize(width: 120, height: 40)
-        let padding: CGFloat = 10
+        let selectButton = SKShapeNode(rectOf: buttonSize)
+        selectButton.fillColor = .blue
+        selectButton.strokeColor = .white
+        selectButton.position = CGPoint(x: 0, y: buttonSize.height/2)
+        selectButton.name = "select_\(spellName)"
         
-        // Primary spell button
-        let primaryButton = SKShapeNode(rectOf: buttonSize)
-        primaryButton.fillColor = .blue
-        primaryButton.strokeColor = .white
-        primaryButton.position = CGPoint(x: 0, y: padding + buttonSize.height/2)
-        primaryButton.name = "primary_\(spellName)"
+        let selectLabel = SKLabelNode(text: "Select Spell")
+        selectLabel.fontSize = 14
+        selectLabel.fontColor = .white
+        selectLabel.verticalAlignmentMode = .center
+        selectButton.addChild(selectLabel)
         
-        let primaryLabel = SKLabelNode(text: "Primary Spell")
-        primaryLabel.fontSize = 14
-        primaryLabel.fontColor = .white
-        primaryLabel.verticalAlignmentMode = .center
-        primaryButton.addChild(primaryLabel)
-        
-        // Secondary spell button
-        let secondaryButton = SKShapeNode(rectOf: buttonSize)
-        secondaryButton.fillColor = .purple
-        secondaryButton.strokeColor = .white
-        secondaryButton.position = CGPoint(x: 0, y: -padding - buttonSize.height/2)
-        secondaryButton.name = "secondary_\(spellName)"
-        
-        let secondaryLabel = SKLabelNode(text: "Secondary Spell")
-        secondaryLabel.fontSize = 14
-        secondaryLabel.fontColor = .white
-        secondaryLabel.verticalAlignmentMode = .center
-        secondaryButton.addChild(secondaryLabel)
-        
-        optionsMenu.addChild(primaryButton)
-        optionsMenu.addChild(secondaryButton)
+        optionsMenu.addChild(selectButton)
         optionsMenu.position = position
         
         inventoryView?.addChild(optionsMenu)
     }
 
     // Add method to handle spell assignment
-    func assignSpell(_ spellName: String, isPrimary: Bool) {
+    func assignSpell(_ spellName: String, isPrimary: Bool = true) {
         guard let gameScene = parentScene as? GameScene else { return }
-        
-        if isPrimary {
-            gameScene.playerState.primarySpell = createSpell(named: spellName)
-        } else {
-            gameScene.playerState.secondarySpell = createSpell(named: spellName)
-        }
-        
-        // Close inventory after selection
+        gameScene.playerState.setSpell(spell: createSpell(named: spellName))
         toggleInventory()
     }
 
