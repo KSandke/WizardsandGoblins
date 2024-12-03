@@ -324,6 +324,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         castSpell(to: location)
+        
+        // Handle score screen taps
+        if let scoreScreen = self.children.first(where: { $0 is ScoreScreen }) as? ScoreScreen {
+            scoreScreen.handleTap(at: location)
+            return
+        }
     }
     
     func castSpell(to location: CGPoint) {
@@ -410,7 +416,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard !isGameOver else { return }
         
         endWave()
-        showShopView()
+        
+        // Show score screen first
+        let scoreScreen = ScoreScreen(
+            size: self.size,
+            playerState: playerState,
+            waveNumber: currentWave,
+            onContinue: { [weak self] in
+                self?.showShopView()
+                // Remove score screen
+                self?.children.first(where: { $0 is ScoreScreen })?.removeFromParent()
+            }
+        )
+        scoreScreen.zPosition = 100
+        addChild(scoreScreen)
     }
     
     func showShopView() {
