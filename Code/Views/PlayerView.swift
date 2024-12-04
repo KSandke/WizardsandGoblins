@@ -153,11 +153,11 @@ class PlayerView: SKNode {
     }
     
     func animateSpellCast() {
-        // Remove any existing animations
-        wizard.removeAllActions()
+        // Don't start a new animation if one is already running
+        if isAnimatingCast { return }
         
-        // Store the original texture to revert back to
-        let originalTexture = wizard.texture
+        isAnimatingCast = true
+        wizard.removeAllActions()
         
         // Create the animation action
         let animationDuration = 0.7 // Adjust timing to match your gif
@@ -165,7 +165,7 @@ class PlayerView: SKNode {
         
         // Return to original state after animation
         let revert = SKAction.run { [weak self] in
-            self?.wizard.texture = originalTexture
+            self?.wizard.texture = SKTexture(imageNamed: "Wizard") // Explicitly set back to original texture
             self?.isAnimatingCast = false
         }
         
@@ -279,6 +279,7 @@ class PlayerView: SKNode {
         scoreLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 65)
         scoreLabel.fontName = "AvenirNext-Bold"
         scoreLabel.horizontalAlignmentMode = .left
+        scoreLabel.zPosition = 500
         
         let shadowLabel = SKLabelNode(text: scoreLabel.text)
         shadowLabel.fontSize = scoreLabel.fontSize
@@ -299,6 +300,7 @@ class PlayerView: SKNode {
         coinLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 95)
         coinLabel.fontName = "AvenirNext-Bold"
         coinLabel.horizontalAlignmentMode = .left
+        coinLabel.zPosition = 500
         
         let shadowLabel = SKLabelNode(text: coinLabel.text)
         shadowLabel.fontSize = coinLabel.fontSize
@@ -319,8 +321,8 @@ class PlayerView: SKNode {
         waveLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 125)
         waveLabel.fontName = "AvenirNext-Bold"
         waveLabel.horizontalAlignmentMode = .left
+        waveLabel.zPosition = 500
 
-        // Add a shadow effect
         let shadowLabel = SKLabelNode(text: waveLabel.text)
         shadowLabel.fontSize = waveLabel.fontSize
         shadowLabel.fontColor = .gray
@@ -635,8 +637,8 @@ class PlayerView: SKNode {
         comboLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 155)
         comboLabel.fontName = "AvenirNext-Bold"
         comboLabel.horizontalAlignmentMode = .left
+        comboLabel.zPosition = 500
         
-        // Add shadow effect to match other labels
         let shadowLabel = SKLabelNode(text: comboLabel.text)
         shadowLabel.fontSize = comboLabel.fontSize
         shadowLabel.fontColor = .gray
@@ -646,32 +648,26 @@ class PlayerView: SKNode {
         comboLabel.addChild(shadowLabel)
         
         // Setup combo timer bar
-        let barWidth: CGFloat = 80  // Slightly shorter than the label
-        let barHeight: CGFloat = 4
-        
-        // Create background bar
-        comboTimerBar = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight))
+        comboTimerBar = SKShapeNode(rectOf: CGSize(width: 80, height: 4))
         comboTimerBar.fillColor = .darkGray
         comboTimerBar.strokeColor = .clear
-        comboTimerBar.position = CGPoint(x: comboLabel.position.x + barWidth/2, 
-                                       y: comboLabel.position.y - 12)
+        comboTimerBar.position = CGPoint(x: comboLabel.position.x + 40, y: comboLabel.position.y - 12)
+        comboTimerBar.zPosition = 500
         
-        // Create fill bar - use exact same position as background bar
-        comboTimerFill = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight))
+        comboTimerFill = SKShapeNode(rectOf: CGSize(width: 80, height: 4))
         comboTimerFill.fillColor = .yellow
         comboTimerFill.strokeColor = .clear
         comboTimerFill.position = comboTimerBar.position
+        comboTimerFill.zPosition = 500
         
-        // Add multiplier label under the timer bar
         multiplierLabel = SKLabelNode(text: "x1.0")
         multiplierLabel.fontSize = 20
         multiplierLabel.fontColor = .yellow
-        multiplierLabel.position = CGPoint(x: comboLabel.position.x, 
-                                         y: comboTimerBar.position.y - 24)  // 24 points below timer bar
+        multiplierLabel.position = CGPoint(x: comboLabel.position.x, y: comboTimerBar.position.y - 24)
         multiplierLabel.fontName = "AvenirNext-Bold"
         multiplierLabel.horizontalAlignmentMode = .left
+        multiplierLabel.zPosition = 500
         
-        // Add shadow effect to multiplier label
         let multiplierShadow = SKLabelNode(text: multiplierLabel.text)
         multiplierShadow.fontSize = multiplierLabel.fontSize
         multiplierShadow.fontColor = .gray
@@ -722,6 +718,43 @@ class PlayerView: SKNode {
                 shadowLabel.text = multiplierLabel.text
             }
         }
+    }
+
+    public func createDamageNumber(damage: Int, at position: CGPoint, isCritical: Bool = false, isCastleDamage: Bool = false) {
+        guard let scene = parentScene else { return }
+        
+        // Create the damage label
+        let damageLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        damageLabel.text = "\(damage)"
+        damageLabel.fontSize = isCritical ? 28 : 24
+        damageLabel.fontColor = isCastleDamage ? .red : .white
+        damageLabel.position = position
+        damageLabel.zPosition = 100
+        
+        // Add stroke effect for better visibility
+        let strokeLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        strokeLabel.text = damageLabel.text
+        strokeLabel.fontSize = damageLabel.fontSize
+        strokeLabel.fontColor = .black  // Always black stroke for better visibility
+        strokeLabel.position = CGPoint(x: 1, y: -1)
+        strokeLabel.zPosition = 99
+        damageLabel.addChild(strokeLabel)
+        
+        scene.addChild(damageLabel)
+        
+        // Animate the damage number
+        let moveUp = SKAction.moveBy(x: 0, y: 50, duration: 0.8)
+        let fadeOut = SKAction.fadeOut(withDuration: 0.3)
+        let remove = SKAction.removeFromParent()
+        
+        // Add a slight random horizontal movement
+        let randomX = CGFloat.random(in: -20...20)
+        let moveHorizontal = SKAction.moveBy(x: randomX, y: 0, duration: 0.8)
+        
+        let group = SKAction.group([moveUp, moveHorizontal])
+        let sequence = SKAction.sequence([group, fadeOut, remove])
+        
+        damageLabel.run(sequence)
     }
 
 } 

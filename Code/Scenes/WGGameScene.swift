@@ -197,7 +197,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func castleTakeDamage(damage: CGFloat) {
         currentWaveDamageTaken += damage
-        if playerState.takeDamage(damage) {
+        
+        // Create damage number at castle position with isCastleDamage set to true
+        self.playerView.createDamageNumber(
+            damage: Int(damage),
+            at: CGPoint(x: castlePosition.x, y: castlePosition.y + 50),
+            isCritical: false,
+            isCastleDamage: true  // Add this parameter
+        )
+        
+        // Only call gameOver if castle health reaches 0
+        if playerState.takeDamage(damage) && playerState.castleHealth <= 0 {
             gameOver()
         }
     }
@@ -428,19 +438,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         endWave()
         
+        // Check for perfect wave bonus
+        let perfectWaveBonus = currentWaveDamageTaken == 0
+        if perfectWaveBonus {
+            playerState.addScore(points: 50)
+            playerState.addCoins(10)
+        }
+        
         // Show score screen first
         let scoreScreen = ScoreScreen(
             size: self.size,
             playerState: playerState,
             waveNumber: currentWave,
             damageTaken: currentWaveDamageTaken,
+            perfectWaveBonus: perfectWaveBonus,  // Pass the bonus status
             onContinue: { [weak self] in
                 self?.showShopView()
                 // Remove score screen
                 self?.children.first(where: { $0 is ScoreScreen })?.removeFromParent()
             }
         )
-        scoreScreen.zPosition = 100
+        scoreScreen.zPosition = 1000
         addChild(scoreScreen)
     }
     
@@ -457,7 +475,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 self?.closeShopView()
             }
         )
-        shopView.zPosition = 200
+        shopView.zPosition = 1000
         addChild(shopView)
         isInShop = true
     }
@@ -522,7 +540,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let countdownLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         countdownLabel.fontSize = 72
         countdownLabel.position = CGPoint(x: frame.midX, y: frame.midY)
-        countdownLabel.zPosition = 100 // Ensure it appears above other nodes
+        countdownLabel.zPosition = 1000 // Ensure it appears above other nodes
         addChild(countdownLabel)
         
         // Create countdown sequence

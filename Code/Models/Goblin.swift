@@ -38,6 +38,16 @@ public class Goblin {
         func applyDamage(_ damage: CGFloat) {
             health -= damage
             
+            // Create damage number with isCastleDamage set to false
+            if let gameScene = sprite.scene as? GameScene {
+                gameScene.playerView.createDamageNumber(
+                    damage: Int(damage),
+                    at: sprite.position,
+                    isCritical: damage >= 50,
+                    isCastleDamage: false
+                )
+            }
+            
             // Check if goblin should die
             if health <= 0 {
                 // Stop all actions when the goblin dies

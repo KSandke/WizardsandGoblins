@@ -7,12 +7,14 @@ class ScoreScreen: SKNode {
     private let onContinue: () -> Void
     private let size: CGSize
     private let damageTaken: CGFloat
+    private let perfectWaveBonus: Bool
     
-    init(size: CGSize, playerState: PlayerState, waveNumber: Int, damageTaken: CGFloat, onContinue: @escaping () -> Void) {
+    init(size: CGSize, playerState: PlayerState, waveNumber: Int, damageTaken: CGFloat, perfectWaveBonus: Bool, onContinue: @escaping () -> Void) {
         self.size = size
         self.playerState = playerState
         self.waveNumber = waveNumber
         self.damageTaken = damageTaken
+        self.perfectWaveBonus = perfectWaveBonus
         self.onContinue = onContinue
         super.init()
         setupUI()
@@ -93,6 +95,23 @@ class ScoreScreen: SKNode {
         continueButton.addChild(buttonLabel)
         
         addChild(continueButton)
+        
+        // Add perfect wave bonus display if earned
+        if perfectWaveBonus {
+            let bonusLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+            bonusLabel.text = "PERFECT WAVE BONUS!"
+            bonusLabel.fontSize = 32
+            bonusLabel.fontColor = .yellow
+            bonusLabel.position = CGPoint(x: size.width/2, y: size.height * 0.6)
+            addChild(bonusLabel)
+            
+            let bonusDetailsLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+            bonusDetailsLabel.text = "+50 points, +10 coins"
+            bonusDetailsLabel.fontSize = 24
+            bonusDetailsLabel.fontColor = .yellow
+            bonusDetailsLabel.position = CGPoint(x: size.width/2, y: size.height * 0.55)
+            addChild(bonusDetailsLabel)
+        }
         
         // Add animations
         animateUI()
