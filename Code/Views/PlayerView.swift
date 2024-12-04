@@ -27,6 +27,7 @@ class PlayerView: SKNode {
     var playerPosition: CGPoint { wizard.position }
     
     internal var spellIcon: SKSpriteNode!
+    internal var inactiveSpellIcon: SKSpriteNode!
     
     var isInventoryOpen = false
     private var inventoryButton: SKSpriteNode!
@@ -381,8 +382,9 @@ class PlayerView: SKNode {
     private func setupSpellIcons() {
         guard let scene = parentScene else { return }
         
+        // Existing active spell icon setup
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
-        spellIcon.size = CGSize(width: 40, height: 40)
+        spellIcon.size = CGSize(width: 45, height: 45)
         spellIcon.position = CGPoint(x: wizard.position.x + 50, y: wizard.position.y)
         spellIcon.name = "cycleSpell"
         
@@ -392,7 +394,26 @@ class PlayerView: SKNode {
         spellLabel.position = CGPoint(x: 0, y: 25)
         spellIcon.addChild(spellLabel)
         
+        // Create a container node for the inactive spell and its border
+        let inactiveContainer = SKNode()
+        inactiveContainer.position = CGPoint(x: scene.size.width - 50, y: scene.size.height * 0.10)
+        
+        // Add border box
+        let borderBox = SKShapeNode(rectOf: CGSize(width: 36, height: 36))
+        borderBox.strokeColor = .white
+        borderBox.lineWidth = 2
+        borderBox.fillColor = .clear
+        inactiveContainer.addChild(borderBox)
+        
+        // Add inactive spell icon showing the alternate spell
+        inactiveSpellIcon = SKSpriteNode(imageNamed: state.getInactiveSpell().name)
+        inactiveSpellIcon.size = CGSize(width: 30, height: 30)
+        inactiveSpellIcon.alpha = 0.6
+        inactiveSpellIcon.name = "inactiveSpell"
+        inactiveContainer.addChild(inactiveSpellIcon)
+        
         scene.addChild(spellIcon)
+        scene.addChild(inactiveContainer)
     }
 
     func handleSpellCycleTouch(_ touchedNode: SKNode) {
@@ -408,6 +429,9 @@ class PlayerView: SKNode {
         if let spellLabel = spellIcon.children.first as? SKLabelNode {
             spellLabel.text = nextSpell.name
         }
+        
+        // Update inactive spell icon to show the alternate spell
+        inactiveSpellIcon.texture = SKTexture(imageNamed: state.getInactiveSpell().name)
         
         let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
         let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)

@@ -259,4 +259,15 @@ class PlayerState {
         let nextIndex = (currentIndex - 1 + availableSpells.count) % availableSpells.count
         currentSpell = availableSpells[nextIndex]
     }
+    
+    func getInactiveSpell() -> Spell {
+        let availableSpells = getAvailableSpells()
+        guard availableSpells.count > 1,
+              let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) else {
+            return currentSpell // Fallback to current spell if no alternatives
+        }
+        
+        let nextIndex = (currentIndex + 1) % availableSpells.count
+        return availableSpells[nextIndex]
+    }
 } 
