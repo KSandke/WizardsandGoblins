@@ -72,21 +72,14 @@ class PlayerState {
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
         
-        // Initialize with single spell
-        currentSpell = Spell(
-            name: "spell1",
-            aoeRadius: 50,
-            duration: 1.0,
-            damage: 25,
-            effect: DefaultEffect()
-        )
+        // Initialize with fireball as the default spell
+        currentSpell = FireballSpell()
         
         // Initialize maxHealth to match castleHealth
         maxHealth = maxCastleHealth
         
-        // Add initial spells to available spells
+        // Initialize with only Fireball and Ice spells
         availableSpells = [
-            currentSpell,
             FireballSpell(),
             IceSpell(),
         ]

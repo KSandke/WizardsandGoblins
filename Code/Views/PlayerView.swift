@@ -146,7 +146,7 @@ class PlayerView: SKNode {
         let originalTexture = wizard.texture
         
         // Create the animation action
-        let animationDuration = 0.5 // Adjust timing to match your gif
+        let animationDuration = 0.7 // Adjust timing to match your gif
         let animate = SKAction.animate(with: castingFrames, timePerFrame: animationDuration/Double(castingFrames.count))
         
         // Return to original state after animation
