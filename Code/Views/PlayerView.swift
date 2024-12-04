@@ -757,4 +757,37 @@ class PlayerView: SKNode {
         damageLabel.run(sequence)
     }
 
+    func shakeScreen(intensity: CGFloat = 6.0, duration: TimeInterval = 0.3) {
+        guard let scene = parentScene else { return }
+        
+        // Create a container node for all scene contents if it doesn't exist
+        let worldNode = scene.childNode(withName: "worldNode") ?? {
+            let node = SKNode()
+            node.name = "worldNode"
+            // Move all existing children to the world node
+            while let child = scene.children.first {
+                child.removeFromParent()
+                node.addChild(child)
+            }
+            scene.addChild(node)
+            return node
+        }()
+        
+        // Create shake actions
+        let shakeCount = 6 // Number of shakes
+        var actions: [SKAction] = []
+        
+        for _ in 0..<shakeCount {
+            let dx = CGFloat.random(in: -intensity...intensity)
+            let dy = CGFloat.random(in: -intensity...intensity)
+            actions.append(SKAction.moveBy(x: dx, y: dy, duration: duration/TimeInterval(shakeCount*2)))
+        }
+        
+        // Add final action to return to original position
+        actions.append(SKAction.move(to: .zero, duration: duration/TimeInterval(shakeCount*2)))
+        
+        // Run the sequence
+        worldNode.run(SKAction.sequence(actions))
+    }
+
 } 

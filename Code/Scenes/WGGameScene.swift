@@ -203,8 +203,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             damage: Int(damage),
             at: CGPoint(x: castlePosition.x, y: castlePosition.y + 50),
             isCritical: false,
-            isCastleDamage: true  // Add this parameter
+            isCastleDamage: true
         )
+        
+        // Add screen shake with intensity based on damage
+        let shakeIntensity = min(damage * 0.5, 12.0) // Cap maximum shake intensity
+        playerView.shakeScreen(intensity: shakeIntensity)
         
         // Only call gameOver if castle health reaches 0
         if playerState.takeDamage(damage) && playerState.castleHealth <= 0 {
