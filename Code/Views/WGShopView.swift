@@ -90,7 +90,8 @@ class ShopView: SKNode {
     private let waveInfoLabel: SKLabelNode
     private let goblinTypeLabels: [SKLabelNode]
     
-    private var currentWaveUpgrades: [ShopItem] = []
+    // Add new property to track current available upgrades
+    private var availableUpgrades: [ShopItem] = []
     
     init(size: CGSize, playerState: PlayerState, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
         // Initialize all properties before super.init()
@@ -105,11 +106,13 @@ class ShopView: SKNode {
         // Call super.init()
         super.init()
         
+        // Select random upgrades BEFORE setting up UI
+        selectRandomUpgrades()  // Make sure this happens first
+        
         // Setup UI after initialization
         setupUI(size: size)
         setupWaveInfo(config, size: size)
         updateStats()
-        selectRandomUpgrades(currentWave: currentWave)
         
         // Configure close button
         closeButton.text = "Close Shop"
@@ -127,43 +130,44 @@ class ShopView: SKNode {
         background.position = CGPoint(x: size.width/2, y: size.height/2)
         addChild(background)
         
-        // Create coin display with larger font and icon
-        statsLabel.fontSize = 32  // Increased from 24
-        statsLabel.fontColor = .yellow  // Make coins yellow
-        statsLabel.position = CGPoint(x: size.width/2 + 25, y: size.height - 120)  // Shifted right to make room for icon
+        // Constants for vertical spacing
+        let topPadding: CGFloat = 90
+        
+        // Create coin display at the top
+        statsLabel.fontSize = 32
+        statsLabel.fontColor = .yellow
+        statsLabel.position = CGPoint(x: size.width/2 + 25, y: size.height - topPadding)
         addChild(statsLabel)
         
         // Add coin icon
-        let coinIcon = SKSpriteNode(imageNamed: "coin")  // Make sure you have this asset
-        coinIcon.size = CGSize(width: 40, height: 40)  // Adjust size as needed
+        let coinIcon = SKSpriteNode(imageNamed: "coin")
+        coinIcon.size = CGSize(width: 40, height: 40)
         coinIcon.position = CGPoint(x: statsLabel.position.x - 100, y: statsLabel.position.y)
         addChild(coinIcon)
         
-        // Create grid of item buttons
-        let gridWidth = 2
-        let gridHeight = 2
-        let buttonWidth: CGFloat = 180
+        // Create shop items section
+        let buttonWidth: CGFloat = min(180, size.width / 2.5)
         let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
-        let startX = size.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
-        let startY = size.height/2 + CGFloat(gridHeight-1) * (buttonHeight + padding)/2
+        // Calculate total width needed for both buttons
+        let totalWidth = (buttonWidth * 2) + padding
+        let startX = (size.width - totalWidth) / 2 + buttonWidth / 2
         
-        for (index, item) in ShopItem.permanentUpgrades.enumerated() {
-            let row = index / gridWidth
-            let col = index % gridWidth
-            
-            let x = startX + CGFloat(col) * (buttonWidth + padding)
-            let y = startY - CGFloat(row) * (buttonHeight + padding)
-            
+        // Position buttons between coin display and close button
+        let buttonY = size.height * 0.45  // Adjusted to be lower than middle
+        
+        // Position the available upgrades
+        for (index, item) in availableUpgrades.enumerated() {
+            let x = startX + CGFloat(index) * (buttonWidth + padding)
             let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: x, y: y)
+            button.position = CGPoint(x: x, y: buttonY)
             addChild(button)
             itemButtons.append(button)
         }
         
-        // Position close button at bottom
-        closeButton.position = CGPoint(x: size.width/2, y: 100)
+        // Position close button lower
+        closeButton.position = CGPoint(x: size.width/2, y: buttonY - buttonHeight - 40)
         addChild(closeButton)
     }
     
@@ -171,38 +175,57 @@ class ShopView: SKNode {
         let container = SKNode()
         
         // Button background
-        let background = SKSpriteNode(color: .gray.withAlphaComponent(0.3), size: size)
+        let background = SKSpriteNode(color: .darkGray, size: size)
         background.name = "itemButton_\(item.name)"
         container.addChild(background)
         
-        // Item name (without level)
+        let padding: CGFloat = 10  // Padding from button edges
+        let maxWidth = size.width - (padding * 2)  // Maximum width for text
+        
+        // Item name - potentially wrap text if too long
         let nameLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         nameLabel.text = item.name
-        nameLabel.fontSize = 16
-        nameLabel.position = CGPoint(x: 0, y: 40)
+        nameLabel.fontSize = 14  // Reduced font size
+        nameLabel.position = CGPoint(x: 0, y: 30)
+        nameLabel.horizontalAlignmentMode = .center
+        nameLabel.verticalAlignmentMode = .center
+        // Adjust text if too wide
+        while nameLabel.frame.width > maxWidth && nameLabel.fontSize > 10 {
+            nameLabel.fontSize -= 1
+        }
         container.addChild(nameLabel)
         
         // Level display
         let levelLabel = SKLabelNode(fontNamed: "HelveticaNeue")
         levelLabel.text = "Level \(item.level)"
-        levelLabel.fontSize = 14
+        levelLabel.fontSize = 12
         levelLabel.fontColor = .green
-        levelLabel.position = CGPoint(x: 0, y: 20)
+        levelLabel.position = CGPoint(x: 0, y: 10)
+        levelLabel.horizontalAlignmentMode = .center
+        levelLabel.verticalAlignmentMode = .center
         container.addChild(levelLabel)
         
-        // Description
+        // Description - wrap text if needed
         let descLabel = SKLabelNode(fontNamed: "HelveticaNeue")
         descLabel.text = item.description
-        descLabel.fontSize = 12
-        descLabel.position = CGPoint(x: 0, y: 0)
+        descLabel.fontSize = 11  // Smaller font for description
+        descLabel.position = CGPoint(x: 0, y: -10)
+        descLabel.horizontalAlignmentMode = .center
+        descLabel.verticalAlignmentMode = .center
+        // Adjust text if too wide
+        while descLabel.frame.width > maxWidth && descLabel.fontSize > 8 {
+            descLabel.fontSize -= 1
+        }
         container.addChild(descLabel)
         
         // Price
         let priceLabel = SKLabelNode(fontNamed: "HelveticaNeue")
         priceLabel.text = "\(item.currentPrice) coins"
-        priceLabel.fontSize = 14
+        priceLabel.fontSize = 12
         priceLabel.fontColor = .yellow
-        priceLabel.position = CGPoint(x: 0, y: -20)
+        priceLabel.position = CGPoint(x: 0, y: -30)
+        priceLabel.horizontalAlignmentMode = .center
+        priceLabel.verticalAlignmentMode = .center
         container.addChild(priceLabel)
         
         return container
@@ -232,7 +255,7 @@ class ShopView: SKNode {
             
             if let buttonName = node.name,
                buttonName.starts(with: "itemButton_"),
-               let item = ShopItem.permanentUpgrades.first(where: { "itemButton_\($0.name)" == buttonName }) {
+               let item = availableUpgrades.first(where: { "itemButton_\($0.name)" == buttonName }) {
                 purchaseItem(item)
                 return
             }
@@ -256,31 +279,25 @@ class ShopView: SKNode {
         updateStats()
     }
     
-    // Add method to refresh item buttons
+    // Update refreshItemButtons to match the new layout
     private func refreshItemButtons() {
-        // Remove existing buttons
         itemButtons.forEach { $0.removeFromParent() }
         itemButtons.removeAll()
         
-        // Recreate buttons with updated prices
-        let gridWidth = 2
-        let gridHeight = 2
-        let buttonWidth: CGFloat = 180
+        let buttonWidth: CGFloat = min(180, background.frame.width / 2.5)
         let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
-        let startX = background.frame.width/2 - CGFloat(gridWidth-1) * (buttonWidth + padding)/2
-        let startY = background.frame.height/2 + CGFloat(gridHeight-1) * (buttonHeight + padding)/2
+        // Calculate total width needed for both buttons - same as setupUI
+        let totalWidth = (buttonWidth * 2) + padding
+        let startX = (background.frame.width - totalWidth) / 2 + buttonWidth / 2
+        let buttonY = background.frame.height * 0.45  // Match setupUI positioning
         
-        for (index, item) in ShopItem.permanentUpgrades.enumerated() {
-            let row = index / gridWidth
-            let col = index % gridWidth
-            
-            let x = startX + CGFloat(col) * (buttonWidth + padding)
-            let y = startY - CGFloat(row) * (buttonHeight + padding)
-            
+        // Position the available upgrades - same as setupUI
+        for (index, item) in availableUpgrades.enumerated() {
+            let x = startX + CGFloat(index) * (buttonWidth + padding)
             let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: x, y: y)
+            button.position = CGPoint(x: x, y: buttonY)
             addChild(button)
             itemButtons.append(button)
         }
@@ -302,7 +319,7 @@ class ShopView: SKNode {
         // Position below coins but above shop items
         // Assuming statsLabel is your coins display
         message.position = CGPoint(
-            x: statsLabel.position.x,
+            x: background.frame.width/2,
             y: statsLabel.position.y - 60
               // Adjust this value as needed
         )
@@ -317,19 +334,25 @@ class ShopView: SKNode {
     }
     
     private func setupWaveInfo(_ config: WaveConfig, size: CGSize) {
-        // Add "Next Wave:" header
+        // Position wave info between coins and shop items
+        let waveInfoY = size.height * 0.75  // Position in upper third of screen
+        
         waveInfoLabel.text = "Next Wave Composition:"
         waveInfoLabel.fontSize = 24
         waveInfoLabel.fontColor = .white
-        waveInfoLabel.position = CGPoint(x: size.width/2, y: size.height - 200)
+        waveInfoLabel.position = CGPoint(x: size.width/2, y: waveInfoY)
         addChild(waveInfoLabel)
         
         // Calculate total goblins
         let totalGoblins = config.maxGoblins
         
         // Create labels for each goblin type
-        var yOffset: CGFloat = waveInfoLabel.position.y - 40
+        var yOffset: CGFloat = waveInfoY - 30
+        let minY = size.height * 0.6  // Stop before reaching shop items
+        
         for (type, probability) in config.goblinTypeProbabilities {
+            if yOffset < minY { break }
+            
             let count = Int(round(Double(totalGoblins) * probability / 100.0))
             let typeLabel = SKLabelNode(fontNamed: "HelveticaNeue")
             typeLabel.fontSize = 18
@@ -340,13 +363,15 @@ class ShopView: SKNode {
             yOffset -= 25
         }
         
-        // Add total count
-        let totalLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        totalLabel.fontSize = 20
-        totalLabel.fontColor = .yellow
-        totalLabel.text = "Total Goblins: \(totalGoblins)"
-        totalLabel.position = CGPoint(x: size.width/2, y: yOffset - 10)
-        addChild(totalLabel)
+        // Add total count if there's room
+        if yOffset >= minY {
+            let totalLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+            totalLabel.fontSize = 20
+            totalLabel.fontColor = .yellow
+            totalLabel.text = "Total Goblins: \(totalGoblins)"
+            totalLabel.position = CGPoint(x: size.width/2, y: yOffset - 10)
+            addChild(totalLabel)
+        }
     }
     
     private func goblinTypeName(_ type: Goblin.GoblinType) -> String {
@@ -362,20 +387,10 @@ class ShopView: SKNode {
         }
     }
     
-    private func selectRandomUpgrades(currentWave: Int) {
-        // Randomly select 2 permanent upgrades
-        currentWaveUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
-        
-        // Add consumable powerup if it's a reset wave (every 2 waves)
-        if currentWave % 2 == 0 {
-            // TODO: Implement powerUpItems
-            // currentWaveUpgrades.append(powerUpItems.randomElement()!)
-        }
-        
-        // Add rare item on boss waves (every 4 waves)
-        if currentWave % 4 == 0 {
-            // TODO: Implement rareItems
-            // currentWaveUpgrades.append(rareItems.randomElement()!)
-        }
+    private func selectRandomUpgrades() {
+        // Add print statement for debugging
+        print("Available upgrades pool: \(ShopItem.permanentUpgrades.count)")
+        availableUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
+        print("Selected upgrades: \(availableUpgrades.map { $0.name })")
     }
 } 
