@@ -31,6 +31,10 @@ class PlayerView: SKNode {
     private var inventoryButton: SKSpriteNode!
     private var inventoryView: SKNode?
     
+    // Add new properties for animation
+    private var castingFrames: [SKTexture] = []
+    private var isAnimatingCast = false
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -40,7 +44,7 @@ class PlayerView: SKNode {
         castleHealthBar = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
         castleHealthFill = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
         
-        wizard = SKSpriteNode(imageNamed: "Wizard1")
+        wizard = SKSpriteNode(imageNamed: "Wizard")
         
         super.init()
         
@@ -117,9 +121,42 @@ class PlayerView: SKNode {
     private func setupWizards() {
         guard let scene = parentScene else { return }
         
-        wizard.size = CGSize(width: 75, height: 75)
+        // Load casting animation frames
+        loadCastingAnimation()
+        
+        wizard.size = CGSize(width: 125, height: 125)
         wizard.position = CGPoint(x: scene.size.width * 0.5, y: 100)
         scene.addChild(wizard)
+    }
+    
+    private func loadCastingAnimation() {
+        // Load all frames from your gif/sprite sheet
+        // Adjust the frame count and names based on your actual assets
+        let frameCount = 12 // Update this to match your animation frame count
+        castingFrames = (1...frameCount).map { frameNumber in
+            SKTexture(imageNamed: "WizardCast\(frameNumber)")
+        }
+    }
+    
+    func animateSpellCast() {
+        // Remove any existing animations
+        wizard.removeAllActions()
+        
+        // Store the original texture to revert back to
+        let originalTexture = wizard.texture
+        
+        // Create the animation action
+        let animationDuration = 0.5 // Adjust timing to match your gif
+        let animate = SKAction.animate(with: castingFrames, timePerFrame: animationDuration/Double(castingFrames.count))
+        
+        // Return to original state after animation
+        let revert = SKAction.run { [weak self] in
+            self?.wizard.texture = originalTexture
+            self?.isAnimatingCast = false
+        }
+        
+        // Run the complete sequence
+        wizard.run(SKAction.sequence([animate, revert]))
     }
     
     private func setupManaBars() {

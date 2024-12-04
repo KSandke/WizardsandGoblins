@@ -343,6 +343,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let casterPosition = playerView.playerPosition
         let spell = playerState.getCurrentSpell()
         spell.cast(from: casterPosition, to: location, by: playerState, in: self)
+        playerView.animateSpellCast()
     }
     
     func applySpell(_ spell: Spell, at position: CGPoint) {
