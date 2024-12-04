@@ -335,7 +335,7 @@ class ShopView: SKNode {
     
     private func setupWaveInfo(_ config: WaveConfig, size: CGSize) {
         // Position wave info between coins and shop items
-        let waveInfoY = size.height * 0.75  // Position in upper third of screen
+        let waveInfoY = size.height * 0.82  // Position in upper third of screen
         
         waveInfoLabel.text = "Next Wave Composition:"
         waveInfoLabel.fontSize = 24
