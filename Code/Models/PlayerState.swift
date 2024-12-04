@@ -250,4 +250,13 @@ class PlayerState {
         comboTimer?.invalidate()
         comboTimer = nil
     }
+    
+    func cycleSpellBackwards() {
+        let availableSpells = getAvailableSpells()
+        guard availableSpells.count > 1,
+              let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) else { return }
+        
+        let nextIndex = (currentIndex - 1 + availableSpells.count) % availableSpells.count
+        currentSpell = availableSpells[nextIndex]
+    }
 } 

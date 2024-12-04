@@ -55,6 +55,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Add this property with other game properties
     private var currentWaveDamageTaken: CGFloat = 0
     
+    // Add these properties at the top of GameScene class
+    private var touchStartLocation: CGPoint?
+    private var touchStartTime: TimeInterval?
+    private let swipeThreshold: CGFloat = 50.0  // Minimum distance for a swipe
+    private let swipeTimeThreshold: TimeInterval = 0.3  // Maximum time for a swipe
+    
     override func didMove(to view: SKView) {
         // Initialize Player State and View
         playerState = PlayerState()
@@ -265,11 +271,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(mainMenuButton)
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
-        let location = touch.location(in: self)
+        touchStartLocation = touch.location(in: self)
+        touchStartTime = touch.timestamp
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first,
+              let startLocation = touchStartLocation,
+              let startTime = touchStartTime else { return }
         
-        // Check for inventory button first
+        let location = touch.location(in: self)
+        let wizardPos = playerView.playerPosition
+        
+        // Check if touch started near wizard (wider horizontal area)
+        let horizontalDistance = abs(startLocation.x - wizardPos.x)
+        let verticalDistance = abs(startLocation.y - wizardPos.y)
+        if horizontalDistance < 150 && verticalDistance < 50 {  // Increased horizontal range, kept vertical tight
+            // Calculate swipe
+            let dx = location.x - startLocation.x
+            let timeDelta = touch.timestamp - startTime
+            
+            // Only process swipe if it was quick enough
+            if timeDelta <= swipeTimeThreshold {
+                if abs(dx) >= swipeThreshold {
+                    // Swipe detected
+                    if dx > 0 {
+                        // Swipe right
+                        playerState.cycleSpell()
+                    } else {
+                        // Swipe left - cycle backwards
+                        playerState.cycleSpellBackwards()
+                    }
+                    return
+                }
+            }
+        }
+        
+        // Handle other touches as before
         if let node = nodes(at: location).first(where: { $0.name == "inventoryButton" }) {
             playerView.toggleInventory()
             return
@@ -339,16 +379,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         
-        // Simplified wizard position check
-        let wizardPosition = playerView.playerPosition  // You'll need to rename this in PlayerView
-        
-        // Check if wizard was tapped
-        if location.distance(to: wizardPosition) < 30 {
-            playerState.cycleSpell()  // Modify this to handle single wizard
-            return
-        }
-        
-        // Simplified spell casting - no need to check distances or determine primary caster
+        // Only cast spell if spawning is enabled and game is not over
         if !isSpawningEnabled || isGameOver {
             return
         }
