@@ -40,6 +40,9 @@ class PlayerView: SKNode {
     private var comboTimerBar: SKShapeNode!
     private var comboTimerFill: SKShapeNode!
     
+    // Add new property for multiplier label
+    private var multiplierLabel: SKLabelNode!
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -651,7 +654,7 @@ class PlayerView: SKNode {
         comboTimerBar.fillColor = .darkGray
         comboTimerBar.strokeColor = .clear
         comboTimerBar.position = CGPoint(x: comboLabel.position.x + barWidth/2, 
-                                       y: comboLabel.position.y - 12)  // Positioned closer to label
+                                       y: comboLabel.position.y - 12)
         
         // Create fill bar - use exact same position as background bar
         comboTimerFill = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight))
@@ -659,12 +662,28 @@ class PlayerView: SKNode {
         comboTimerFill.strokeColor = .clear
         comboTimerFill.position = comboTimerBar.position
         
-        // Adjust anchor point while maintaining position
-        comboTimerFill.xScale = 1.0
+        // Add multiplier label under the timer bar
+        multiplierLabel = SKLabelNode(text: "x1.0")
+        multiplierLabel.fontSize = 20
+        multiplierLabel.fontColor = .yellow
+        multiplierLabel.position = CGPoint(x: comboLabel.position.x, 
+                                         y: comboTimerBar.position.y - 24)  // 24 points below timer bar
+        multiplierLabel.fontName = "AvenirNext-Bold"
+        multiplierLabel.horizontalAlignmentMode = .left
+        
+        // Add shadow effect to multiplier label
+        let multiplierShadow = SKLabelNode(text: multiplierLabel.text)
+        multiplierShadow.fontSize = multiplierLabel.fontSize
+        multiplierShadow.fontColor = .gray
+        multiplierShadow.position = CGPoint(x: 2, y: -2)
+        multiplierShadow.fontName = multiplierLabel.fontName
+        multiplierShadow.horizontalAlignmentMode = .left
+        multiplierLabel.addChild(multiplierShadow)
         
         scene.addChild(comboLabel)
         scene.addChild(comboTimerBar)
         scene.addChild(comboTimerFill)
+        scene.addChild(multiplierLabel)
     }
 
     private func updateComboLabel(combo: Int) {
@@ -673,24 +692,35 @@ class PlayerView: SKNode {
             shadowLabel.text = comboLabel.text
         }
         
+        // Update multiplier label
+        let multiplier = min(5.0, 1.0 + Double(combo - 1) * 0.1)
+        multiplierLabel.text = String(format: "x%.1f", multiplier)
+        if let shadowLabel = multiplierLabel.children.first as? SKLabelNode {
+            shadowLabel.text = multiplierLabel.text
+        }
+        
         // Add visual feedback for combo
         if combo > 0 {
             let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
             let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
             comboLabel.run(SKAction.sequence([scaleUp, scaleDown]))
+            multiplierLabel.run(SKAction.sequence([scaleUp, scaleDown]))
             
             // Reset and animate timer bar
             comboTimerFill.removeAllActions()
-            comboTimerFill.xScale = 1.0  // Reset to full
+            comboTimerFill.xScale = 1.0
             
-            // Create smooth depletion animation
             let depleteAction = SKAction.scaleX(to: 0, duration: state.comboTimeout)
-            depleteAction.timingMode = .linear  // Make the animation smooth
+            depleteAction.timingMode = .linear
             comboTimerFill.run(depleteAction)
         } else {
-            // Reset timer bar when combo ends
+            // Reset timer bar and multiplier when combo ends
             comboTimerFill.removeAllActions()
             comboTimerFill.xScale = 0
+            multiplierLabel.text = "x1.0"
+            if let shadowLabel = multiplierLabel.children.first as? SKLabelNode {
+                shadowLabel.text = multiplierLabel.text
+            }
         }
     }
 

@@ -397,14 +397,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Increment combo when goblin is killed by player
             playerState.incrementCombo()
             
-            // Update score with combo multiplier
+            // Calculate combo multiplier with a cap of 5.0
+            let comboMultiplier = min(5.0, 1.0 + Double(playerState.currentCombo - 1) * 0.1)
+            
+            // Update score with capped combo multiplier
             let basePoints = 10
-            let comboMultiplier = 1.0 + Double(playerState.currentCombo - 1) * 0.1  // Start at 1x, add 10% per combo level
             let points = Int(Double(basePoints) * comboMultiplier)
             playerState.addScore(points: points)
             
-            // Add coins
-            playerState.addCoins(container.goldValue)
+            // Apply capped multiplier to coins as well
+            let baseCoins = container.goldValue
+            let multipliedCoins = Int(floor(Double(baseCoins) * comboMultiplier))
+            playerState.addCoins(multipliedCoins)
         }
         
         // Only decrease if counter is greater than 0
