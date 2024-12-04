@@ -68,6 +68,23 @@ class PlayerState {
     var spellSpeedMultiplier: CGFloat = 1.0
     var manaRegenRate: CGFloat = 1.0
     
+    // Add new properties for combo tracking
+    var currentCombo: Int = 0 {
+        didSet {
+            // Update highest combo if current exceeds it
+            if currentCombo > highestCombo {
+                highestCombo = currentCombo
+            }
+            onComboChanged?(currentCombo)
+        }
+    }
+    var highestCombo: Int = 0
+    var comboTimer: Timer?
+    let comboTimeout: TimeInterval = 3.0 // Adjust this value to control combo duration
+    
+    // Add callback for UI updates
+    var onComboChanged: ((Int) -> Void)?
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
@@ -134,6 +151,10 @@ class PlayerState {
         coins = 0
         spellPowerMultiplier = 1.0  // Reset spell power
         spellCharges = maxSpellCharges
+        currentCombo = 0
+        highestCombo = 0
+        comboTimer?.invalidate()
+        comboTimer = nil
     }
     
     // Simplify spell usage to single wizard
@@ -208,5 +229,25 @@ class PlayerState {
     
     func getConsumableSpellCount(_ spellName: String) -> Int {
         return consumableSpells[spellName] ?? 0
+    }
+    
+    // Add new method for combo handling
+    func incrementCombo() {
+        // Reset existing timer if it exists
+        comboTimer?.invalidate()
+        
+        // Increment combo
+        currentCombo += 1
+        
+        // Start new timer
+        comboTimer = Timer.scheduledTimer(withTimeInterval: comboTimeout, repeats: false) { [weak self] _ in
+            self?.resetCombo()
+        }
+    }
+    
+    private func resetCombo() {
+        currentCombo = 0
+        comboTimer?.invalidate()
+        comboTimer = nil
     }
 } 

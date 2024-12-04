@@ -154,6 +154,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.removeAction(forKey: "spawnPattern")
         
         isSpawningEnabled = false
+        
+        // Reset combo at end of wave
+        playerState.currentCombo = 0
     }
     
     func setupBackground() {
@@ -390,22 +393,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
-        // Add coins when goblin is killed (50% chance of 5 coins)
         if goblinKilled {
+            // Increment combo when goblin is killed by player
+            playerState.incrementCombo()
             
-            if Bool.random() {
-                playerState.addCoins(5)
-                
-                // Create coin particle effect
-                createCoinEffect(at: container.sprite.position)
-            }
-            // Add points when goblin is eliminated
-            playerState.addScore(points: 10)
-
-            // Check for mana potion drop and auto-collect
-            if Double.random(in: 0...1) < manaPotionDropChance {
-                handlePotionCollection(at: container.sprite.position)
-            }
+            // Update score with combo multiplier
+            let basePoints = 10
+            let comboMultiplier = 1.0 + Double(playerState.currentCombo - 1) * 0.1  // Start at 1x, add 10% per combo level
+            let points = Int(Double(basePoints) * comboMultiplier)
+            playerState.addScore(points: points)
+            
+            // Add coins
+            playerState.addCoins(container.goldValue)
         }
         
         // Only decrease if counter is greater than 0

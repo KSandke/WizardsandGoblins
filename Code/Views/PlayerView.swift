@@ -22,6 +22,7 @@ class PlayerView: SKNode {
     var tutorialWaveLabel: SKLabelNode { waveLabel }
     var tutorialCoinLabel: SKLabelNode { coinLabel }
     var tutorialChargeSegments: [SKShapeNode] { chargeSegments }
+    var tutorialComboLabel: SKLabelNode { comboLabel }
 
     var playerPosition: CGPoint { wizard.position }
     
@@ -34,6 +35,10 @@ class PlayerView: SKNode {
     // Add new properties for animation
     private var castingFrames: [SKTexture] = []
     private var isAnimatingCast = false
+    
+    private var comboLabel: SKLabelNode!
+    private var comboTimerBar: SKShapeNode!
+    private var comboTimerFill: SKShapeNode!
     
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
@@ -84,6 +89,11 @@ class PlayerView: SKNode {
         state.onSpellChanged = { [weak self] spell in
             self?.updateSpellIcon()
         }
+
+        // Add combo binding
+        state.onComboChanged = { [weak self] combo in
+            self?.updateComboLabel(combo: combo)
+        }
     }
     
     private func setupUI() {
@@ -95,6 +105,7 @@ class PlayerView: SKNode {
         setupWaveLabel()
         setupSpellIcons()
         setupInventoryButton()
+        setupComboLabel()
     }
     
     private func setupCastle() {
@@ -610,6 +621,76 @@ class PlayerView: SKNode {
         case "PredatorMissile": return PredatorMissileSpell()
         // Add cases for other spells...
         default: return FireballSpell() // Default fallback
+        }
+    }
+
+    private func setupComboLabel() {
+        guard let scene = parentScene else { return }
+        comboLabel = SKLabelNode(text: "Combo: 0")
+        comboLabel.fontSize = 24
+        comboLabel.fontColor = .yellow
+        comboLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 155)
+        comboLabel.fontName = "AvenirNext-Bold"
+        comboLabel.horizontalAlignmentMode = .left
+        
+        // Add shadow effect to match other labels
+        let shadowLabel = SKLabelNode(text: comboLabel.text)
+        shadowLabel.fontSize = comboLabel.fontSize
+        shadowLabel.fontColor = .gray
+        shadowLabel.position = CGPoint(x: 2, y: -2)
+        shadowLabel.fontName = comboLabel.fontName
+        shadowLabel.horizontalAlignmentMode = .left
+        comboLabel.addChild(shadowLabel)
+        
+        // Setup combo timer bar
+        let barWidth: CGFloat = 80  // Slightly shorter than the label
+        let barHeight: CGFloat = 4
+        
+        // Create background bar
+        comboTimerBar = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight))
+        comboTimerBar.fillColor = .darkGray
+        comboTimerBar.strokeColor = .clear
+        comboTimerBar.position = CGPoint(x: comboLabel.position.x + barWidth/2, 
+                                       y: comboLabel.position.y - 12)  // Positioned closer to label
+        
+        // Create fill bar - use exact same position as background bar
+        comboTimerFill = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight))
+        comboTimerFill.fillColor = .yellow
+        comboTimerFill.strokeColor = .clear
+        comboTimerFill.position = comboTimerBar.position
+        
+        // Adjust anchor point while maintaining position
+        comboTimerFill.xScale = 1.0
+        
+        scene.addChild(comboLabel)
+        scene.addChild(comboTimerBar)
+        scene.addChild(comboTimerFill)
+    }
+
+    private func updateComboLabel(combo: Int) {
+        comboLabel.text = "Combo: \(combo)"
+        if let shadowLabel = comboLabel.children.first as? SKLabelNode {
+            shadowLabel.text = comboLabel.text
+        }
+        
+        // Add visual feedback for combo
+        if combo > 0 {
+            let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
+            let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
+            comboLabel.run(SKAction.sequence([scaleUp, scaleDown]))
+            
+            // Reset and animate timer bar
+            comboTimerFill.removeAllActions()
+            comboTimerFill.xScale = 1.0  // Reset to full
+            
+            // Create smooth depletion animation
+            let depleteAction = SKAction.scaleX(to: 0, duration: state.comboTimeout)
+            depleteAction.timingMode = .linear  // Make the animation smooth
+            comboTimerFill.run(depleteAction)
+        } else {
+            // Reset timer bar when combo ends
+            comboTimerFill.removeAllActions()
+            comboTimerFill.xScale = 0
         }
     }
 

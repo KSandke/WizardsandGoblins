@@ -60,13 +60,21 @@ class ScoreScreen: SKNode {
         damageLabel.position = CGPoint(x: size.width/2, y: size.height * 0.4)
         addChild(damageLabel)
         
+        // Add highest combo display after damage label
+        let comboLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        comboLabel.text = "Highest Combo: \(playerState.highestCombo)"
+        comboLabel.fontSize = 28
+        comboLabel.fontColor = .yellow
+        comboLabel.position = CGPoint(x: size.width/2, y: size.height * 0.35)
+        addChild(comboLabel)
+        
         // Castle health remaining
         let healthLabel = SKLabelNode(fontNamed: "HelveticaNeue")
         let healthPercentage = Int((playerState.castleHealth / playerState.maxCastleHealth) * 100)
         healthLabel.text = "Castle Health: \(healthPercentage)%"
         healthLabel.fontSize = 28
         healthLabel.fontColor = healthPercentage > 50 ? .green : .red
-        healthLabel.position = CGPoint(x: size.width/2, y: size.height * 0.3)
+        healthLabel.position = CGPoint(x: size.width/2, y: size.height * 0.25)
         addChild(healthLabel)
         
         // Continue to shop button
