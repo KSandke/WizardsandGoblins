@@ -145,12 +145,14 @@ public class Goblin {
             let targetPosition = CGPoint(x: scene.size.width / 2, y: 100) // Use same position as castlePosition
             let distanceToTarget = sprite.position.distance(to: targetPosition)
             
-            if distanceToTarget <= 400 { // change stopdistance in moveGoblin as well.
+            if distanceToTarget <= 401 { // Matches the stopDistance in moveGoblin
                 print("Ranged goblin is within range and starts shooting.")
                 let spawnArrow = SKAction.run { [weak self] in
                     guard let self = self else { return }
-                    scene.goblinManager.spawnArrow(from: self.sprite.position, 
-                                                   to: targetPosition)
+                    if self.sprite.position.distance(to: targetPosition) <= 401 {  // Double-check distance before each shot
+                        scene.goblinManager.spawnArrow(from: self.sprite.position, 
+                                                     to: targetPosition)
+                    }
                 }
                 let waitAction = SKAction.wait(forDuration: 1.5)
                 let attackSequence = SKAction.sequence([spawnArrow, waitAction])
@@ -158,6 +160,18 @@ public class Goblin {
                 sprite.run(repeatAttack, withKey: "rangedAttack")
             } else {
                 print("Ranged goblin is not within range. Current distance: \(distanceToTarget)")
+                
+                // Add a check action that continuously monitors distance
+                let checkRangeAction = SKAction.run { [weak self] in
+                    guard let self = self else { return }
+                    let currentDistance = self.sprite.position.distance(to: targetPosition)
+                    if currentDistance <= 400 && !self.sprite.hasActions() {
+                        self.startRangedAttack(scene: scene)
+                    }
+                }
+                let waitAction = SKAction.wait(forDuration: 0.5)  // Check every half second
+                let checkSequence = SKAction.sequence([checkRangeAction, waitAction])
+                sprite.run(SKAction.repeatForever(checkSequence), withKey: "checkRange")
             }
         }
         
