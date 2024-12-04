@@ -225,7 +225,7 @@ class PlayerView: SKNode {
         scoreLabel = SKLabelNode(text: "Score: \(state.score)")
         scoreLabel.fontSize = 24
         scoreLabel.fontColor = .black
-        scoreLabel.position = CGPoint(x: scene.size.width - 150, y: scene.size.height - 100)
+        scoreLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 65)
         scoreLabel.fontName = "AvenirNext-Bold"
         scoreLabel.horizontalAlignmentMode = .left
         
@@ -245,7 +245,7 @@ class PlayerView: SKNode {
         coinLabel = SKLabelNode(text: "Coins: \(state.coins)")
         coinLabel.fontSize = 24
         coinLabel.fontColor = .black
-        coinLabel.position = CGPoint(x: scene.size.width - 150, y: scene.size.height - 135)
+        coinLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 95)
         coinLabel.fontName = "AvenirNext-Bold"
         coinLabel.horizontalAlignmentMode = .left
         
@@ -265,7 +265,7 @@ class PlayerView: SKNode {
         waveLabel = SKLabelNode(text: "Wave: 1")
         waveLabel.fontSize = 24
         waveLabel.fontColor = .black
-        waveLabel.position = CGPoint(x: 80, y: scene.size.height - 60)
+        waveLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 125)
         waveLabel.fontName = "AvenirNext-Bold"
         waveLabel.horizontalAlignmentMode = .left
 
