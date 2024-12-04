@@ -454,6 +454,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let baseCoins = container.goldValue
             let multipliedCoins = Int(floor(Double(baseCoins) * comboMultiplier))
             playerState.addCoins(multipliedCoins)
+
+            // Add logic for potion drop
+            let dropChance = 0.1 // 10% chance to drop a potion
+            if Double.random(in: 0...1) < dropChance {
+                dropManaPotion(at: container.sprite.position)
+            }
         }
         
         // Only decrease if counter is greater than 0
@@ -465,6 +471,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 waveCompleted()
             }
         }
+    }
+    
+    func dropManaPotion(at position: CGPoint) {
+        // Immediately restore mana and show effect
+        playerState.spellCharges = min(
+            playerState.maxSpellCharges,
+            playerState.spellCharges + spellChargeRestoreAmount
+        )
+        
+        // Create collection effect
+        createFrameAnimation(at: position,
+                            framePrefix: "ManaPot",
+                            frameCount: 4,
+                            duration: 0.6,
+                            size: CGSize(width: 100, height: 100))
     }
     
     func waveCompleted() {
