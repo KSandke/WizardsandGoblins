@@ -43,7 +43,7 @@ class ScoreScreen: SKNode {
         scoreLabel.text = "Score: \(playerState.score)"
         scoreLabel.fontSize = 32
         scoreLabel.fontColor = .yellow
-        scoreLabel.position = CGPoint(x: size.width/2, y: size.height * 0.6)
+        scoreLabel.position = CGPoint(x: size.width/2, y: size.height * 0.55)
         addChild(scoreLabel)
         
         // Coins earned this wave
@@ -76,7 +76,7 @@ class ScoreScreen: SKNode {
         healthLabel.text = "Castle Health: \(healthPercentage)%"
         healthLabel.fontSize = 28
         healthLabel.fontColor = healthPercentage > 50 ? .green : .red
-        healthLabel.position = CGPoint(x: size.width/2, y: size.height * 0.25)
+        healthLabel.position = CGPoint(x: size.width/2, y: size.height * 0.3)
         addChild(healthLabel)
         
         // Continue to shop button
@@ -102,14 +102,14 @@ class ScoreScreen: SKNode {
             bonusLabel.text = "PERFECT WAVE BONUS!"
             bonusLabel.fontSize = 32
             bonusLabel.fontColor = .yellow
-            bonusLabel.position = CGPoint(x: size.width/2, y: size.height * 0.6)
+            bonusLabel.position = CGPoint(x: size.width/2, y: size.height * 0.7)
             addChild(bonusLabel)
             
             let bonusDetailsLabel = SKLabelNode(fontNamed: "HelveticaNeue")
             bonusDetailsLabel.text = "+50 points, +10 coins"
             bonusDetailsLabel.fontSize = 24
             bonusDetailsLabel.fontColor = .yellow
-            bonusDetailsLabel.position = CGPoint(x: size.width/2, y: size.height * 0.55)
+            bonusDetailsLabel.position = CGPoint(x: size.width/2, y: size.height * 0.65)
             addChild(bonusDetailsLabel)
         }
         
@@ -147,3 +147,4 @@ class ScoreScreen: SKNode {
         }
     }
 }
+
