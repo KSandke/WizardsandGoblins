@@ -1,6 +1,23 @@
 import Foundation
 import SpriteKit
 
+// Add SpellRarity enum
+enum SpellRarity {
+    case basic
+    case uncommon
+    case rare
+    case legendary
+    
+    var color: SKColor {
+        switch self {
+        case .basic: return .white
+        case .uncommon: return .green
+        case .rare: return .blue
+        case .legendary: return .purple
+        }
+    }
+}
+
 class Spell {
     let name: String
     var aoeRadius: CGFloat
@@ -8,26 +25,62 @@ class Spell {
     var damage: CGFloat
     let effect: SpellEffect?
     let isOneTimeUse: Bool
+    let rarity: SpellRarity  // Add rarity property
+    
+    // Cooldown properties
+    let cooldownDuration: TimeInterval
+    private var lastUsedTime: TimeInterval?
+    
+    var isOnCooldown: Bool {
+        guard let lastUsed = lastUsedTime else { return false }
+        let currentTime = CACurrentMediaTime()
+        return currentTime - lastUsed < cooldownDuration
+    }
+    
+    var remainingCooldown: TimeInterval {
+        guard let lastUsed = lastUsedTime else { return 0 }
+        let currentTime = CACurrentMediaTime()
+        let remaining = cooldownDuration - (currentTime - lastUsed)
+        return max(0, remaining)
+    }
 
-    init(name: String, aoeRadius: CGFloat, duration: TimeInterval, damage: CGFloat, effect: SpellEffect?, isOneTimeUse: Bool = false) {
+    init(name: String, aoeRadius: CGFloat, duration: TimeInterval, damage: CGFloat, effect: SpellEffect?, isOneTimeUse: Bool, cooldownDuration: TimeInterval = 0, rarity: SpellRarity = .basic) {
         self.name = name
         self.aoeRadius = aoeRadius
         self.duration = duration
         self.damage = damage
         self.effect = effect
         self.isOneTimeUse = isOneTimeUse
+        self.cooldownDuration = cooldownDuration
+        self.lastUsedTime = nil
+        self.rarity = rarity
     }
 
     func cast(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, in scene: SKScene) -> Bool {
-        if !playerState.useSpell( cost: 1, spellName: isOneTimeUse ? name : nil) {
-            return false
+        // Check cooldown first for non-basic spells
+        if cooldownDuration > 0 {
+            if isOnCooldown {
+                return false
+            }
+            // Update last used time if cast is successful
+            lastUsedTime = CACurrentMediaTime()
+            return performCast(from: casterPosition, to: targetPosition, in: scene)
+        } else {
+            // Basic spells still use mana system
+            if !playerState.useSpell(cost: 1, spellName: isOneTimeUse ? name : nil) {
+                return false
+            }
+            return performCast(from: casterPosition, to: targetPosition, in: scene)
         }
+    }
 
+    // Move casting logic to separate method
+    private func performCast(from casterPosition: CGPoint, to targetPosition: CGPoint, in scene: SKScene) -> Bool {
         let spellNode = SKSpriteNode(imageNamed: name)
         spellNode.size = CGSize(width: 50, height: 50)
         spellNode.position = casterPosition
         scene.addChild(spellNode)
-
+        
         let dx = targetPosition.x - casterPosition.x
         let dy = targetPosition.y - casterPosition.y
         let angle = atan2(dy, dx)
@@ -66,7 +119,9 @@ class Spell {
                 duration: self.duration,
                 damage: self.damage * gameScene.playerState.spellPowerMultiplier,
                 effect: self.effect,
-                isOneTimeUse: self.isOneTimeUse
+                isOneTimeUse: self.isOneTimeUse,
+                cooldownDuration: self.cooldownDuration,
+                rarity: self.rarity
             )
             gameScene.applySpell(modifiedSpell, at: position)
         }
@@ -102,7 +157,9 @@ class FireballSpell: Spell {
             duration: 1.0,
             damage: 25,
             effect: DefaultEffect(),
-            isOneTimeUse: false
+            isOneTimeUse: false,
+            cooldownDuration: 0,
+            rarity: .basic
         )
     }
 }
@@ -115,7 +172,9 @@ class IceSpell: Spell {
             duration: 1.0,
             damage: 20,
             effect: IceEffect(),
-            isOneTimeUse: false
+            isOneTimeUse: false,
+            cooldownDuration: 0,
+            rarity: .basic
         )
     }
 }
@@ -128,7 +187,9 @@ class LightningSpell: Spell {
             duration: 1.0,
             damage: 30,
             effect: LightningEffect(),
-            isOneTimeUse: false
+            isOneTimeUse: false,
+            cooldownDuration: 0,
+            rarity: .basic
         )
     }
 }
@@ -141,7 +202,9 @@ class PoisonCloudSpell: Spell {
             duration: 5.0,
             damage: 10,
             effect: PoisonEffect(),
-            isOneTimeUse: false
+            isOneTimeUse: false,
+            cooldownDuration: 0,
+            rarity: .basic
         )
     }
 }
@@ -154,7 +217,9 @@ class AC130Spell: Spell {
             duration: 6.0,
             damage: 35,
             effect: AC130Effect(),
-            isOneTimeUse: true
+            isOneTimeUse: false,
+            cooldownDuration: 45.0,
+            rarity: .legendary
         )
     }
 }
@@ -167,7 +232,9 @@ class TacticalNukeSpell: Spell {
             duration: 3.0,
             damage: 100,
             effect: TacticalNukeEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .legendary
         )
     }
 }
@@ -180,7 +247,9 @@ class PredatorMissileSpell: Spell {
             duration: 2.0,
             damage: 45,
             effect: PredatorMissileEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .rare
         )
     }
 }
@@ -193,7 +262,9 @@ class CrowSwarmSpell: Spell {
             duration: 5.0,
             damage: 20,
             effect: DroneSwarmEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .rare
         )
     }
 }
@@ -205,7 +276,10 @@ class SwarmQueenSpell: Spell {
             aoeRadius: 120,
             duration: 6.0,
             damage: 5,
-            effect: SwarmQueenEffect()
+            effect: SwarmQueenEffect(),
+            isOneTimeUse: false,
+            cooldownDuration: 45,
+            rarity: .rare
         )
     }
 }
@@ -218,7 +292,9 @@ class NanoSwarmSpell: Spell {
             duration: 5.0,
             damage: 25,
             effect: NanoSwarmEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .rare
         )
     }
 }
@@ -231,7 +307,9 @@ class HologramTrapSpell: Spell {
             duration: 3.0,
             damage: 30,
             effect: HologramTrapEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .uncommon
         )
     }
 }
@@ -244,7 +322,9 @@ class SystemOverrideSpell: Spell {
             duration: 4.0,
             damage: 15,
             effect: SystemOverrideEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .uncommon
         )
     }
 }
@@ -257,7 +337,9 @@ class CyberneticOverloadSpell: Spell {
             duration: 5.0,
             damage: 30,
             effect: CyberneticOverloadEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .uncommon
         )
     }
 }
@@ -270,21 +352,25 @@ class SteampunkTimeBombSpell: Spell {
             duration: 3.0,
             damage: 50,
             effect: SteampunkTimeBombEffect(),
-            isOneTimeUse: true
-        )
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .rare
     }
 }
+
 
 
 class ShadowPuppetSpell: Spell {
     init() {
         super.init(
             name: "Shadow Puppet",
-            aoeRadius: 5,
+            aoeRadius: 50,
             duration: 10.0,
             damage: 0,
             effect: ShadowPuppetEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .rare
         )
     }
 }
@@ -297,7 +383,9 @@ class TemporalDistortionSpell: Spell {
             duration: 5.0,
             damage: 0,
             effect: TemporalDistortionEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .rare
         )
     }
 }
@@ -310,7 +398,9 @@ class QuantumCollapseSpell: Spell {
             duration: 3.0,
             damage: 50,
             effect: QuantumCollapseEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .basic
         )
     }
 }
@@ -323,7 +413,9 @@ class EarthShatterSpell: Spell {
             duration: 1.0,
             damage: 40,
             effect: EarthShatterEffect(),
-            isOneTimeUse: false
+            isOneTimeUse: false,
+            cooldownDuration: 30,
+            rarity: .uncommon
         )
     }
 }
@@ -334,9 +426,11 @@ class MysticBarrierSpell: Spell {
             name: "Mystic Barrier",
             aoeRadius: 80,
             duration: 8.0,
-            damage: 20,
+            damage: 50,
             effect: MysticBarrierEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .rare
         )
     }
 }
@@ -345,11 +439,13 @@ class DivineWrathSpell: Spell {
     init() {
         super.init(
             name: "Divine Wrath",
-            aoeRadius: 5,
+            aoeRadius: 50,
             duration: 2.0,
-            damage: 50,
+            damage: 200,
             effect: DivineWrathEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .legendary
         )
     }
 }
@@ -362,7 +458,9 @@ class ArcaneStormSpell: Spell {
             duration: 4.0,
             damage: 40,
             effect: ArcaneStormEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .legendary
         )
     }
 }
@@ -374,8 +472,9 @@ class MeteorShowerSpell: Spell {
             duration: 5.0,
             damage: 80,
             effect: MeteorShowerEffect(),
-            isOneTimeUse: true
-        )
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .legendary
     }
 }
 
@@ -387,7 +486,9 @@ class BlizzardSpell: Spell {
             duration: 8.0,
             damage: 40,
             effect: BlizzardEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .rare
         )
     }
 }
@@ -400,7 +501,9 @@ class InfernoSpell: Spell {
             duration: 6.0,
             damage: 60,
             effect: InfernoEffect(),
-            isOneTimeUse: true
+            isOneTimeUse: true,
+            cooldownDuration: 0,
+            rarity: .rare
         )
     }
 }

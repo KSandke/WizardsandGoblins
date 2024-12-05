@@ -44,6 +44,10 @@ class PlayerView: SKNode {
     // Add new property for multiplier label
     private var multiplierLabel: SKLabelNode!
     
+    // Add new properties
+    private var cooldownOverlay: SKShapeNode?
+    private var cooldownLabel: SKLabelNode?
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -382,38 +386,119 @@ class PlayerView: SKNode {
     private func setupSpellIcons() {
         guard let scene = parentScene else { return }
         
-        // Existing active spell icon setup
+        // Update spell icon with rarity border
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
-        spellIcon.size = CGSize(width: 45, height: 45)
-        spellIcon.position = CGPoint(x: wizard.position.x + 50, y: wizard.position.y)
-        spellIcon.name = "cycleSpell"
+        spellIcon.size = CGSize(width: 50, height: 50)
+        spellIcon.position = CGPoint(x: 50, y: scene.size.height * 0.10)
         
-        let spellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        spellLabel.fontSize = 12
-        spellLabel.text = state.getCurrentSpell().name
-        spellLabel.position = CGPoint(x: 0, y: 25)
-        spellIcon.addChild(spellLabel)
-        
-        // Create a container node for the inactive spell and its border
-        let inactiveContainer = SKNode()
-        inactiveContainer.position = CGPoint(x: scene.size.width - 50, y: scene.size.height * 0.10)
-        
-        // Add border box
-        let borderBox = SKShapeNode(rectOf: CGSize(width: 36, height: 36))
-        borderBox.strokeColor = .white
-        borderBox.lineWidth = 2
-        borderBox.fillColor = .clear
-        inactiveContainer.addChild(borderBox)
-        
-        // Add inactive spell icon showing the alternate spell
-        inactiveSpellIcon = SKSpriteNode(imageNamed: state.getInactiveSpell().name)
-        inactiveSpellIcon.size = CGSize(width: 30, height: 30)
-        inactiveSpellIcon.alpha = 0.6
-        inactiveSpellIcon.name = "inactiveSpell"
-        inactiveContainer.addChild(inactiveSpellIcon)
+        // Add colored border based on rarity
+        let border = SKShapeNode(rectOf: spellIcon.size)
+        border.strokeColor = state.getCurrentSpell().rarity.color
+        border.lineWidth = 2
+        spellIcon.addChild(border)
         
         scene.addChild(spellIcon)
-        scene.addChild(inactiveContainer)
+        
+        // Update inactive spell icon with rarity border
+        let inactiveSpell = state.getInactiveSpell()
+        inactiveSpellIcon = SKSpriteNode(imageNamed: inactiveSpell.name)
+        inactiveSpellIcon.size = CGSize(width: 40, height: 40)  // Slightly smaller
+        inactiveSpellIcon.position = CGPoint(x: 100, y: scene.size.height * 0.10)
+        inactiveSpellIcon.alpha = 0.7  // Slightly transparent
+        
+        // Add colored border for inactive spell
+        let inactiveBorder = SKShapeNode(rectOf: inactiveSpellIcon.size)
+        inactiveBorder.strokeColor = inactiveSpell.rarity.color
+        inactiveBorder.lineWidth = 2
+        inactiveSpellIcon.addChild(inactiveBorder)
+        
+        scene.addChild(inactiveSpellIcon)
+        
+        // Add cooldown overlay (initially hidden)
+        cooldownOverlay = SKShapeNode(rectOf: spellIcon.size)
+        cooldownOverlay?.fillColor = .black
+        cooldownOverlay?.strokeColor = .clear
+        cooldownOverlay?.alpha = 0.6
+        cooldownOverlay?.isHidden = true
+        spellIcon.addChild(cooldownOverlay!)
+        
+        // Add cooldown label
+        cooldownLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        cooldownLabel?.fontSize = 16
+        cooldownLabel?.fontColor = .white
+        cooldownLabel?.verticalAlignmentMode = .center
+        cooldownLabel?.isHidden = true
+        spellIcon.addChild(cooldownLabel!)
+        
+        // Start cooldown update timer
+        let updateAction = SKAction.run { [weak self] in
+            self?.updateCooldownDisplay()
+        }
+        let wait = SKAction.wait(forDuration: 0.1) // Update 10 times per second
+        run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
+    }
+
+    private func updateCooldownDisplay() {
+        let currentSpell = state.getCurrentSpell()
+        
+        if currentSpell.isOnCooldown {
+            // Show cooldown overlay and update remaining time
+            cooldownOverlay?.isHidden = false
+            cooldownLabel?.isHidden = false
+            
+            let remainingTime = currentSpell.remainingCooldown
+            cooldownLabel?.text = String(format: "%.1f", remainingTime)
+            
+            // Update overlay height based on remaining cooldown
+            let progress = CGFloat(remainingTime / currentSpell.cooldownDuration)
+            cooldownOverlay?.yScale = progress
+            
+        } else {
+            // Hide cooldown display when not on cooldown
+            cooldownOverlay?.isHidden = true
+            cooldownLabel?.isHidden = true
+        }
+        
+        // Update one-time use spell count
+        if currentSpell.isOneTimeUse {
+            let count = state.getConsumableSpellCount(currentSpell.name)
+            updateSpellCount(count)
+        }
+    }
+    
+    private func updateSpellCount(_ count: Int) {
+        // Remove existing count label if any
+        spellIcon.children.forEach { node in
+            if node.name == "countLabel" {
+                node.removeFromParent()
+            }
+        }
+        
+        // Add new count label
+        let countLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        countLabel.text = "x\(count)"
+        countLabel.fontSize = 16
+        countLabel.fontColor = .white
+        countLabel.position = CGPoint(x: spellIcon.frame.width/2 - 5, y: -spellIcon.frame.height/2 + 5)
+        countLabel.horizontalAlignmentMode = .right
+        countLabel.name = "countLabel"
+        spellIcon.addChild(countLabel)
+    }
+    
+    private func updateSpellIcon() {
+        spellIcon.texture = SKTexture(imageNamed: state.getCurrentSpell().name)
+        if let border = spellIcon.children.first as? SKShapeNode {
+            border.strokeColor = state.getCurrentSpell().rarity.color
+        }
+        
+        let inactiveSpell = state.getInactiveSpell()
+        inactiveSpellIcon.texture = SKTexture(imageNamed: inactiveSpell.name)
+        if let border = inactiveSpellIcon.children.first as? SKShapeNode {
+            border.strokeColor = inactiveSpell.rarity.color
+        }
+        
+        // Update cooldown and count display
+        updateCooldownDisplay()
     }
 
     func handleSpellCycleTouch(_ touchedNode: SKNode) {
@@ -421,21 +506,6 @@ class PlayerView: SKNode {
             state.cycleSpell()
             updateSpellIcon()
         }
-    }
-
-    private func updateSpellIcon() {
-        let nextSpell = state.getCurrentSpell()
-        spellIcon.texture = SKTexture(imageNamed: nextSpell.name)
-        if let spellLabel = spellIcon.children.first as? SKLabelNode {
-            spellLabel.text = nextSpell.name
-        }
-        
-        // Update inactive spell icon to show the alternate spell
-        inactiveSpellIcon.texture = SKTexture(imageNamed: state.getInactiveSpell().name)
-        
-        let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
-        let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
-        spellIcon.run(SKAction.sequence([scaleUp, scaleDown]))
     }
 
     private func setupInventoryButton() {

@@ -157,18 +157,23 @@ class PlayerState {
         comboTimer = nil
     }
     
-    // Simplify spell usage to single wizard
+    // Simplify spell usage to handle both cooldowns and mana
     func useSpell(cost: Int, spellName: String? = nil) -> Bool {
         if let name = spellName {
-            if let spell = availableSpells.first(where: { $0.name == name }), spell.isOneTimeUse {
-                if let quantity = consumableSpells[name], quantity > 0 {
-                    consumableSpells[name] = quantity - 1
-                    return true
-                }
-                return false
+            // Handle one-time use spells
+            if let quantity = consumableSpells[name], quantity > 0 {
+                consumableSpells[name] = quantity - 1
+                return true
             }
+            return false
         }
         
+        // Handle cooldown-based spells
+        if currentSpell.cooldownDuration > 0 {
+            return !currentSpell.isOnCooldown
+        }
+        
+        // Handle mana-based spells
         if spellCharges >= cost {
             spellCharges -= cost
             return true
