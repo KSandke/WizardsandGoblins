@@ -701,9 +701,6 @@ class PlayerView: SKNode {
             inventoryContainer.addChild(slot)
             inventorySlots.append(slot)
         }
-        
-        // Add some test spells to verify it's working
-        addSpellToInventory("Fireball")  // Add this temporarily to test
     }
 
     // Change access level to internal or public
