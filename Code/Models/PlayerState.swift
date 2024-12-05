@@ -85,6 +85,9 @@ class PlayerState {
     // Add callback for UI updates
     var onComboChanged: ((Int) -> Void)?
     
+    // Add property to track selected inventory spell
+    private var selectedInventorySpell: String?
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
@@ -276,9 +279,8 @@ class PlayerState {
         return availableSpells[nextIndex]
     }
     
-    // Add this method to PlayerState class
+    // Modify useInventorySpell to just select the spell
     func useInventorySpell(_ spellName: String) -> Bool {
-        // Check if we have the spell in inventory
         if let count = consumableSpells[spellName], count > 0 {
             // Reduce count
             consumableSpells[spellName] = count - 1

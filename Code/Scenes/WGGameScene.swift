@@ -297,32 +297,54 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 // Determine primary direction based on larger component
                 let isHorizontalDominant = abs(dx) > abs(dy)
                 
-                // Debug message for swipe direction
+                // Determine swipe direction
+                let direction: String
                 if isHorizontalDominant {
-                    print("Swipe detected: \(dx > 0 ? "RIGHT" : "LEFT")")
+                    direction = dx > 0 ? "RIGHT" : "LEFT"
                 } else {
-                    print("Swipe detected: \(dy > 0 ? "UP" : "DOWN")")
+                    direction = dy > 0 ? "UP" : "DOWN"
                 }
                 
-                // Handle horizontal swipes (including diagonal with horizontal dominance)
-                if isHorizontalDominant {
-                    if playerView.isInTopSwipeArea(startLocation) {
+                print("Swipe detected: \(direction)")
+                
+                // Check if swipe is near wizard
+                let wizardPos = playerView.playerPosition
+                let horizontalDistance = abs(startLocation.x - wizardPos.x)
+                let verticalDistance = abs(startLocation.y - wizardPos.y)
+                let isNearWizard = horizontalDistance < 150 && verticalDistance < 50
+                
+                if isNearWizard {
+                    // Handle wizard swipes (only horizontal)
+                    if isHorizontalDominant {
+                        if dx > 0 {
+                            playerState.cycleSpell()
+                        } else {
+                            playerState.cycleSpellBackwards()
+                        }
+                    }
+                    return
+                }
+                
+                // Handle top area swipes
+                if playerView.isInTopSwipeArea(startLocation) {
+                    if isHorizontalDominant {
                         if dx > 0 {
                             playerView.handleTopAreaSwipe(.right)
                         } else {
                             playerView.handleTopAreaSwipe(.left)
                         }
-                        return
-                    } else {
-                        let wizardPos = playerView.playerPosition
-                        let horizontalDistance = abs(startLocation.x - wizardPos.x)
-                        let verticalDistance = abs(startLocation.y - wizardPos.y)
-                        if horizontalDistance < 150 && verticalDistance < 50 {
-                            if dx > 0 {
-                                playerState.cycleSpell()
-                            } else {
-                                playerState.cycleSpellBackwards()
-                            }
+                    }
+                    return
+                }
+                
+                // Only handle inventory swipes if not near wizard and not in top area
+                if let slotIndex = playerView.inventorySlots.firstIndex(where: { $0.name == "inventorySlot_\(direction)" }) {
+                    let slot = playerView.inventorySlots[slotIndex]
+                    if let spellNode = slot.children.first(where: { $0.name?.hasPrefix("spell_") ?? false }),
+                       let spellName = spellNode.name?.dropFirst(6) { // Remove "spell_" prefix
+                        if let count = playerState.consumableSpells[String(spellName)], count > 0 {
+                            playerState.useInventorySpell(String(spellName))
+                            playerView.updateInventoryDisplay()
                             return
                         }
                     }

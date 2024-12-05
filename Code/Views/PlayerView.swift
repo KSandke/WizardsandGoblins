@@ -46,11 +46,14 @@ class PlayerView: SKNode {
     
     // Add new properties for inventory
     private var inventoryContainer: SKShapeNode!
-    private var inventorySlots: [SKShapeNode] = []
+    public var inventorySlots: [SKShapeNode] = []
     private var inventorySpells: [String: Int] = [:]
     
     // Add new property to track swipe areas
     private var topSwipeArea: SKShapeNode!
+    
+    // Add new properties for cooldown visualization
+    private var cooldownOverlays: [String: (overlay: SKShapeNode, label: SKLabelNode)] = [:]
     
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
@@ -686,22 +689,36 @@ class PlayerView: SKNode {
         inventoryContainer.strokeColor = .black
         inventoryContainer.position = CGPoint(x: 40, y: scene.size.height - 150)
         inventoryContainer.zPosition = 100
-        scene.addChild(inventoryContainer)  // Add to scene, not self
+        scene.addChild(inventoryContainer)
         
-        // Create 4 inventory slots
+        // Create 4 inventory slots with directional names
         let slotSize = CGSize(width: 50, height: 50)
         let spacing: CGFloat = 10
         
-        for i in 0..<4 {
+        // Define slots with their directions
+        let slotDirections = [
+            ("UP", CGPoint(x: 0, y: 95)),
+            ("RIGHT", CGPoint(x: 0, y: 35)),
+            ("DOWN", CGPoint(x: 0, y: -25)),
+            ("LEFT", CGPoint(x: 0, y: -85))
+        ]
+        
+        for (direction, position) in slotDirections {
             let slot = SKShapeNode(rectOf: slotSize)
             slot.fillColor = .gray.withAlphaComponent(0.5)
             slot.strokeColor = .black
-            slot.position = CGPoint(
-                x: 0,
-                y: 95 - CGFloat(i) * (slotSize.height + spacing)
-            )
-            slot.name = "inventorySlot\(i)"
+            slot.position = position
+            slot.name = "inventorySlot_\(direction)"
             slot.zPosition = 101
+            
+            // Add direction indicator label
+            let directionLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+            directionLabel.text = direction
+            directionLabel.fontSize = 10
+            directionLabel.fontColor = .black
+            directionLabel.position = CGPoint(x: -20, y: -20)
+            slot.addChild(directionLabel)
+            
             inventoryContainer.addChild(slot)
             inventorySlots.append(slot)
         }
@@ -709,10 +726,18 @@ class PlayerView: SKNode {
 
     // Change access level to internal or public
     func updateInventoryDisplay() {
-        // Clear existing spell displays
+        // Clear existing spell displays but preserve direction labels
         inventorySlots.forEach { slot in
-            slot.children.forEach { $0.removeFromParent() }
+            slot.children.forEach { child in
+                // Only remove nodes that aren't direction labels
+                if child is SKSpriteNode || child.name?.hasPrefix("spell_") == true {
+                    child.removeFromParent()
+                }
+            }
         }
+        
+        // Clear existing cooldown overlays
+        cooldownOverlays.removeAll()
         
         // Display current inventory
         var slotIndex = 0
@@ -736,7 +761,26 @@ class PlayerView: SKNode {
             countLabel.position = CGPoint(x: 15, y: -15)
             slot.addChild(countLabel)
             
+            // Create cooldown overlay for non-one-time use spells
+            if let spell = getSpellInstance(spellName), spell.cooldownDuration > 0 {
+                cooldownOverlays[spellName] = createCooldownOverlay(for: slot)
+            }
+            
             slotIndex += 1
+        }
+        
+        // Start cooldown update timer if not already running
+        if !cooldownOverlays.isEmpty {
+            run(SKAction.repeatForever(
+                SKAction.sequence([
+                    SKAction.run { [weak self] in
+                        self?.updateCooldowns()
+                    },
+                    SKAction.wait(forDuration: 0.1)
+                ])
+            ), withKey: "cooldownUpdate")
+        } else {
+            removeAction(forKey: "cooldownUpdate")
         }
     }
 
@@ -769,14 +813,18 @@ class PlayerView: SKNode {
     private func setupSwipeAreas() {
         guard let scene = parentScene else { return }
         
-        // Create invisible node for top 2/3 of screen
-        let topHeight = scene.size.height * 0.67  // Top 2/3 of screen
+        // Create invisible node for top 80% of screen
+        let bottomMargin = scene.size.height * 0.20  // Bottom 20%
+        let topHeight = scene.size.height * 0.80     // Top 80%
         topSwipeArea = SKShapeNode(rectOf: CGSize(width: scene.size.width, height: topHeight))
         topSwipeArea.position = CGPoint(x: scene.size.width/2, y: scene.size.height - topHeight/2)
         topSwipeArea.fillColor = .clear
         topSwipeArea.strokeColor = .clear  // Make completely invisible
         topSwipeArea.name = "topSwipeArea"
         scene.addChild(topSwipeArea)
+        
+        // Uncomment for debugging to see the area
+        // topSwipeArea.fillColor = .red.withAlphaComponent(0.2)
     }
     
     // Add new method to handle swipes in the top area
@@ -796,5 +844,63 @@ class PlayerView: SKNode {
         guard let topArea = topSwipeArea else { return false }
         let localPoint = topArea.convert(point, from: parentScene!)
         return topArea.contains(localPoint)
+    }
+
+    private func updateCooldowns() {
+        // Remove this method if it exists and replace with the new implementation
+        for (spellName, elements) in cooldownOverlays {
+            if let spell = getSpellInstance(spellName), spell.isOnCooldown {
+                let remainingTime = Int(ceil(spell.remainingCooldown))
+                elements.label.text = "\(remainingTime)"
+                elements.overlay.alpha = 0.5
+            } else {
+                elements.overlay.alpha = 0
+                elements.label.text = ""
+            }
+        }
+    }
+
+    private func getSpellInstance(_ spellName: String) -> Spell? {
+        switch spellName {
+        case "TacticalNuke":
+            return TacticalNukeSpell()
+        case "PredatorMissile":
+            return PredatorMissileSpell()
+        case "MysticBarrier":
+            return MysticBarrierSpell()
+        case "DivineWrath":
+            return DivineWrathSpell()
+        case "ArcaneStorm":
+            return ArcaneStormSpell()
+        case "MeteorShower":
+            return MeteorShowerSpell()
+        case "Blizzard":
+            return BlizzardSpell()
+        case "Inferno":
+            return InfernoSpell()
+        default:
+            return nil
+        }
+    }
+
+    private func createCooldownOverlay(for slot: SKShapeNode) -> (overlay: SKShapeNode, label: SKLabelNode) {
+        let overlay = SKShapeNode(rectOf: CGSize(width: 50, height: 50))
+        overlay.fillColor = .black
+        overlay.strokeColor = .clear
+        overlay.alpha = 0
+        overlay.position = .zero
+        overlay.zPosition = 102  // Above the spell icon
+        
+        let label = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        label.fontSize = 20
+        label.fontColor = .white
+        label.position = CGPoint(x: 0, y: -7)
+        label.zPosition = 103
+        label.text = ""
+        
+        overlay.addChild(label)
+        slot.addChild(overlay)
+        
+        return (overlay, label)
     }
 } 
