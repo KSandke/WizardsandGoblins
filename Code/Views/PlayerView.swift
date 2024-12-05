@@ -49,6 +49,9 @@ class PlayerView: SKNode {
     private var inventorySlots: [SKShapeNode] = []
     private var inventorySpells: [String: Int] = [:]
     
+    // Add new property to track swipe areas
+    private var topSwipeArea: SKShapeNode!
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -118,6 +121,7 @@ class PlayerView: SKNode {
         setupSpellIcons()
         setupComboLabel()
         setupInventory()
+        setupSwipeAreas()
     }
     
     private func setupCastle() {
@@ -760,5 +764,37 @@ class PlayerView: SKNode {
                 }
             }
         }
+    }
+
+    private func setupSwipeAreas() {
+        guard let scene = parentScene else { return }
+        
+        // Create invisible node for top 2/3 of screen
+        let topHeight = scene.size.height * 0.67  // Top 2/3 of screen
+        topSwipeArea = SKShapeNode(rectOf: CGSize(width: scene.size.width, height: topHeight))
+        topSwipeArea.position = CGPoint(x: scene.size.width/2, y: scene.size.height - topHeight/2)
+        topSwipeArea.fillColor = .clear
+        topSwipeArea.strokeColor = .clear  // Make completely invisible
+        topSwipeArea.name = "topSwipeArea"
+        scene.addChild(topSwipeArea)
+    }
+    
+    // Add new method to handle swipes in the top area
+    func handleTopAreaSwipe(_ swipeDirection: UISwipeGestureRecognizer.Direction) {
+        switch swipeDirection {
+        case .left:
+            state.cycleSpellBackwards()
+        case .right:
+            state.cycleSpell()
+        default:
+            break
+        }
+    }
+    
+    // Add method to check if a point is in the top swipe area
+    func isInTopSwipeArea(_ point: CGPoint) -> Bool {
+        guard let topArea = topSwipeArea else { return false }
+        let localPoint = topArea.convert(point, from: parentScene!)
+        return topArea.contains(localPoint)
     }
 } 

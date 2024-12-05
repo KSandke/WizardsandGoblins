@@ -273,6 +273,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        
+        // Store touch start info regardless of location
         touchStartLocation = touch.location(in: self)
         touchStartTime = touch.timestamp
     }
@@ -283,28 +286,46 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
               let startTime = touchStartTime else { return }
         
         let location = touch.location(in: self)
-        let wizardPos = playerView.playerPosition
+        let timeDelta = touch.timestamp - startTime
+        let dx = location.x - startLocation.x
+        let dy = location.y - startLocation.y
         
-        // Check if touch started near wizard (wider horizontal area)
-        let horizontalDistance = abs(startLocation.x - wizardPos.x)
-        let verticalDistance = abs(startLocation.y - wizardPos.y)
-        if horizontalDistance < 150 && verticalDistance < 50 {  // Increased horizontal range, kept vertical tight
-            // Calculate swipe
-            let dx = location.x - startLocation.x
-            let timeDelta = touch.timestamp - startTime
-            
-            // Only process swipe if it was quick enough
-            if timeDelta <= swipeTimeThreshold {
-                if abs(dx) >= swipeThreshold {
-                    // Swipe detected
-                    if dx > 0 {
-                        // Swipe right
-                        playerState.cycleSpell()
+        // Check if this is a swipe (quick enough and long enough)
+        if timeDelta <= swipeTimeThreshold {
+            // Check if the movement is large enough to be a swipe
+            if abs(dx) >= swipeThreshold || abs(dy) >= swipeThreshold {
+                // Determine primary direction based on larger component
+                let isHorizontalDominant = abs(dx) > abs(dy)
+                
+                // Debug message for swipe direction
+                if isHorizontalDominant {
+                    print("Swipe detected: \(dx > 0 ? "RIGHT" : "LEFT")")
+                } else {
+                    print("Swipe detected: \(dy > 0 ? "UP" : "DOWN")")
+                }
+                
+                // Handle horizontal swipes (including diagonal with horizontal dominance)
+                if isHorizontalDominant {
+                    if playerView.isInTopSwipeArea(startLocation) {
+                        if dx > 0 {
+                            playerView.handleTopAreaSwipe(.right)
+                        } else {
+                            playerView.handleTopAreaSwipe(.left)
+                        }
+                        return
                     } else {
-                        // Swipe left - cycle backwards
-                        playerState.cycleSpellBackwards()
+                        let wizardPos = playerView.playerPosition
+                        let horizontalDistance = abs(startLocation.x - wizardPos.x)
+                        let verticalDistance = abs(startLocation.y - wizardPos.y)
+                        if horizontalDistance < 150 && verticalDistance < 50 {
+                            if dx > 0 {
+                                playerState.cycleSpell()
+                            } else {
+                                playerState.cycleSpellBackwards()
+                            }
+                            return
+                        }
                     }
-                    return
                 }
             }
         }
