@@ -44,6 +44,11 @@ class PlayerView: SKNode {
     private var cooldownOverlay: SKShapeNode?
     private var cooldownLabel: SKLabelNode?
     
+    // Add new properties for inventory
+    private var inventoryContainer: SKShapeNode!
+    private var inventorySlots: [SKShapeNode] = []
+    private var inventorySpells: [String: Int] = [:]
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -54,6 +59,9 @@ class PlayerView: SKNode {
         castleHealthFill = SKShapeNode(rectOf: CGSize(width: 200, height: 20))
         
         wizard = SKSpriteNode(imageNamed: "Wizard")
+        
+        // Initialize inventory container
+        inventoryContainer = SKShapeNode(rectOf: CGSize(width: 60, height: 260))
         
         super.init()
         
@@ -109,6 +117,7 @@ class PlayerView: SKNode {
         setupWaveLabel()
         setupSpellIcons()
         setupComboLabel()
+        setupInventory()
     }
     
     private func setupCastle() {
@@ -664,4 +673,95 @@ class PlayerView: SKNode {
         worldNode.run(SKAction.sequence(actions))
     }
 
+    private func setupInventory() {
+        guard let scene = parentScene else { return }
+        
+        // Create container for inventory slots
+        inventoryContainer = SKShapeNode(rectOf: CGSize(width: 60, height: 260))
+        inventoryContainer.fillColor = .white.withAlphaComponent(0.3)
+        inventoryContainer.strokeColor = .black
+        inventoryContainer.position = CGPoint(x: 40, y: scene.size.height - 150)
+        inventoryContainer.zPosition = 100
+        scene.addChild(inventoryContainer)  // Add to scene, not self
+        
+        // Create 4 inventory slots
+        let slotSize = CGSize(width: 50, height: 50)
+        let spacing: CGFloat = 10
+        
+        for i in 0..<4 {
+            let slot = SKShapeNode(rectOf: slotSize)
+            slot.fillColor = .gray.withAlphaComponent(0.5)
+            slot.strokeColor = .black
+            slot.position = CGPoint(
+                x: 0,
+                y: 95 - CGFloat(i) * (slotSize.height + spacing)
+            )
+            slot.name = "inventorySlot\(i)"
+            slot.zPosition = 101
+            inventoryContainer.addChild(slot)
+            inventorySlots.append(slot)
+        }
+        
+        // Add some test spells to verify it's working
+        addSpellToInventory("Fireball")  // Add this temporarily to test
+    }
+
+    // Change access level to internal or public
+    func updateInventoryDisplay() {
+        // Clear existing spell displays
+        inventorySlots.forEach { slot in
+            slot.children.forEach { $0.removeFromParent() }
+        }
+        
+        // Display current inventory
+        var slotIndex = 0
+        for (spellName, count) in state.consumableSpells {
+            guard slotIndex < inventorySlots.count else { break }
+            
+            let slot = inventorySlots[slotIndex]
+            
+            // Add spell icon
+            let spellIcon = SKSpriteNode(imageNamed: spellName)
+            spellIcon.size = CGSize(width: 40, height: 40)
+            spellIcon.position = .zero
+            spellIcon.name = "spell_\(spellName)"
+            slot.addChild(spellIcon)
+            
+            // Add count label
+            let countLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+            countLabel.text = "x\(count)"
+            countLabel.fontSize = 16
+            countLabel.fontColor = .white
+            countLabel.position = CGPoint(x: 15, y: -15)
+            slot.addChild(countLabel)
+            
+            slotIndex += 1
+        }
+    }
+
+    public func addSpellToInventory(_ spellName: String) {
+        state.addSpellToInventory(spellName)
+        updateInventoryDisplay()
+    }
+
+    public func handleSpellSelection(at position: CGPoint) {
+        for slot in inventorySlots {
+            let slotPosition = slot.convert(position, from: parentScene!)
+            if slot.contains(slotPosition),
+               let spellNode = slot.children.first(where: { $0.name?.hasPrefix("spell_") ?? false }),
+               let spellName = spellNode.name?.dropFirst(6) { // Remove "spell_" prefix
+                
+                // Use the spell
+                if let count = state.consumableSpells[String(spellName)], count > 0 {
+                    state.consumableSpells[String(spellName)] = count - 1
+                    if count - 1 <= 0 {
+                        state.consumableSpells.removeValue(forKey: String(spellName))
+                    }
+                    // Trigger spell use in game logic
+                    state.useInventorySpell(String(spellName))
+                    updateInventoryDisplay()
+                }
+            }
+        }
+    }
 } 

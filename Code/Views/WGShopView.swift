@@ -1,13 +1,13 @@
 import SpriteKit
 import Foundation
 
-
 struct ShopItem {
     let name: String
     let description: String
     var basePrice: Int
     let icon: String  // Name of image asset
     let effect: (PlayerState, @escaping (String) -> Void) -> Void
+    let rarity: SpellRarity
     
     // Add current price tracking
     private static var purchaseCounts: [String: Int] = [:]
@@ -21,6 +21,224 @@ struct ShopItem {
         return (ShopItem.purchaseCounts[name] ?? 0) + 1
     }
     
+    // Add spellShopItems array
+    static let spellShopItems: [ShopItem] = [
+        // Legendary Spells
+        ShopItem(
+            name: "AC130",
+            description: "Rain death from above",
+            basePrice: 45,
+            icon: "AC130",
+            effect: { state, showMessage in
+                state.addSpellToInventory("AC130")
+                showMessage("AC-130 added to inventory!")
+            },
+            rarity: .legendary
+        ),
+        ShopItem(
+            name: "TacticalNuke",
+            description: "Ultimate destruction",
+            basePrice: 50,
+            icon: "TacticalNuke",
+            effect: { state, showMessage in
+                state.addSpellToInventory("TacticalNuke")
+                showMessage("Tactical Nuke added to inventory!")
+            },
+            rarity: .legendary
+        ),
+        ShopItem(
+            name: "DivineWrath",
+            description: "Call down divine punishment",
+            basePrice: 45,
+            icon: "DivineWrath",
+            effect: { state, showMessage in
+                state.addSpellToInventory("DivineWrath")
+                showMessage("Divine Wrath added to inventory!")
+            },
+            rarity: .legendary
+        ),
+        ShopItem(
+            name: "ArcaneStorm",
+            description: "Unleash arcane devastation",
+            basePrice: 50,
+            icon: "ArcaneStorm",
+            effect: { state, showMessage in
+                state.addSpellToInventory("ArcaneStorm")
+                showMessage("Arcane Storm added to inventory!")
+            },
+            rarity: .legendary
+        ),
+        ShopItem(
+            name: "MeteorShower",
+            description: "Rain meteors from the sky",
+            basePrice: 40,
+            icon: "MeteorShower",
+            effect: { state, showMessage in
+                state.addSpellToInventory("MeteorShower")
+                showMessage("Meteor Shower added to inventory!")
+            },
+            rarity: .legendary
+        ),
+        
+        // Rare Spells
+        ShopItem(
+            name: "PredatorMissile",
+            description: "Call in a deadly missile strike",
+            basePrice: 35,
+            icon: "PredatorMissile",
+            effect: { state, showMessage in
+                state.addSpellToInventory("PredatorMissile")
+                showMessage("Predator Missile added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "CrowSwarm",
+            description: "Summon a swarm of crows",
+            basePrice: 30,
+            icon: "CrowSwarm",
+            effect: { state, showMessage in
+                state.addSpellToInventory("CrowSwarm")
+                showMessage("Crow Swarm added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "SwarmQueen",
+            description: "Command a swarm of minions",
+            basePrice: 35,
+            icon: "SwarmQueen",
+            effect: { state, showMessage in
+                state.addSpellToInventory("SwarmQueen")
+                showMessage("Swarm Queen added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "NanoSwarm",
+            description: "Release destructive nanobots",
+            basePrice: 35,
+            icon: "NanoSwarm",
+            effect: { state, showMessage in
+                state.addSpellToInventory("NanoSwarm")
+                showMessage("Nano Swarm added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "SteampunkTimeBomb",
+            description: "Deploy a time-warping explosive",
+            basePrice: 35,
+            icon: "SteampunkTimeBomb",
+            effect: { state, showMessage in
+                state.addSpellToInventory("SteampunkTimeBomb")
+                showMessage("Steampunk Time Bomb added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "ShadowPuppet",
+            description: "Control enemies from the shadows",
+            basePrice: 35,
+            icon: "ShadowPuppet",
+            effect: { state, showMessage in
+                state.addSpellToInventory("ShadowPuppet")
+                showMessage("Shadow Puppet added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "TemporalDistortion",
+            description: "Manipulate time itself",
+            basePrice: 35,
+            icon: "TemporalDistortion",
+            effect: { state, showMessage in
+                state.addSpellToInventory("TemporalDistortion")
+                showMessage("Temporal Distortion added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "MysticBarrier",
+            description: "Create a damaging barrier",
+            basePrice: 35,
+            icon: "MysticBarrier",
+            effect: { state, showMessage in
+                state.addSpellToInventory("MysticBarrier")
+                showMessage("Mystic Barrier added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "Blizzard",
+            description: "Freeze and damage enemies",
+            basePrice: 35,
+            icon: "Blizzard",
+            effect: { state, showMessage in
+                state.addSpellToInventory("Blizzard")
+                showMessage("Blizzard added to inventory!")
+            },
+            rarity: .rare
+        ),
+        ShopItem(
+            name: "Inferno",
+            description: "Create a devastating inferno",
+            basePrice: 35,
+            icon: "Inferno",
+            effect: { state, showMessage in
+                state.addSpellToInventory("Inferno")
+                showMessage("Inferno added to inventory!")
+            },
+            rarity: .rare
+        ),
+        
+        // Uncommon Spells
+        ShopItem(
+            name: "HologramTrap",
+            description: "Deploy a holographic trap",
+            basePrice: 25,
+            icon: "HologramTrap",
+            effect: { state, showMessage in
+                state.addSpellToInventory("HologramTrap")
+                showMessage("Hologram Trap added to inventory!")
+            },
+            rarity: .uncommon
+        ),
+        ShopItem(
+            name: "SystemOverride",
+            description: "Override enemy systems",
+            basePrice: 25,
+            icon: "SystemOverride",
+            effect: { state, showMessage in
+                state.addSpellToInventory("SystemOverride")
+                showMessage("System Override added to inventory!")
+            },
+            rarity: .uncommon
+        ),
+        ShopItem(
+            name: "CyberneticOverload",
+            description: "Overload cybernetic systems",
+            basePrice: 25,
+            icon: "CyberneticOverload",
+            effect: { state, showMessage in
+                state.addSpellToInventory("CyberneticOverload")
+                showMessage("Cybernetic Overload added to inventory!")
+            },
+            rarity: .uncommon
+        ),
+        ShopItem(
+            name: "EarthShatter",
+            description: "Shatter the ground beneath",
+            basePrice: 25,
+            icon: "EarthShatter",
+            effect: { state, showMessage in
+                state.addSpellToInventory("EarthShatter")
+                showMessage("Earth Shatter added to inventory!")
+            },
+            rarity: .uncommon
+        )
+    ]
+    
     // Predefined shop items
     static let permanentUpgrades: [ShopItem] = [
         ShopItem(
@@ -31,7 +249,8 @@ struct ShopItem {
             effect: { state, showMessage in
                 state.maxSpellCharges += 1
                 state.spellCharges += 1
-            }
+            },
+            rarity: .basic
         ),
         ShopItem(
             name: "Spell AOE +10%",
@@ -40,7 +259,8 @@ struct ShopItem {
             icon: "aoe_upgrade",
             effect: { state, showMessage in
                 state.spellAOEMultiplier *= 1.1
-            }
+            },
+            rarity: .basic
         ),
         ShopItem(
             name: "Spell Speed +15%",
@@ -49,7 +269,8 @@ struct ShopItem {
             icon: "speed_upgrade",
             effect: { state, showMessage in
                 state.spellSpeedMultiplier *= 1.15
-            }
+            },
+            rarity: .basic
         ),
         ShopItem(
             name: "Mana Regen +20%",
@@ -58,7 +279,8 @@ struct ShopItem {
             icon: "regen_upgrade",
             effect: { state, showMessage in
                 state.manaRegenRate *= 1.2
-            }
+            },
+            rarity: .basic
         ),
         ShopItem(
             name: "Spell Power +10%",
@@ -67,7 +289,8 @@ struct ShopItem {
             icon: "power_upgrade",
             effect: { state, showMessage in
                 state.spellPowerMultiplier *= 1.1
-            }
+            },
+            rarity: .basic
         )
     ]
     
@@ -79,6 +302,7 @@ struct ShopItem {
 class ShopView: SKNode {
     private let playerState: PlayerState
     private var onClose: () -> Void
+    private weak var playerView: PlayerView?
     
     // UI Elements
     private let background: SKSpriteNode
@@ -93,10 +317,10 @@ class ShopView: SKNode {
     // Add new property to track current available upgrades
     private var availableUpgrades: [ShopItem] = []
     
-    init(size: CGSize, playerState: PlayerState, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
-        // Initialize all properties before super.init()
+    init(size: CGSize, playerState: PlayerState, config: WaveConfig, currentWave: Int, playerView: PlayerView?, onClose: @escaping () -> Void) {
         self.playerState = playerState
         self.onClose = onClose
+        self.playerView = playerView
         self.background = SKSpriteNode(color: .black.withAlphaComponent(0.8), size: size)
         self.statsLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         self.closeButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
@@ -157,8 +381,8 @@ class ShopView: SKNode {
         // Position buttons between coin display and close button
         let buttonY = size.height * 0.45  // Adjusted to be lower than middle
         
-        // Position the available upgrades
-        for (index, item) in availableUpgrades.enumerated() {
+        // Position the permanent upgrades
+        for (index, item) in availableUpgrades.prefix(2).enumerated() {
             let x = startX + CGFloat(index) * (buttonWidth + padding)
             let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
             button.position = CGPoint(x: x, y: buttonY)
@@ -166,8 +390,17 @@ class ShopView: SKNode {
             itemButtons.append(button)
         }
         
+        // Position the spell button below the permanent upgrades
+        if let spellItem = availableUpgrades.last {
+            let spellButtonY = buttonY - buttonHeight - 40  // Position below the upgrade buttons
+            let spellButton = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
+            spellButton.position = CGPoint(x: size.width / 2, y: spellButtonY)
+            addChild(spellButton)
+            itemButtons.append(spellButton)
+        }
+        
         // Position close button lower
-        closeButton.position = CGPoint(x: size.width/2, y: buttonY - buttonHeight - 40)
+        closeButton.position = CGPoint(x: size.width/2, y: buttonY - buttonHeight - 130)
         addChild(closeButton)
     }
     
@@ -175,7 +408,8 @@ class ShopView: SKNode {
         let container = SKNode()
         
         // Button background
-        let background = SKSpriteNode(color: .darkGray, size: size)
+        let backgroundColor: SKColor = playerState.hasConsumableSpell(item.name) ? .gray : .darkGray
+        let background = SKSpriteNode(color: backgroundColor, size: size)
         background.name = "itemButton_\(item.name)"
         container.addChild(background)
         
@@ -207,7 +441,7 @@ class ShopView: SKNode {
         
         // Description - wrap text if needed
         let descLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        descLabel.text = item.description
+        descLabel.text = playerState.hasConsumableSpell(item.name) ? "Already Purchased" : item.description
         descLabel.fontSize = 11  // Smaller font for description
         descLabel.position = CGPoint(x: 0, y: -10)
         descLabel.horizontalAlignmentMode = .center
@@ -220,7 +454,7 @@ class ShopView: SKNode {
         
         // Price
         let priceLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        priceLabel.text = "\(item.currentPrice) coins"
+        priceLabel.text = playerState.hasConsumableSpell(item.name) ? "" : "\(item.currentPrice) coins"
         priceLabel.fontSize = 12
         priceLabel.fontColor = .yellow
         priceLabel.position = CGPoint(x: 0, y: -30)
@@ -268,13 +502,29 @@ class ShopView: SKNode {
             return
         }
         
+        // Check if the item is a spell (not basic rarity) and if it has already been purchased
+        if item.rarity != .basic {  // This means it's a spell
+            if playerState.hasConsumableSpell(item.name) {
+                showMessage("Spell already purchased!")
+                return
+            }
+        }
+        
         playerState.coins -= item.currentPrice
         item.effect(playerState, showMessage)
         ShopItem.recordPurchase(of: item.name)
         
+        // Add the purchased spell to the player's inventory only if it's a spell
+        if item.rarity != .basic {
+            playerState.addSpellToInventory(item.name)
+            // Update the inventory display immediately
+            playerView?.updateInventoryDisplay()
+        }
+        
         // Show level up message
         showMessage("\(item.name) upgraded to Level \(item.level)!")
         
+        // Refresh UI to reflect purchase
         refreshItemButtons()
         updateStats()
     }
@@ -293,13 +543,22 @@ class ShopView: SKNode {
         let startX = (background.frame.width - totalWidth) / 2 + buttonWidth / 2
         let buttonY = background.frame.height * 0.45  // Match setupUI positioning
         
-        // Position the available upgrades - same as setupUI
-        for (index, item) in availableUpgrades.enumerated() {
+        // Position the permanent upgrades
+        for (index, item) in availableUpgrades.prefix(2).enumerated() {
             let x = startX + CGFloat(index) * (buttonWidth + padding)
             let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
             button.position = CGPoint(x: x, y: buttonY)
             addChild(button)
             itemButtons.append(button)
+        }
+        
+        // Position the spell button below the permanent upgrades
+        if let spellItem = availableUpgrades.last {
+            let spellButtonY = buttonY - buttonHeight - 40  // Position below the upgrade buttons
+            let spellButton = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
+            spellButton.position = CGPoint(x: background.frame.width / 2, y: spellButtonY)
+            addChild(spellButton)
+            itemButtons.append(spellButton)
         }
     }
     
@@ -388,9 +647,14 @@ class ShopView: SKNode {
     }
     
     private func selectRandomUpgrades() {
-        // Add print statement for debugging
-        print("Available upgrades pool: \(ShopItem.permanentUpgrades.count)")
-        availableUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
+        // Select 2 permanent upgrades
+        let permanentUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
+        
+        // Select 1 random spell
+        let randomSpell = ShopItem.spellShopItems.randomElement()!
+        
+        // Combine permanent upgrades and spell
+        availableUpgrades = permanentUpgrades + [randomSpell]
         print("Selected upgrades: \(availableUpgrades.map { $0.name })")
     }
 } 

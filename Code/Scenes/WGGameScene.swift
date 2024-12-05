@@ -309,33 +309,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         
-        // Handle other touches as before
-        if let node = nodes(at: location).first(where: { $0.name == "inventoryButton" }) {
-            playerView.toggleInventory()
-            return
-        }
-        
-        // Check for inventory-related touches
-        if let node = nodes(at: location).first {
-            if node.name == "closeInventory" {
-                playerView.toggleInventory()
-                return
-            } else if let name = node.name {
-                if name.hasPrefix("primary_") {
-                    let spellName = String(name.dropFirst(8))
-                    playerView.assignSpell(spellName, isPrimary: true)
-                    return
-                } else if name.hasPrefix("secondary_") {
-                    let spellName = String(name.dropFirst(10))
-                    playerView.assignSpell(spellName, isPrimary: false)
-                    return
-                } else if name.hasPrefix("spell_") {
-                    playerView.handleSpellSelection(at: location)
-                    return
-                }
-            }
-        }
-        
         // Handle tutorial taps first
         if tutorialManager.isTutorialActive {
             tutorialManager.handleTap(touch)
@@ -527,6 +500,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             playerState: playerState,
             config: nextWaveConfig,
             currentWave: currentWave,
+            playerView: playerView,  // Pass the playerView reference
             onClose: { [weak self] in
                 self?.closeShopView()
             }

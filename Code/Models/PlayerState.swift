@@ -275,4 +275,33 @@ class PlayerState {
         let nextIndex = (currentIndex + 1) % availableSpells.count
         return availableSpells[nextIndex]
     }
+    
+    // Add this method to PlayerState class
+    func useInventorySpell(_ spellName: String) -> Bool {
+        // Check if we have the spell in inventory
+        if let count = consumableSpells[spellName], count > 0 {
+            // Reduce count
+            consumableSpells[spellName] = count - 1
+            
+            // Remove if depleted
+            if count - 1 <= 0 {
+                consumableSpells.removeValue(forKey: spellName)
+            }
+            
+            // TODO: Implement actual spell casting logic here
+            // For now, just return true to indicate success
+            return true
+        }
+        return false
+    }
+    
+    // Add this method to add spells to the inventory
+    func addSpellToInventory(_ spellName: String) {
+        // Add or increment the spell count
+        consumableSpells[spellName] = (consumableSpells[spellName] ?? 0) + 1
+        
+        // Notify any observers that might need to update their display
+        // You could add a new callback for inventory updates if needed
+        // onInventoryChanged?()
+    }
 } 

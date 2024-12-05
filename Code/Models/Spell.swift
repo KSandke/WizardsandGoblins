@@ -355,6 +355,7 @@ class SteampunkTimeBombSpell: Spell {
             isOneTimeUse: false,
             cooldownDuration: 30,
             rarity: .rare
+        )
     }
 }
 
@@ -475,6 +476,7 @@ class MeteorShowerSpell: Spell {
             isOneTimeUse: true,
             cooldownDuration: 0,
             rarity: .legendary
+        )
     }
 }
 
