@@ -2,7 +2,7 @@ import Foundation
 import SpriteKit
 
 // Add SpellRarity enum
-enum SpellRarity: String, Comparable {
+enum SpellRarity: String {
     case basic = "Basic"
     case uncommon = "Uncommon"
     case rare = "Rare"
@@ -15,16 +15,6 @@ enum SpellRarity: String, Comparable {
         case .rare: return .blue
         case .legendary: return .purple
         }
-    }
-    
-    // Add static function to conform to Comparable
-    static func < (lhs: SpellRarity, rhs: SpellRarity) -> Bool {
-        let order: [SpellRarity] = [.basic, .uncommon, .rare, .legendary]
-        guard let lhsIndex = order.firstIndex(of: lhs),
-              let rhsIndex = order.firstIndex(of: rhs) else {
-            return false
-        }
-        return lhsIndex < rhsIndex
     }
 }
 

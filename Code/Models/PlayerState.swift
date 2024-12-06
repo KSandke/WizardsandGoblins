@@ -306,14 +306,4 @@ class PlayerState {
         // You could add a new callback for inventory updates if needed
         // onInventoryChanged?()
     }
-    
-    // Add this method to the PlayerState class
-    func removeSpell(_ spellName: String) {
-        availableSpells.removeAll { $0.name == spellName }
-        
-        // If we removed the current spell, switch to the first available spell
-        if currentSpell.name == spellName {
-            currentSpell = availableSpells.first ?? FireballSpell()
-        }
-    }
 } 
