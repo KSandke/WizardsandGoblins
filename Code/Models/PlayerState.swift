@@ -86,7 +86,7 @@ class PlayerState {
     var onComboChanged: ((Int) -> Void)?
     
     // Add property to track selected inventory spell
-    private var selectedInventorySpell: String?
+    var selectedInventorySpell: String?
     
     // Constructor
     init(initialPosition: CGPoint = .zero) {

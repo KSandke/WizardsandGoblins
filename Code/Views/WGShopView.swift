@@ -517,8 +517,6 @@ class ShopView: SKNode {
         // Add the purchased spell to the player's inventory only if it's a spell
         if item.rarity != .basic {
             playerState.addSpellToInventory(item.name)
-            // Update the inventory display immediately
-            playerView?.updateInventoryDisplay()
         }
         
         // Show level up message
