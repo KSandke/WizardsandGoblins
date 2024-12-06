@@ -289,8 +289,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let touchedNode = self.atPoint(location)
         let timeDelta = touch.timestamp - startTime
         
-        // Handle inventory button taps
+        // Debugging: Print the name of the touched node
+        print("Touched node: \(touchedNode.name ?? "Unnamed Node") at location \(location)")
+        
+        // Handle spell icon touches
+        if touchedNode.name == "spellIcon" {
+            playerView.handleSpellIconTouch(touchedNode)
+            return
+        }
+        
+        // Handle inventory button and close button taps
         if touchedNode.name == "inventoryButton" || touchedNode.name == "closeInventory" {
+            playerView.handleInventoryButton(touchedNode)
+            return
+        }
+        
+        // Handle inventory spell icon taps
+        if let nodeName = touchedNode.name,
+           nodeName.starts(with: "inventorySpell_") {
+            print("Inventory spell icon tapped: \(nodeName)")
             playerView.handleInventoryButton(touchedNode)
             return
         }
@@ -332,6 +349,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
+        // Return early if inventory is open
+        if playerView.inventoryDisplay != nil {
+            // Touches inside inventory should have been handled already
+            return
+        }
+        
         if isInShop {
             // Forward touch to shop view if it exists
             if let shopView = self.children.first(where: { $0 is ShopView }) as? ShopView {
@@ -368,13 +391,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         castSpell(to: location)
+        
+        // Debugging: Print all nodes at the touch location
+        let nodesAtPoint = self.nodes(at: location)
+        print("All nodes at touch location:")
+        for node in nodesAtPoint {
+            print("- Node: \(node.name ?? "Unnamed")")
+        }
     }
     
     func castSpell(to location: CGPoint) {
         let casterPosition = playerView.playerPosition
-        // Just use the current spell
-        let spell = playerState.getCurrentSpell()
-        spell.cast(from: casterPosition, to: location, by: playerState, in: self)
+        let spell = playerState.getSpellForCasting() // Use the updated method
+        let castResult = spell.cast(from: casterPosition, to: location, by: playerState, in: self)
         playerView.animateSpellCast()
     }
     

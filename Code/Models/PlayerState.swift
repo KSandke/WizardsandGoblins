@@ -88,6 +88,12 @@ class PlayerState {
     // Add property to track selected inventory spell
     var selectedInventorySpell: String?
     
+    // Add after selectedInventorySpell property
+    var temporarySpell: Spell?
+    
+    // Add this with other callbacks
+    var onTemporarySpellChanged: ((Spell?) -> Void)?
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
@@ -162,6 +168,11 @@ class PlayerState {
     
     // Simplify spell usage to handle both cooldowns and mana
     func useSpell(cost: Int, spellName: String? = nil) -> Bool {
+        if temporarySpell != nil {
+            // If we have a temporary spell, always allow casting
+            return true
+        }
+        
         if let name = spellName {
             // Handle one-time use spells
             if let quantity = consumableSpells[name], quantity > 0 {
@@ -171,12 +182,7 @@ class PlayerState {
             return false
         }
         
-        // Handle cooldown-based spells
-        if currentSpell.cooldownDuration > 0 {
-            return !currentSpell.isOnCooldown
-        }
-        
-        // Handle mana-based spells
+        // Handle regular spells with mana cost
         if spellCharges >= cost {
             spellCharges -= cost
             return true
@@ -184,8 +190,21 @@ class PlayerState {
         return false
     }
     
-    // Simplify to get current spell
+    // Update getCurrentSpell to NOT consume temporarySpell
     func getCurrentSpell() -> Spell {
+        return currentSpell
+    }
+    
+    // Add new method to get spell for casting (consumes temporarySpell)
+    func getSpellForCasting() -> Spell {
+        if let temp = temporarySpell {
+            print("Using temporary spell: \(temp.name)")  // Debug log
+            // Clear the temporary spell after getting it
+            temporarySpell = nil
+            // Notify UI that temporary spell is consumed
+            onTemporarySpellChanged?(nil)
+            return temp
+        }
         return currentSpell
     }
     
@@ -279,31 +298,84 @@ class PlayerState {
         return availableSpells[nextIndex]
     }
     
-    // Modify useInventorySpell to just select the spell
+    // Modify useInventorySpell to handle creation and UI update safely
     func useInventorySpell(_ spellName: String) -> Bool {
         if let count = consumableSpells[spellName], count > 0 {
+            guard let spell = createSpellByName(spellName) else {
+                print("Failed to create spell with name: \(spellName)")
+                return false
+            }
+            temporarySpell = spell
             // Reduce count
             consumableSpells[spellName] = count - 1
-            
+
             // Remove if depleted
             if count - 1 <= 0 {
                 consumableSpells.removeValue(forKey: spellName)
             }
-            
-            // TODO: Implement actual spell casting logic here
-            // For now, just return true to indicate success
+
+            // Notify UI that a temporary spell is set
+            onTemporarySpellChanged?(spell)
+
             return true
         }
         return false
     }
     
     // Add this method to add spells to the inventory
-    func addSpellToInventory(_ spellName: String) {
-        // Add or increment the spell count
-        consumableSpells[spellName] = (consumableSpells[spellName] ?? 0) + 1
-        
-        // Notify any observers that might need to update their display
-        // You could add a new callback for inventory updates if needed
-        // onInventoryChanged?()
+    func addSpellToInventory(_ spell: Spell) {
+        print("Adding spell to inventory: \(spell.name)")  // Debug log
+        consumableSpells[spell.name] = (consumableSpells[spell.name] ?? 0) + 1
+        print("New inventory count for \(spell.name): \(consumableSpells[spell.name] ?? 0)")  // Debug log
+    }
+    
+    // Add this method to check if there's a temporary spell
+    func hasTemporarySpell() -> Bool {
+        return temporarySpell != nil
+    }
+    
+    func createSpellByName(_ spellName: String) -> Spell? {
+        switch spellName {
+        case AC130Spell().name:
+            return AC130Spell()
+        case TacticalNukeSpell().name:
+            return TacticalNukeSpell()
+        case DivineWrathSpell().name:
+            return DivineWrathSpell()
+        case ArcaneStormSpell().name:
+            return ArcaneStormSpell()
+        case MeteorShowerSpell().name:
+            return MeteorShowerSpell()
+        case PredatorMissileSpell().name:
+            return PredatorMissileSpell()
+        case CrowSwarmSpell().name:
+            return CrowSwarmSpell()
+        case SwarmQueenSpell().name:
+            return SwarmQueenSpell()
+        case NanoSwarmSpell().name:
+            return NanoSwarmSpell()
+        case SteampunkTimeBombSpell().name:
+            return SteampunkTimeBombSpell()
+        case ShadowPuppetSpell().name:
+            return ShadowPuppetSpell()
+        case TemporalDistortionSpell().name:
+            return TemporalDistortionSpell()
+        case MysticBarrierSpell().name:
+            return MysticBarrierSpell()
+        case BlizzardSpell().name:
+            return BlizzardSpell()
+        case InfernoSpell().name:
+            return InfernoSpell()
+        case FireballSpell().name:
+            return FireballSpell()
+        case IceSpell().name:
+            return IceSpell()
+        case LightningSpell().name:
+            return LightningSpell()
+        // Add any additional spells here
+        default:
+            print("Unknown spell name: \(spellName)")
+            return nil
+        }
     }
 } 

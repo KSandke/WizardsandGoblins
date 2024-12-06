@@ -2,16 +2,20 @@ import SpriteKit
 import Foundation
 
 struct ShopItem {
+    // MARK: - Properties
+
     let name: String
     let description: String
     var basePrice: Int
-    let icon: String  // Name of image asset
+    let icon: String
     let effect: (PlayerState, @escaping (String) -> Void) -> Void
     let rarity: SpellRarity
-    
-    // Add current price tracking
-    private static var purchaseCounts: [String: Int] = [:]
-    
+    let spell: Spell?
+
+    // Static property to track purchases
+    static var purchaseCounts: [String: Int] = [:]
+
+    // Computed property for current price
     var currentPrice: Int {
         let purchases = ShopItem.purchaseCounts[name] ?? 0
         return basePrice + (purchases * basePrice)
@@ -20,223 +24,279 @@ struct ShopItem {
     var level: Int {
         return (ShopItem.purchaseCounts[name] ?? 0) + 1
     }
+    init(
+        name: String,
+        description: String,
+        basePrice: Int,
+        icon: String,
+        effect: @escaping (PlayerState, @escaping (String) -> Void) -> Void,
+        rarity: SpellRarity,
+        spell: Spell? = nil
+    ) {
+        self.name = name
+        self.description = description
+        self.basePrice = basePrice
+        self.icon = icon
+        self.effect = effect
+        self.rarity = rarity
+        self.spell = spell
+    }
     
     // Add spellShopItems array
     static let spellShopItems: [ShopItem] = [
         // Legendary Spells
         ShopItem(
-            name: "AC130",
+            name: AC130Spell().name,
             description: "Rain death from above",
             basePrice: 45,
             icon: "AC130",
             effect: { state, showMessage in
-                state.addSpellToInventory("AC130")
-                showMessage("AC-130 added to inventory!")
+                let spell = AC130Spell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .legendary
+            rarity: .legendary,
+            spell: AC130Spell()
         ),
         ShopItem(
-            name: "TacticalNuke",
+            name: TacticalNukeSpell().name,
             description: "Ultimate destruction",
             basePrice: 50,
             icon: "TacticalNuke",
             effect: { state, showMessage in
-                state.addSpellToInventory("TacticalNuke")
-                showMessage("Tactical Nuke added to inventory!")
+                let spell = TacticalNukeSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .legendary
+            rarity: .legendary,
+            spell: TacticalNukeSpell()
         ),
         ShopItem(
-            name: "DivineWrath",
+            name: DivineWrathSpell().name,
             description: "Call down divine punishment",
             basePrice: 45,
             icon: "DivineWrath",
             effect: { state, showMessage in
-                state.addSpellToInventory("DivineWrath")
-                showMessage("Divine Wrath added to inventory!")
+                let spell = DivineWrathSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .legendary
+            rarity: .legendary,
+            spell: DivineWrathSpell()
         ),
         ShopItem(
-            name: "ArcaneStorm",
+            name: ArcaneStormSpell().name,
             description: "Unleash arcane devastation",
             basePrice: 50,
             icon: "ArcaneStorm",
             effect: { state, showMessage in
-                state.addSpellToInventory("ArcaneStorm")
-                showMessage("Arcane Storm added to inventory!")
+                let spell = ArcaneStormSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .legendary
+            rarity: .legendary,
+            spell: ArcaneStormSpell()
         ),
         ShopItem(
-            name: "MeteorShower",
+            name: MeteorShowerSpell().name,
             description: "Rain meteors from the sky",
             basePrice: 40,
             icon: "MeteorShower",
             effect: { state, showMessage in
-                state.addSpellToInventory("MeteorShower")
-                showMessage("Meteor Shower added to inventory!")
+                let spell = MeteorShowerSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .legendary
+            rarity: .legendary,
+            spell: MeteorShowerSpell()
         ),
         
         // Rare Spells
         ShopItem(
-            name: "PredatorMissile",
+            name: PredatorMissileSpell().name,
             description: "Call in a deadly missile strike",
             basePrice: 35,
             icon: "PredatorMissile",
             effect: { state, showMessage in
-                state.addSpellToInventory("PredatorMissile")
-                showMessage("Predator Missile added to inventory!")
+                let spell = PredatorMissileSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: PredatorMissileSpell()
         ),
         ShopItem(
-            name: "CrowSwarm",
+            name: CrowSwarmSpell().name,
             description: "Summon a swarm of crows",
             basePrice: 30,
             icon: "CrowSwarm",
             effect: { state, showMessage in
-                state.addSpellToInventory("CrowSwarm")
-                showMessage("Crow Swarm added to inventory!")
+                let spell = CrowSwarmSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: CrowSwarmSpell()
         ),
         ShopItem(
-            name: "SwarmQueen",
+            name: SwarmQueenSpell().name,
             description: "Command a swarm of minions",
             basePrice: 35,
             icon: "SwarmQueen",
             effect: { state, showMessage in
-                state.addSpellToInventory("SwarmQueen")
-                showMessage("Swarm Queen added to inventory!")
+                let spell = SwarmQueenSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: SwarmQueenSpell()
         ),
         ShopItem(
-            name: "NanoSwarm",
+            name: NanoSwarmSpell().name,
             description: "Release destructive nanobots",
             basePrice: 35,
             icon: "NanoSwarm",
             effect: { state, showMessage in
-                state.addSpellToInventory("NanoSwarm")
-                showMessage("Nano Swarm added to inventory!")
+                let spell = NanoSwarmSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: NanoSwarmSpell()
         ),
         ShopItem(
-            name: "SteampunkTimeBomb",
+            name: SteampunkTimeBombSpell().name,
             description: "Deploy a time-warping explosive",
             basePrice: 35,
             icon: "SteampunkTimeBomb",
             effect: { state, showMessage in
-                state.addSpellToInventory("SteampunkTimeBomb")
-                showMessage("Steampunk Time Bomb added to inventory!")
+                let spell = SteampunkTimeBombSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: SteampunkTimeBombSpell()
         ),
         ShopItem(
-            name: "ShadowPuppet",
+            name: ShadowPuppetSpell().name,
             description: "Control enemies from the shadows",
             basePrice: 35,
             icon: "ShadowPuppet",
             effect: { state, showMessage in
-                state.addSpellToInventory("ShadowPuppet")
-                showMessage("Shadow Puppet added to inventory!")
+                let spell = ShadowPuppetSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: ShadowPuppetSpell()
         ),
         ShopItem(
-            name: "TemporalDistortion",
+            name: TemporalDistortionSpell().name,
             description: "Manipulate time itself",
             basePrice: 35,
             icon: "TemporalDistortion",
             effect: { state, showMessage in
-                state.addSpellToInventory("TemporalDistortion")
-                showMessage("Temporal Distortion added to inventory!")
+                let spell = TemporalDistortionSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: TemporalDistortionSpell()
         ),
         ShopItem(
-            name: "MysticBarrier",
-            description: "Create a damaging barrier",
+            name: MysticBarrierSpell().name,
+            description: "Raise a protective shield",
             basePrice: 35,
             icon: "MysticBarrier",
             effect: { state, showMessage in
-                state.addSpellToInventory("MysticBarrier")
-                showMessage("Mystic Barrier added to inventory!")
+                let spell = MysticBarrierSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: MysticBarrierSpell()
         ),
         ShopItem(
-            name: "Blizzard",
-            description: "Freeze and damage enemies",
-            basePrice: 35,
+            name: BlizzardSpell().name,
+            description: "Unleash icy winds to slow enemies",
+            basePrice: 30,
             icon: "Blizzard",
             effect: { state, showMessage in
-                state.addSpellToInventory("Blizzard")
-                showMessage("Blizzard added to inventory!")
+                let spell = BlizzardSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: BlizzardSpell()
         ),
         ShopItem(
-            name: "Inferno",
-            description: "Create a devastating inferno",
+            name: InfernoSpell().name,
+            description: "Engulf enemies in flames",
             basePrice: 35,
             icon: "Inferno",
             effect: { state, showMessage in
-                state.addSpellToInventory("Inferno")
-                showMessage("Inferno added to inventory!")
+                let spell = InfernoSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .rare
+            rarity: .rare,
+            spell: InfernoSpell()
         ),
         
         // Uncommon Spells
         ShopItem(
-            name: "HologramTrap",
+            name: HologramTrapSpell().name,
             description: "Deploy a holographic trap",
             basePrice: 25,
             icon: "HologramTrap",
             effect: { state, showMessage in
-                state.addSpellToInventory("HologramTrap")
-                showMessage("Hologram Trap added to inventory!")
+                let spell = HologramTrapSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .uncommon
+            rarity: .uncommon,
+            spell: HologramTrapSpell()
         ),
         ShopItem(
-            name: "SystemOverride",
+            name: SystemOverrideSpell().name,
             description: "Override enemy systems",
             basePrice: 25,
             icon: "SystemOverride",
             effect: { state, showMessage in
-                state.addSpellToInventory("SystemOverride")
-                showMessage("System Override added to inventory!")
+                let spell = SystemOverrideSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .uncommon
+            rarity: .uncommon,
+            spell: SystemOverrideSpell()
         ),
         ShopItem(
-            name: "CyberneticOverload",
-            description: "Overload cybernetic systems",
+            name: CyberneticOverloadSpell().name,
+            description: "Overload enemy systems",
             basePrice: 25,
             icon: "CyberneticOverload",
             effect: { state, showMessage in
-                state.addSpellToInventory("CyberneticOverload")
-                showMessage("Cybernetic Overload added to inventory!")
+                let spell = CyberneticOverloadSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .uncommon
+            rarity: .uncommon,
+            spell: CyberneticOverloadSpell()
         ),
         ShopItem(
-            name: "EarthShatter",
+            name: EarthShatterSpell().name,
             description: "Shatter the ground beneath",
             basePrice: 25,
             icon: "EarthShatter",
             effect: { state, showMessage in
-                state.addSpellToInventory("EarthShatter")
-                showMessage("Earth Shatter added to inventory!")
+                let spell = EarthShatterSpell()
+                state.addSpellToInventory(spell)
+                showMessage("\(spell.name) added to inventory!")
             },
-            rarity: .uncommon
-        )
+            rarity: .uncommon,
+            spell: EarthShatterSpell()
+        ),
+        // Add any additional uncommon spells here
     ]
     
     // Predefined shop items
@@ -249,6 +309,7 @@ struct ShopItem {
             effect: { state, showMessage in
                 state.maxSpellCharges += 1
                 state.spellCharges += 1
+                showMessage("Max Spell Charges increased to \(state.maxSpellCharges)!")
             },
             rarity: .basic
         ),
@@ -259,6 +320,7 @@ struct ShopItem {
             icon: "aoe_upgrade",
             effect: { state, showMessage in
                 state.spellAOEMultiplier *= 1.1
+                showMessage("Spell AOE increased by 10%!")
             },
             rarity: .basic
         ),
@@ -269,6 +331,7 @@ struct ShopItem {
             icon: "speed_upgrade",
             effect: { state, showMessage in
                 state.spellSpeedMultiplier *= 1.15
+                showMessage("Spell Speed increased by 15%!")
             },
             rarity: .basic
         ),
@@ -279,6 +342,7 @@ struct ShopItem {
             icon: "regen_upgrade",
             effect: { state, showMessage in
                 state.manaRegenRate *= 1.2
+                showMessage("Mana Regen increased by 20%!")
             },
             rarity: .basic
         ),
@@ -289,6 +353,7 @@ struct ShopItem {
             icon: "power_upgrade",
             effect: { state, showMessage in
                 state.spellPowerMultiplier *= 1.1
+                showMessage("Spell Power increased by 10%!")
             },
             rarity: .basic
         )
@@ -496,11 +561,6 @@ class ShopView: SKNode {
         playerState.coins -= item.currentPrice
         item.effect(playerState, showMessage)
         ShopItem.recordPurchase(of: item.name)
-        
-        // Add the purchased spell to the player's inventory only if it's a spell
-        if item.rarity != .basic {
-            playerState.addSpellToInventory(item.name)
-        }
         
         // Show level up message
         showMessage("\(item.name) upgraded to Level \(item.level)!")

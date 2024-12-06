@@ -105,6 +105,11 @@ class PlayerView: SKNode {
         state.onComboChanged = { [weak self] combo in
             self?.updateComboLabel(combo: combo)
         }
+
+        // Add binding for temporary spell changes
+        state.onTemporarySpellChanged = { [weak self] spell in
+            self?.updateSpellIcon()
+        }
     }
     
     private func setupUI() {
@@ -393,6 +398,8 @@ class PlayerView: SKNode {
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
         spellIcon.size = CGSize(width: 50, height: 50)
         spellIcon.position = CGPoint(x: 50, y: scene.size.height * 0.10)
+        spellIcon.name = "spellIcon"
+        spellIcon.isUserInteractionEnabled = true
         
         // Add colored border based on rarity
         let border = SKShapeNode(rectOf: spellIcon.size)
@@ -489,17 +496,28 @@ class PlayerView: SKNode {
     }
     
     private func updateSpellIcon() {
-        spellIcon.texture = SKTexture(imageNamed: state.getCurrentSpell().name)
-        if let border = spellIcon.children.first as? SKShapeNode {
-            border.strokeColor = state.getCurrentSpell().rarity.color
-        }
+        // Use getCurrentSpell to get the base spell
+        let baseSpell = state.getCurrentSpell()
         
+        // Check if there's a temporary spell
+        if let tempSpell = state.temporarySpell {
+            spellIcon.texture = SKTexture(imageNamed: tempSpell.name)
+            if let border = spellIcon.children.first as? SKShapeNode {
+                border.strokeColor = tempSpell.rarity.color
+            }
+        } else {
+            spellIcon.texture = SKTexture(imageNamed: baseSpell.name)
+            if let border = spellIcon.children.first as? SKShapeNode {
+                border.strokeColor = baseSpell.rarity.color
+            }
+        }
+
         let inactiveSpell = state.getInactiveSpell()
         inactiveSpellIcon.texture = SKTexture(imageNamed: inactiveSpell.name)
         if let border = inactiveSpellIcon.children.first as? SKShapeNode {
             border.strokeColor = inactiveSpell.rarity.color
         }
-        
+
         // Update cooldown and count display
         updateCooldownDisplay()
     }
@@ -697,6 +715,7 @@ class PlayerView: SKNode {
         background.fillColor = .black.withAlphaComponent(0.8)
         background.strokeColor = .white
         background.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
+        background.name = "inventoryBackground"  // Assign a name for debugging
         container.addChild(background)
         
         // Add title
@@ -705,16 +724,8 @@ class PlayerView: SKNode {
         title.fontSize = 32
         title.fontColor = .white
         title.position = CGPoint(x: scene.size.width/2, y: scene.size.height * 0.8)
+        title.name = "inventoryTitle"  // Assign a name for debugging
         container.addChild(title)
-        
-        // Add close button
-        let closeButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        closeButton.text = "Close"
-        closeButton.fontSize = 24
-        closeButton.fontColor = .white
-        closeButton.name = "closeInventory"
-        closeButton.position = CGPoint(x: scene.size.width/2, y: scene.size.height * 0.25)
-        container.addChild(closeButton)
         
         // Display spells in a grid
         let spellSize: CGFloat = 60
@@ -729,44 +740,25 @@ class PlayerView: SKNode {
         
         // Display consumable spells
         for (spellName, count) in state.consumableSpells where count > 0 {
-            let spellContainer = SKNode()
-            
-            // Get the rarity from the shop items
-            let rarity = ShopItem.spellShopItems.first(where: { $0.name == spellName })?.rarity ?? .basic
-            
-            // Create background for spell slot with rarity outline
-            let slotBackground = SKShapeNode(rectOf: CGSize(width: spellSize + 10, height: spellSize + 10))
-            slotBackground.fillColor = .gray.withAlphaComponent(0.3)
-            slotBackground.strokeColor = rarity.color
-            slotBackground.lineWidth = 2.0
-            slotBackground.position = CGPoint(
-                x: startX + CGFloat(col) * (spellSize + padding),
-                y: startY - CGFloat(row) * (spellSize + padding)
-            )
-            spellContainer.addChild(slotBackground)
-            
-            // Spell icon
+            // Create the spell icon
             let spellIcon = SKSpriteNode(imageNamed: spellName)
             spellIcon.size = CGSize(width: spellSize, height: spellSize)
+            spellIcon.name = "inventorySpell_\(spellName)"
             spellIcon.position = CGPoint(
                 x: startX + CGFloat(col) * (spellSize + padding),
                 y: startY - CGFloat(row) * (spellSize + padding)
             )
-            spellContainer.addChild(spellIcon)
             
             // Add count label
             let countLabel = SKLabelNode(fontNamed: "HelveticaNeue")
             countLabel.text = "x\(count)"
             countLabel.fontSize = 16
             countLabel.fontColor = .white
-            countLabel.position = CGPoint(
-                x: spellIcon.position.x + spellSize/2 - 5,
-                y: spellIcon.position.y - spellSize/2 + 5
-            )
+            countLabel.position = CGPoint(x: spellSize/2 - 5, y: -spellSize/2 + 5)
             countLabel.horizontalAlignmentMode = .right
-            spellContainer.addChild(countLabel)
+            spellIcon.addChild(countLabel)
             
-            container.addChild(spellContainer)
+            container.addChild(spellIcon)
             
             // Update grid position
             col += 1
@@ -775,6 +767,15 @@ class PlayerView: SKNode {
                 row += 1
             }
         }
+        
+        // Add close button
+        let closeButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        closeButton.text = "Close"
+        closeButton.fontSize = 24
+        closeButton.fontColor = .white
+        closeButton.name = "closeInventory"
+        closeButton.position = CGPoint(x: scene.size.width/2, y: scene.size.height * 0.25)
+        container.addChild(closeButton)
         
         container.zPosition = 1000
         scene.addChild(container)
@@ -787,10 +788,55 @@ class PlayerView: SKNode {
     }
     
     func handleInventoryButton(_ touchedNode: SKNode) {
+        print("Handling inventory interaction: \(touchedNode.name ?? "unnamed node")")
+        
         if touchedNode.name == "inventoryButton" {
             showInventoryDisplay()
         } else if touchedNode.name == "closeInventory" {
             hideInventoryDisplay()
+        } else if let name = touchedNode.name,
+                  name.starts(with: "inventorySpell_") {
+            let spellName = String(name.dropFirst("inventorySpell_".count))
+            print("🎯 Inventory spell icon pressed: \(spellName)")  // Debug: Specific spell icon press
+            
+            // Add visual feedback
+            if let spellIcon = touchedNode as? SKSpriteNode {
+                // Flash effect
+                let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
+                let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
+                let flash = SKAction.sequence([scaleUp, scaleDown])
+                
+                // White flash overlay
+                let overlay = SKSpriteNode(color: .white, size: spellIcon.size)
+                overlay.alpha = 0.5
+                spellIcon.addChild(overlay)
+                
+                // Combine animations
+                let fadeOut = SKAction.fadeOut(withDuration: 0.2)
+                let remove = SKAction.removeFromParent()
+                overlay.run(SKAction.sequence([fadeOut, remove]))
+                spellIcon.run(flash)
+            }
+            
+            if state.useInventorySpell(spellName) {
+                print("✅ Successfully created temporary spell: \(spellName)")  // Debug: Success confirmation
+                hideInventoryDisplay()
+                
+                // Update the spell icons to show the new active spell
+                updateSpellIcon()
+            } else {
+                print("❌ Failed to use inventory spell: \(spellName)")
+            }
+        }
+    }
+
+    func handleSpellIconTouch(_ touchedNode: SKNode) {
+        if touchedNode.name == "spellIcon" {
+            // Get the current spell name and create a temporary spell
+            let spellName = state.getCurrentSpell().name
+            if state.useInventorySpell(spellName) {
+                print("Created temporary spell: \(spellName)")
+            }
         }
     }
 } 
