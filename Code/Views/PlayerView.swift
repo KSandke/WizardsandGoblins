@@ -47,6 +47,10 @@ class PlayerView: SKNode {
     // Add new properties for inventory
     // private var topSwipeArea: SKShapeNode!
     
+    // Add new properties
+    internal var inventoryDisplay: SKNode?
+    private var inventoryButton: SKSpriteNode!
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -112,6 +116,7 @@ class PlayerView: SKNode {
         setupWaveLabel()
         setupSpellIcons()
         setupComboLabel()
+        setupInventoryButton()
     }
     
     private func setupCastle() {
@@ -665,5 +670,127 @@ class PlayerView: SKNode {
         
         // Run the sequence
         worldNode.run(SKAction.sequence(actions))
+    }
+    
+    private func setupInventoryButton() {
+        guard let scene = parentScene else { return }
+        
+        // Create inventory button
+        inventoryButton = SKSpriteNode(imageNamed: "inventory_icon") // Add this image to assets
+        inventoryButton.size = CGSize(width: 40, height: 40)
+        inventoryButton.position = CGPoint(x: scene.size.width - 50, y: 50)
+        inventoryButton.name = "inventoryButton"
+        scene.addChild(inventoryButton)
+    }
+    
+    func showInventoryDisplay() {
+        guard let scene = parentScene else { return }
+        
+        // Remove existing inventory display if any
+        inventoryDisplay?.removeFromParent()
+        
+        // Create inventory display container
+        let container = SKNode()
+        
+        // Create semi-transparent background
+        let background = SKShapeNode(rectOf: CGSize(width: scene.size.width * 0.8, height: scene.size.height * 0.8))
+        background.fillColor = .black.withAlphaComponent(0.8)
+        background.strokeColor = .white
+        background.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
+        container.addChild(background)
+        
+        // Add title
+        let title = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        title.text = "Spell Inventory"
+        title.fontSize = 32
+        title.fontColor = .white
+        title.position = CGPoint(x: scene.size.width/2, y: scene.size.height * 0.8)
+        container.addChild(title)
+        
+        // Add close button
+        let closeButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        closeButton.text = "Close"
+        closeButton.fontSize = 24
+        closeButton.fontColor = .white
+        closeButton.name = "closeInventory"
+        closeButton.position = CGPoint(x: scene.size.width/2, y: scene.size.height * 0.25)
+        container.addChild(closeButton)
+        
+        // Display spells in a grid
+        let spellSize: CGFloat = 60
+        let padding: CGFloat = 20
+        let spellsPerRow = 4
+        var row = 0
+        var col = 0
+        
+        // Calculate starting position
+        let startX = scene.size.width/2 - (spellSize + padding) * CGFloat(spellsPerRow-1)/2
+        let startY = scene.size.height * 0.6
+        
+        // Display consumable spells
+        for (spellName, count) in state.consumableSpells where count > 0 {
+            let spellContainer = SKNode()
+            
+            // Get the rarity from the shop items
+            let rarity = ShopItem.spellShopItems.first(where: { $0.name == spellName })?.rarity ?? .basic
+            
+            // Create background for spell slot with rarity outline
+            let slotBackground = SKShapeNode(rectOf: CGSize(width: spellSize + 10, height: spellSize + 10))
+            slotBackground.fillColor = .gray.withAlphaComponent(0.3)
+            slotBackground.strokeColor = rarity.color
+            slotBackground.lineWidth = 2.0
+            slotBackground.position = CGPoint(
+                x: startX + CGFloat(col) * (spellSize + padding),
+                y: startY - CGFloat(row) * (spellSize + padding)
+            )
+            spellContainer.addChild(slotBackground)
+            
+            // Spell icon
+            let spellIcon = SKSpriteNode(imageNamed: spellName)
+            spellIcon.size = CGSize(width: spellSize, height: spellSize)
+            spellIcon.position = CGPoint(
+                x: startX + CGFloat(col) * (spellSize + padding),
+                y: startY - CGFloat(row) * (spellSize + padding)
+            )
+            spellContainer.addChild(spellIcon)
+            
+            // Add count label
+            let countLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+            countLabel.text = "x\(count)"
+            countLabel.fontSize = 16
+            countLabel.fontColor = .white
+            countLabel.position = CGPoint(
+                x: spellIcon.position.x + spellSize/2 - 5,
+                y: spellIcon.position.y - spellSize/2 + 5
+            )
+            countLabel.horizontalAlignmentMode = .right
+            spellContainer.addChild(countLabel)
+            
+            container.addChild(spellContainer)
+            
+            // Update grid position
+            col += 1
+            if col >= spellsPerRow {
+                col = 0
+                row += 1
+            }
+        }
+        
+        container.zPosition = 1000
+        scene.addChild(container)
+        inventoryDisplay = container
+    }
+    
+    func hideInventoryDisplay() {
+        inventoryDisplay?.removeFromParent()
+        inventoryDisplay = nil
+    }
+    
+    func handleInventoryButton(_ touchedNode: SKNode) {
+        if touchedNode.name == "inventoryButton" {
+            showInventoryDisplay()
+        } else if touchedNode.name == "closeInventory" {
+            hideInventoryDisplay()
+        }
     }
 } 

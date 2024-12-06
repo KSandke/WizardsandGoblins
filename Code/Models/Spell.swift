@@ -2,11 +2,11 @@ import Foundation
 import SpriteKit
 
 // Add SpellRarity enum
-enum SpellRarity {
-    case basic
-    case uncommon
-    case rare
-    case legendary
+enum SpellRarity: String {
+    case basic = "Basic"
+    case uncommon = "Uncommon"
+    case rare = "Rare"
+    case legendary = "Legendary"
     
     var color: SKColor {
         switch self {

@@ -407,61 +407,44 @@ class ShopView: SKNode {
     private func createItemButton(item: ShopItem, size: CGSize) -> SKNode {
         let container = SKNode()
         
-        // Button background
-        let backgroundColor: SKColor = playerState.hasConsumableSpell(item.name) ? .gray : .darkGray
-        let background = SKSpriteNode(color: backgroundColor, size: size)
-        background.name = "itemButton_\(item.name)"
+        // Create background with rarity outline
+        let background = SKShapeNode(rectOf: size)
+        background.fillColor = .darkGray.withAlphaComponent(0.8)
+        background.strokeColor = item.rarity.color
+        background.lineWidth = 2.0
         container.addChild(background)
         
-        let padding: CGFloat = 10  // Padding from button edges
-        let maxWidth = size.width - (padding * 2)  // Maximum width for text
+        // Create icon
+        let icon = SKSpriteNode(imageNamed: item.icon)
+        icon.size = CGSize(width: size.width * 0.6, height: size.width * 0.6)
+        icon.position = CGPoint(x: 0, y: size.height * 0.1)
+        container.addChild(icon)
         
-        // Item name - potentially wrap text if too long
+        // Create name label
         let nameLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         nameLabel.text = item.name
-        nameLabel.fontSize = 14  // Reduced font size
-        nameLabel.position = CGPoint(x: 0, y: 30)
-        nameLabel.horizontalAlignmentMode = .center
-        nameLabel.verticalAlignmentMode = .center
-        // Adjust text if too wide
-        while nameLabel.frame.width > maxWidth && nameLabel.fontSize > 10 {
-            nameLabel.fontSize -= 1
-        }
+        nameLabel.fontSize = 16
+        nameLabel.fontColor = item.rarity.color  // Match the outline color
+        nameLabel.position = CGPoint(x: 0, y: -size.height * 0.25)
         container.addChild(nameLabel)
         
-        // Level display
-        let levelLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        levelLabel.text = "Level \(item.level)"
-        levelLabel.fontSize = 12
-        levelLabel.fontColor = .green
-        levelLabel.position = CGPoint(x: 0, y: 10)
-        levelLabel.horizontalAlignmentMode = .center
-        levelLabel.verticalAlignmentMode = .center
-        container.addChild(levelLabel)
-        
-        // Description - wrap text if needed
-        let descLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        descLabel.text = playerState.hasConsumableSpell(item.name) ? "Already Purchased" : item.description
-        descLabel.fontSize = 11  // Smaller font for description
-        descLabel.position = CGPoint(x: 0, y: -10)
-        descLabel.horizontalAlignmentMode = .center
-        descLabel.verticalAlignmentMode = .center
-        // Adjust text if too wide
-        while descLabel.frame.width > maxWidth && descLabel.fontSize > 8 {
-            descLabel.fontSize -= 1
-        }
-        container.addChild(descLabel)
-        
-        // Price
+        // Create price label
         let priceLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        priceLabel.text = playerState.hasConsumableSpell(item.name) ? "" : "\(item.currentPrice) coins"
-        priceLabel.fontSize = 12
+        priceLabel.text = "\(item.currentPrice) coins"
+        priceLabel.fontSize = 14
         priceLabel.fontColor = .yellow
-        priceLabel.position = CGPoint(x: 0, y: -30)
-        priceLabel.horizontalAlignmentMode = .center
-        priceLabel.verticalAlignmentMode = .center
+        priceLabel.position = CGPoint(x: 0, y: -size.height * 0.4)
         container.addChild(priceLabel)
         
+        // Add rarity label
+        let rarityLabel = SKLabelNode(fontNamed: "HelveticaNeue-Italic")
+        rarityLabel.text = item.rarity.rawValue.capitalized
+        rarityLabel.fontSize = 12
+        rarityLabel.fontColor = item.rarity.color  // Match the outline color
+        rarityLabel.position = CGPoint(x: 0, y: -size.height * 0.15)
+        container.addChild(rarityLabel)
+        
+        container.name = "itemButton_\(item.name)"
         return container
     }
     

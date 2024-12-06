@@ -286,25 +286,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
               let startTime = touchStartTime else { return }
         
         let location = touch.location(in: self)
+        let touchedNode = self.atPoint(location)
         let timeDelta = touch.timestamp - startTime
-        let dx = location.x - startLocation.x
-        let dy = location.y - startLocation.y
         
-        // Check if this is a swipe (quick enough and long enough)
-        if timeDelta <= swipeTimeThreshold {
-            // Check if the movement is large enough to be a swipe
-            if abs(dx) >= swipeThreshold || abs(dy) >= swipeThreshold {
-                // Determine primary direction based on larger component
-                let isHorizontalDominant = abs(dx) > abs(dy)
-                
-                // Handle horizontal swipes for spell cycling
-                if isHorizontalDominant {
-                    if dx > 0 {
-                        playerState.cycleSpell()
-                    } else {
-                        playerState.cycleSpellBackwards()
+        // Handle inventory button taps
+        if touchedNode.name == "inventoryButton" || touchedNode.name == "closeInventory" {
+            playerView.handleInventoryButton(touchedNode)
+            return
+        }
+        
+        // Only process swipes if inventory isn't open
+        if playerView.inventoryDisplay == nil {
+            let dx = location.x - startLocation.x
+            let dy = location.y - startLocation.y
+            
+            // Check if this is a swipe (quick enough and long enough)
+            if timeDelta <= swipeTimeThreshold {
+                // Check if the movement is large enough to be a swipe
+                if abs(dx) >= swipeThreshold || abs(dy) >= swipeThreshold {
+                    // Determine primary direction based on larger component
+                    let isHorizontalDominant = abs(dx) > abs(dy)
+                    
+                    // Handle horizontal swipes for spell cycling
+                    if isHorizontalDominant {
+                        if dx > 0 {
+                            playerState.cycleSpell()
+                        } else {
+                            playerState.cycleSpellBackwards()
+                        }
+                        return
                     }
-                    return
                 }
             }
         }
@@ -338,8 +349,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // Handle button taps
-        let touchedNode = nodes(at: location).first
-        if let name = touchedNode?.name {
+        if let name = touchedNode.name {
             switch name {
             case "restartButton":
                 restartGame()
