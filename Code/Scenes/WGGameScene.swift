@@ -507,14 +507,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let nextWaveConfig = getWaveConfig(forWave: currentWave + 1)
         
         let shopView = ShopView(
-            size: self.size, 
+            size: self.size,
             playerState: playerState,
-            config: nextWaveConfig,
-            currentWave: currentWave,
-            playerView: playerView,  // Pass the playerView reference
             onClose: { [weak self] in
                 self?.closeShopView()
-            }
+                self?.isInShop = false
+                self?.startNextWave()
+            },
+            scene: self,
+            playerView: playerView,
+            config: nextWaveConfig
         )
         shopView.zPosition = 1000
         addChild(shopView)
