@@ -167,7 +167,7 @@ class PlayerState: SpellCaster {
     // Simplify spell usage to single wizard
     func useSpell(cost: Int, spellName: String? = nil) -> Bool {
         if let name = spellName {
-            if let spell = availableSpells.first(where: { $0.name == name }), spell.isOneTimeUse {
+            if let spell = availableSpells.first(where: { $0.name == name }) {
                 if let quantity = consumableSpells[name], quantity > 0 {
                     consumableSpells[name] = quantity - 1
                     return true
@@ -176,6 +176,7 @@ class PlayerState: SpellCaster {
             }
         }
         
+        // Use the provided cost (which should be the spell's manaCost)
         if spellCharges >= cost {
             spellCharges -= cost
             return true
