@@ -275,6 +275,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
               let startTime = touchStartTime else { return }
         
         let location = touch.location(in: self)
+        let touchedNode = nodes(at: location).first
+        
+        // Handle special button tap
+        if let touchedNode = touchedNode, touchedNode.name == "specialButton" {
+            if !playerView.handleSpecialButtonTap(touch.timestamp) {
+                // Single tap - use special if not on cooldown
+                if let special = playerState.getCurrentSpecial(), special.canUse() {
+                    useSpecial(at: location)
+                }
+            }
+            return
+        }
         
         // Calculate swipe distance and time
         let dx = location.x - startLocation.x
@@ -731,5 +743,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Run animation once
         animationNode.run(sequence)
+    }
+    
+    func useSpecial(at location: CGPoint) {
+        guard let special = playerState.getCurrentSpecial(),
+              special.canUse() else { return }
+        
+        let casterPosition = playerView.playerPosition
+        
+        if special.use(from: casterPosition, to: location, by: playerState, in: self) {
+            playerView.updateSpecialCooldown()
+        }
     }
 }

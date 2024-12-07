@@ -44,6 +44,11 @@ class PlayerView: SKNode {
     // Add new property for multiplier label
     private var multiplierLabel: SKLabelNode!
     
+    // Special ability UI
+    private var specialButton: SKSpriteNode!
+    private var specialCooldownOverlay: SKShapeNode!
+    private var lastSpecialTapTime: TimeInterval = 0
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -59,6 +64,7 @@ class PlayerView: SKNode {
         
         setupBindings()
         setupUI()
+        setupSpecialButton()
     }
     
     // Add required initializer
@@ -613,4 +619,88 @@ class PlayerView: SKNode {
         worldNode.run(SKAction.sequence(actions))
     }
 
-} 
+    private func setupSpecialButton() {
+        guard let scene = parentScene,
+              let currentSpecial = state.getCurrentSpecial() else { return }
+        
+        specialButton = SKSpriteNode(imageNamed: currentSpecial.name)
+        specialButton.size = CGSize(width: 60, height: 60)
+        specialButton.position = CGPoint(x: scene.frame.maxX - 80,
+                                       y: scene.frame.minY + 80)
+        specialButton.name = "specialButton"
+        addChild(specialButton)
+        
+        specialCooldownOverlay = SKShapeNode(circleOfRadius: 30)
+        specialCooldownOverlay.fillColor = SKColor.black.withAlphaComponent(0.5)
+        specialCooldownOverlay.strokeColor = .clear
+        specialCooldownOverlay.position = specialButton.position
+        specialCooldownOverlay.isHidden = true
+        addChild(specialCooldownOverlay)
+        
+        let updateAction = SKAction.run { [weak self] in
+            self?.updateSpecialCooldown()
+        }
+        let wait = SKAction.wait(forDuration: 0.1)
+        run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
+    }
+    
+    private func updateSpecialCooldown() {
+        // Update cooldown overlay
+        if state.specialCooldown > 0 {
+            specialCooldownOverlay.isHidden = false
+            specialCooldownOverlay.xScale = CGFloat(state.specialCooldown / state.specialCooldownMax)
+        } else {
+            specialCooldownOverlay.isHidden = true
+        }
+    }
+    
+    func handleSpecialButtonTap(_ currentTime: TimeInterval) -> Bool {
+        let doubleTapThreshold: TimeInterval = 0.3
+        
+        if currentTime - lastSpecialTapTime < doubleTapThreshold {
+            // Double tap detected - cycle special
+            state.cycleSpecial()
+            updateSpecialButton()
+            lastSpecialTapTime = 0 // Reset to prevent triple-tap
+            return true
+        }
+        
+        lastSpecialTapTime = currentTime
+        return false
+    }
+    
+    private func updateSpecialCooldown() {
+        guard let currentSpecial = state.getCurrentSpecial() else { return }
+        
+        if !currentSpecial.canUse() {
+            specialCooldownOverlay.isHidden = false
+            
+            // Calculate remaining cooldown percentage
+            if let lastUsed = currentSpecial.lastUsedTime {
+                let elapsed = Date().timeIntervalSince(lastUsed)
+                let percentage = max(0, min(1, elapsed / currentSpecial.cooldown))
+                
+                // Create arc for remaining cooldown
+                let path = CGMutablePath()
+                let center = CGPoint.zero
+                path.move(to: center)
+                path.addArc(center: center,
+                           radius: 30,
+                           startAngle: -.pi / 2,
+                           endAngle: -.pi / 2 + (.pi * 2 * (1 - percentage)),
+                           clockwise: false)
+                path.addLine(to: center)
+                
+                specialCooldownOverlay.path = path
+            }
+        } else {
+            specialCooldownOverlay.isHidden = true
+        }
+    }
+    
+    func updateSpecialButton() {
+        guard let currentSpecial = state.getCurrentSpecial() else { return }
+        specialButton.texture = SKTexture(imageNamed: currentSpecial.name)
+        updateSpecialCooldown()
+    }
+}

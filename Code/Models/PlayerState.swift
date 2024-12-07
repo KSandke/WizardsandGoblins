@@ -72,8 +72,6 @@ class PlayerState: SpellCaster {
     // Add playerPosition property
     var playerPosition: CGPoint = .zero
     
-    var consumableSpells: [String: Int] = [:] // Tracks spell name and quantity
-    
     // Add after the existing properties
     // Add new properties for combo tracking
     var currentCombo: Int = 0 {
@@ -92,6 +90,20 @@ class PlayerState: SpellCaster {
     // Add callback for UI updates
     var onComboChanged: ((Int) -> Void)?
     
+    // New properties for specials
+    private var specialSlots: [Special?] = [nil, nil, nil]
+    private var selectedSpecialIndex: Int = 0
+    var currentSpecial: Special? {
+        get { specialSlots[selectedSpecialIndex] }
+        set {
+            specialSlots[selectedSpecialIndex] = newValue
+            onSpecialChanged?(newValue, selectedSpecialIndex)
+        }
+    }
+    
+    // Add callback for special changes
+    var onSpecialChanged: ((Special?, Int) -> Void)?
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
@@ -107,6 +119,9 @@ class PlayerState: SpellCaster {
             FireballSpell(),
             IceSpell(),
         ]
+        
+        // Initialize with PredatorMissile special in first slot
+        specialSlots[0] = PredatorMissile()
     }
     
     // Callbacks for binding
@@ -165,17 +180,7 @@ class PlayerState: SpellCaster {
     }
     
     // Simplify spell usage to single wizard
-    func useSpell(cost: Int, spellName: String? = nil) -> Bool {
-        if let name = spellName {
-            if let spell = availableSpells.first(where: { $0.name == name }) {
-                if let quantity = consumableSpells[name], quantity > 0 {
-                    consumableSpells[name] = quantity - 1
-                    return true
-                }
-                return false
-            }
-        }
-        
+    func useSpell(cost: Int) -> Bool {
         // Use the provided cost (which should be the spell's manaCost)
         if spellCharges >= cost {
             spellCharges -= cost
@@ -224,18 +229,6 @@ class PlayerState: SpellCaster {
         playerPosition = newPosition
     }
     
-    func addConsumableSpell(_ spellName: String, quantity: Int = 1) {
-        consumableSpells[spellName] = (consumableSpells[spellName] ?? 0) + quantity
-    }
-    
-    func hasConsumableSpell(_ spellName: String) -> Bool {
-        return (consumableSpells[spellName] ?? 0) > 0
-    }
-    
-    func getConsumableSpellCount(_ spellName: String) -> Int {
-        return consumableSpells[spellName] ?? 0
-    }
-    
     // Add new method for combo handling
     func incrementCombo() {
         // Reset existing timer if it exists
@@ -274,5 +267,47 @@ class PlayerState: SpellCaster {
         
         let nextIndex = (currentIndex + 1) % availableSpells.count
         return availableSpells[nextIndex]
+    }
+    
+    // Special management functions
+    func getCurrentSpecial() -> Special? {
+        return specialSlots[selectedSpecialIndex]
+    }
+    
+    func cycleSpecialSlot() {
+        selectedSpecialIndex = (selectedSpecialIndex + 1) % specialSlots.count
+        onSpecialChanged?(currentSpecial, selectedSpecialIndex)
+    }
+    
+    func addSpecial(_ special: Special) -> Bool {
+        // Find first empty slot
+        if let emptyIndex = specialSlots.firstIndex(where: { $0 == nil }) {
+            specialSlots[emptyIndex] = special
+            onSpecialChanged?(special, emptyIndex)
+            return true
+        }
+        return false // No empty slots available
+    }
+    
+    func replaceSpecial(_ special: Special, at index: Int) {
+        guard index >= 0 && index < specialSlots.count else { return }
+        specialSlots[index] = special
+        onSpecialChanged?(special, index)
+    }
+    
+    func removeSpecial(at index: Int) {
+        guard index >= 0 && index < specialSlots.count else { return }
+        specialSlots[index] = nil
+        onSpecialChanged?(nil, index)
+    }
+    
+    func getSpecialSlots() -> [Special?] {
+        return specialSlots
+    }
+    
+    func selectSpecialSlot(_ index: Int) {
+        guard index >= 0 && index < specialSlots.count else { return }
+        selectedSpecialIndex = index
+        onSpecialChanged?(currentSpecial, selectedSpecialIndex)
     }
 }
