@@ -54,6 +54,7 @@
 		925D72F52CF1668D00E11E34 /* ArcaneStormEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EC2CF1668D00E11E34 /* ArcaneStormEmitter.swift */; };
 		925D72F62CF1668D00E11E34 /* DivineWrathEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */; };
 		925D72F72CF1668D00E11E34 /* BlizzardEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */; };
+		92A076C42D050797004A79DE /* GameConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A076C22D050797004A79DE /* GameConfig.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +129,7 @@
 		925D72EF2CF1668D00E11E34 /* InfernoEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfernoEmitter.swift; sourceTree = "<group>"; };
 		925D72F02CF1668D00E11E34 /* MeteorShowerEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeteorShowerEmitter.swift; sourceTree = "<group>"; };
 		925D72F12CF1668D00E11E34 /* NecromancersGripEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NecromancersGripEmitter.swift; sourceTree = "<group>"; };
+		92A076C22D050797004A79DE /* GameConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -200,6 +202,7 @@
 		14101F0C2CCA215B00BD8C7D /* Code */ = {
 			isa = PBXGroup;
 			children = (
+				92A076C32D050797004A79DE /* Config */,
 				14DDF43F2CF1551100A0EBAB /* Effects */,
 				14DDF42D2CF14C5D00A0EBAB /* Particles */,
 				14EDC1722CE96559002EFCF1 /* Tutorial */,
@@ -346,6 +349,14 @@
 				14EDC1712CE96559002EFCF1 /* WGTutorialManager.swift */,
 			);
 			path = Tutorial;
+			sourceTree = "<group>";
+		};
+		92A076C32D050797004A79DE /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				92A076C22D050797004A79DE /* GameConfig.swift */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -498,6 +509,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1443E97E2CE48A9E001C028C /* Spell.swift in Sources */,
+				92A076C42D050797004A79DE /* GameConfig.swift in Sources */,
 				148974842CE49467001F7350 /* Goblin.swift in Sources */,
 				145402852CCB60A400624AF9 /* WGMainMenu.swift in Sources */,
 				14EDC1732CE96559002EFCF1 /* WGTutorialManager.swift in Sources */,
