@@ -34,7 +34,7 @@ class Spell {
         spellNode.zRotation = angle + .pi / 2 + .pi
 
         let distance = casterPosition.distance(to: targetPosition)
-        let adjustedSpeed = GameConfig.defaultSpellSpeedMultiplier * playerState.spellSpeedMultiplier
+        let adjustedSpeed = GameConfig.defaultSpellSpeed * playerState.spellSpeedMultiplier
         let travelDuration = TimeInterval(distance / adjustedSpeed)
 
         let moveAction = SKAction.move(to: targetPosition, duration: travelDuration)
