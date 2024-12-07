@@ -28,5 +28,5 @@ struct GameConfig {
     static let defaultCastlePosition: CGPoint = CGPoint(x: 0, y: 100) // x will be adjusted by screen width
 
     // Spell
-    static let deafultSpellSpeed: CGFloat = 400
+    static let defaultSpellSpeed: CGFloat = 400
 }
