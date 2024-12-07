@@ -119,7 +119,7 @@ class PlayerView: SKNode {
         
         castleHealthBar.fillColor = .gray
         castleHealthBar.strokeColor = .black
-        castleHealthBar.position = CGPoint(x: scene.size.width/2, y: 25)
+        castleHealthBar.position = CGPoint(x: 120, y: 25)
         scene.addChild(castleHealthBar)
         
         castleHealthFill.fillColor = .red
@@ -181,39 +181,41 @@ class PlayerView: SKNode {
     private func setupChargeSegments(segments: inout [SKShapeNode], atPosition pos: CGPoint) {
         guard let scene = parentScene else { return }
         
-        // Calculate maximum available width
-        let maxAvailableWidth = scene.size.width * 0.3  // 30% of screen width
-        
-        // Base segment sizes
+        let maxAvailableWidth = scene.size.width * 0.3
         let baseSegmentWidth: CGFloat = 18
         let baseSegmentHeight: CGFloat = 10
         let baseSpacing: CGFloat = 2
         
-        // Calculate total width needed for base sizes
-        let baseWidth = (baseSegmentWidth * CGFloat(state.maxSpellCharges)) + 
-                       (baseSpacing * CGFloat(state.maxSpellCharges - 1))
+        // Break down the complex width calculations
+        let totalSegmentWidth = baseSegmentWidth * CGFloat(state.maxSpellCharges)
+        let totalSpacingWidth = baseSpacing * CGFloat(state.maxSpellCharges - 1)
+        let baseWidth = totalSegmentWidth + totalSpacingWidth
         
-        // Calculate scale factor if needed
         let scaleFactor = min(1.0, maxAvailableWidth / baseWidth)
         
-        // Apply scale to measurements
         let segmentWidth = baseSegmentWidth * scaleFactor
         let segmentHeight = baseSegmentHeight * scaleFactor
         let spacing = baseSpacing * scaleFactor
         
-        // Calculate total width with scaled measurements
-        let totalWidth = (segmentWidth * CGFloat(state.maxSpellCharges)) + 
-                        (spacing * CGFloat(state.maxSpellCharges - 1))
+        // Calculate total width separately
+        let scaledSegmentWidth = segmentWidth * CGFloat(state.maxSpellCharges)
+        let scaledSpacingWidth = spacing * CGFloat(state.maxSpellCharges - 1)
+        let totalWidth = scaledSegmentWidth + scaledSpacingWidth
         
-        // Center the segments below the wizard
-        let startX = pos.x - (totalWidth / 2)
+        let startX = 20
         
         for i in 0..<state.maxSpellCharges {
             let segment = SKShapeNode(rectOf: CGSize(width: segmentWidth, height: segmentHeight))
             segment.fillColor = .blue
             segment.strokeColor = .black
+            
+            // Calculate x position in steps
+            let offset = CGFloat(i) * (segmentWidth + spacing)
+            let halfSegmentWidth = segmentWidth / 2
+            let xPosition = CGFloat(startX) + offset + halfSegmentWidth
+            
             segment.position = CGPoint(
-                x: startX + (CGFloat(i) * (segmentWidth + spacing)) + (segmentWidth / 2),
+                x: xPosition,
                 y: pos.y - 50
             )
             scene.addChild(segment)
