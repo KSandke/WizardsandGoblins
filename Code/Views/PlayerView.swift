@@ -139,7 +139,7 @@ class PlayerView: SKNode {
         loadCastingAnimation()
         
         wizard.size = CGSize(width: 125, height: 125)
-        wizard.position = CGPoint(x: scene.size.width * 0.5, y: 100)
+        wizard.position = CGPoint(x: 80, y: 100)
         scene.addChild(wizard)
     }
     
