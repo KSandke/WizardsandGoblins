@@ -16,46 +16,57 @@ class FrostEffect: SpellEffect {
     }
 }
 
-class PlayerState {
+protocol SpellCaster {
+    var currentSpell: Spell { get set }
+    var spellCharges: Int { get set }
+    var maxSpellCharges: Int { get set }
+    var spellPowerMultiplier: CGFloat { get set }
+    var spellAOEMultiplier: CGFloat { get set }
+    var spellSpeedMultiplier: CGFloat { get set }
+    func cycleSpell()
+    func cycleSpellBackwards()
+}
+
+class PlayerState: SpellCaster {
     // Castle state
-    var castleHealth: CGFloat = 100 {
+    var castleHealth: CGFloat = GameConfig.defaultCastleHealth {
         didSet {
             onCastleHealthChanged?(castleHealth)
         }
     }
-    let maxCastleHealth: CGFloat = 100
+    let maxCastleHealth: CGFloat = GameConfig.defaultCastleHealth
     
     // Wizard state
-    var spellCharges: Int = 5 {
+    var spellCharges: Int = GameConfig.defaultSpellCharges {
         didSet {
             onPlayerChargesChanged?(spellCharges)
         }
     }
-    var maxSpellCharges: Int = 5 {
+    var maxSpellCharges: Int = GameConfig.defaultMaxSpellCharges {
         didSet {
             onMaxSpellChargesChanged?(maxSpellCharges)
         }
     }
     
-    // Single spell property instead of primary/secondary
     var currentSpell: Spell {
         didSet {
             onSpellChanged?(currentSpell)
         }
     }
     
-    // New properties for upgrades
-    var maxHealth: CGFloat = 100 {
+    var maxHealth: CGFloat = GameConfig.defaultCastleHealth {
         didSet {
-            // When maxHealth increases, increase current health proportionally
             let healthPercentage = castleHealth / oldValue
             castleHealth = maxHealth * healthPercentage
         }
     }
     
-    var spellPowerMultiplier: CGFloat = 1.0
+    var spellPowerMultiplier: CGFloat = GameConfig.defaultSpellPowerMultiplier
+    var spellAOEMultiplier: CGFloat = GameConfig.defaultSpellAOEMultiplier
+    var spellSpeedMultiplier: CGFloat = GameConfig.defaultSpellSpeedMultiplier
+    var manaRegenRate: CGFloat = GameConfig.defaultManaRegenRate
     
-    // Add this property to track available spells
+    // New properties for upgrades
     private var availableSpells: [Spell] = []
     
     // Add playerPosition property
@@ -64,10 +75,6 @@ class PlayerState {
     var consumableSpells: [String: Int] = [:] // Tracks spell name and quantity
     
     // Add after the existing properties
-    var spellAOEMultiplier: CGFloat = 1.0
-    var spellSpeedMultiplier: CGFloat = 1.0
-    var manaRegenRate: CGFloat = 1.0
-    
     // Add new properties for combo tracking
     var currentCombo: Int = 0 {
         didSet {
@@ -80,7 +87,7 @@ class PlayerState {
     }
     var highestCombo: Int = 0
     var comboTimer: Timer?
-    let comboTimeout: TimeInterval = 3.0 // Adjust this value to control combo duration
+    let comboTimeout: TimeInterval = GameConfig.comboTimeoutDuration
     
     // Add callback for UI updates
     var onComboChanged: ((Int) -> Void)?
@@ -149,7 +156,7 @@ class PlayerState {
         castleHealth = maxHealth
         score = 0
         coins = 0
-        spellPowerMultiplier = 1.0  // Reset spell power
+        spellPowerMultiplier = GameConfig.defaultSpellPowerMultiplier  // Reset spell power
         spellCharges = maxSpellCharges
         currentCombo = 0
         highestCombo = 0
@@ -196,7 +203,6 @@ class PlayerState {
         currentSpell = spell
     }
     
-    // Add this new method to PlayerState
     func getCurrentSpellName() -> String {
         return currentSpell.name
     }
@@ -209,12 +215,10 @@ class PlayerState {
         }
     }
     
-    // Add this method to get available spells
     func getAvailableSpells() -> [Spell] {
         return availableSpells
     }
     
-    // Add method to update player position
     func updatePlayerPosition(_ newPosition: CGPoint) {
         playerPosition = newPosition
     }
@@ -270,4 +274,4 @@ class PlayerState {
         let nextIndex = (currentIndex + 1) % availableSpells.count
         return availableSpells[nextIndex]
     }
-} 
+}

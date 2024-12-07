@@ -12,54 +12,45 @@ import CoreGraphics
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
-    // Player State and View
+    // MARK: - Dependencies
     var playerState: PlayerState!
     var playerView: PlayerView!
-    
-    // Background
-    var background: SKSpriteNode!
-    
-    // Goblin Manager
     var goblinManager: Goblin!
-    var goblinSpawnInterval: TimeInterval = 2.0  // Changed to variable
-    
-    // Game over properties
-    var restartButton: SKLabelNode!
-    var mainMenuButton: SKLabelNode!
-    var currentWave: Int = 1
-    var remainingGoblins: Int = 10
-    
-    var isSpawningEnabled = true
-    var totalGoblinsSpawned = 0
-    var maxGoblinsPerWave = 10
-    
-    // New variables for wave management
-    var isInShop = false  // To track if the shop view is active
-    var isGameOver = false
-
-    // Update the property declaration
-    var waveConfigs: [Int: WaveConfig] = [:]
-    
-    // Add properties for mana potion drop chance and spell charge restore amount
-    var manaPotionDropChance: Double = 0.1  // 10% chance by default
-    var spellChargeRestoreAmount: Int = 2
-    
-    // Add to your existing properties
     private var tutorialManager: TutorialManager!
-    private var hasTutorialBeenShown: Bool = false
     
-    var castlePosition: CGPoint {
-        return CGPoint(x: size.width / 2, y: 100) // Adjust Y position as needed
-    }
+    // MARK: - Game State
+    private(set) var currentWave: Int = 1
+    private(set) var isGameOver = false
+    private(set) var isInShop = false
+    private(set) var isSpawningEnabled = true
+    private(set) var hasTutorialBeenShown = false
     
-    // Add this property with other game properties
+    // MARK: - Wave Management
+    private var waveConfigs: [Int: WaveConfig] = [:]
+    private var totalGoblinsSpawned = 0
+    private var remainingGoblins = GameConfig.defaultMaxGoblinsPerWave
+    private var maxGoblinsPerWave = GameConfig.defaultMaxGoblinsPerWave
+    private var goblinSpawnInterval: TimeInterval = GameConfig.defaultGoblinSpawnInterval
     private var currentWaveDamageTaken: CGFloat = 0
     
-    // Add these properties at the top of GameScene class
+    // MARK: - UI Elements
+    private var background: SKSpriteNode!
+    private var restartButton: SKLabelNode!
+    private var mainMenuButton: SKLabelNode!
+    
+    // MARK: - Combat Properties
+    private var manaPotionDropChance: Double = GameConfig.manaPotionDropChance
+    private var spellChargeRestoreAmount: Int = GameConfig.spellChargeRestoreAmount
+    
+    // MARK: - Input Handling
     private var touchStartLocation: CGPoint?
     private var touchStartTime: TimeInterval?
-    private let swipeThreshold: CGFloat = 50.0  // Minimum distance for a swipe
-    private let swipeTimeThreshold: TimeInterval = 0.3  // Maximum time for a swipe
+    private let swipeThreshold: CGFloat = GameConfig.swipeThreshold
+    private let swipeTimeThreshold: TimeInterval = GameConfig.swipeTimeThreshold
+    
+    var castlePosition: CGPoint {
+        return CGPoint(x: size.width / 2, y: GameConfig.defaultCastlePosition.y)
+    }
     
     override func didMove(to view: SKView) {
         // Initialize Player State and View
@@ -123,7 +114,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let regenerateCharges = SKAction.run { [weak self] in
             self?.playerState.regenerateSpellCharges()
         }
-        let wait = SKAction.wait(forDuration: 1.0)
+        let regenInterval = 1.0 / TimeInterval(playerState.manaRegenRate)
+        let wait = SKAction.wait(forDuration: regenInterval)
         let regenSequence = SKAction.sequence([wait, regenerateCharges])
         let repeatRegen = SKAction.repeatForever(regenSequence)
         self.run(repeatRegen, withKey: "regenerateCharges")
@@ -524,7 +516,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Reset wave and goblin counters
         currentWave = 1
-        remainingGoblins = 10
+        remainingGoblins = GameConfig.defaultMaxGoblinsPerWave
         
         // Reset spawning properties
         isSpawningEnabled = false
@@ -737,4 +729,3 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         animationNode.run(sequence)
     }
 }
-

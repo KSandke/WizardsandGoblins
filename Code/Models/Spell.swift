@@ -34,8 +34,8 @@ class Spell {
         spellNode.zRotation = angle + .pi / 2 + .pi
 
         let distance = casterPosition.distance(to: targetPosition)
-        let baseSpeed: CGFloat = 400
-        let travelDuration = TimeInterval(distance / baseSpeed)
+        let adjustedSpeed = GameConfig.defaultSpellSpeedMultiplier * playerState.spellSpeedMultiplier
+        let travelDuration = TimeInterval(distance / adjustedSpeed)
 
         let moveAction = SKAction.move(to: targetPosition, duration: travelDuration)
         let applyEffect = SKAction.run { [weak self, weak scene] in
@@ -62,7 +62,7 @@ class Spell {
         if let gameScene = scene as? GameScene {
             let modifiedSpell = Spell(
                 name: self.name,
-                aoeRadius: self.aoeRadius,
+                aoeRadius: self.aoeRadius * gameScene.playerState.spellAOEMultiplier,
                 duration: self.duration,
                 damage: self.damage * gameScene.playerState.spellPowerMultiplier,
                 effect: self.effect,
@@ -1714,7 +1714,7 @@ class ShadowPuppetEffect: SpellEffect {
                 .filter({ $0 !== goblin })
                 .min(by: { $0.sprite.position.distance(to: shadowSprite.position) <
                           $1.sprite.position.distance(to: shadowSprite.position) }) {
-                
+
                 let attackRange: CGFloat = 50
                 let distance = shadowSprite.position.distance(to: nearestGoblin.sprite.position)
                 
