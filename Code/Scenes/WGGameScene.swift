@@ -283,32 +283,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
               let startTime = touchStartTime else { return }
         
         let location = touch.location(in: self)
-        let wizardPos = playerView.playerPosition
         
-        // Check if touch started near wizard (wider horizontal area)
-        let horizontalDistance = abs(startLocation.x - wizardPos.x)
-        let verticalDistance = abs(startLocation.y - wizardPos.y)
-        if horizontalDistance < 150 && verticalDistance < 50 {  // Increased horizontal range, kept vertical tight
-            // Calculate swipe
-            let dx = location.x - startLocation.x
-            let timeDelta = touch.timestamp - startTime
-            
-            // Only process swipe if it was quick enough
-            if timeDelta <= swipeTimeThreshold {
-                if abs(dx) >= swipeThreshold {
-                    // Swipe detected
-                    if dx > 0 {
-                        // Swipe right
-                        playerState.cycleSpell()
-                    } else {
-                        // Swipe left - cycle backwards
-                        playerState.cycleSpellBackwards()
-                    }
-                    return
+        // Calculate swipe distance and time
+        let dx = location.x - startLocation.x
+        let timeDelta = touch.timestamp - startTime
+        
+        // Only process swipe if it was quick enough
+        if timeDelta <= swipeTimeThreshold {
+            if abs(dx) >= swipeThreshold {
+                // Swipe detected
+                if dx > 0 {
+                    // Swipe right
+                    playerState.cycleSpell()
+                } else {
+                    // Swipe left - cycle backwards
+                    playerState.cycleSpellBackwards()
                 }
+                return
             }
         }
-        
         
         // Handle tutorial taps first
         if tutorialManager.isTutorialActive {
@@ -330,7 +323,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
-        // Handle spell cycling
+        // Handle spell cycling via touch on spell icon
         for node in nodes(at: location) {
             if node.name == "cycleSpell" {
                 playerView.handleSpellCycleTouch(node)
