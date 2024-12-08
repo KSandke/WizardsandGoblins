@@ -199,6 +199,11 @@ class Special {
         return true
     }
     
+
+    protocol SpellEffect {
+        func apply(spell: Special, on goblin: Goblin.GoblinContainer)
+    }
+
     // private func applyEffect(at position: CGPoint, in scene: SKScene) {
     //     guard let gameScene = scene as? GameScene else { return }
         
