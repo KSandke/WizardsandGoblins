@@ -200,7 +200,7 @@ class Special {
     }
     
 
-    protocol SpellEffect {
+    protocol SpecialEffect {
         func apply(spell: Special, on goblin: Goblin.GoblinContainer)
     }
 
