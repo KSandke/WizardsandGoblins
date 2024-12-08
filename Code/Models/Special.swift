@@ -19,7 +19,7 @@ class Special {
     let rarity: ItemRarity
     private var lastUsedTime: Date?
 
-    init(name: String, aoeRadius: CGFloat, aoeColor: SKColor, duration: TimeInterval, damage: CGFloat, effect: SpellEffect?, cooldown: TimeInterval, targetingMode: TargetingMode, rarity: ItemRarity = .common) {
+    init(name: String, aoeRadius: CGFloat, aoeColor: SKColor, duration: TimeInterval, damage: CGFloat, effect: SpecialEffect?, cooldown: TimeInterval, targetingMode: TargetingMode, rarity: ItemRarity = .common) {
         self.name = name
         self.aoeRadius = aoeRadius
         self.aoeColor = aoeColor
