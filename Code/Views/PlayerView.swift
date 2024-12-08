@@ -447,17 +447,17 @@ class PlayerView: SKNode {
     }
 
 
-    // Helper method to create spell instance
-    private func createSpell(named spellName: String) -> Spell {
-        // Add cases for each spell type
-        switch spellName {
-        case "AC130": return AC130Spell()
-        case "TacticalNuke": return TacticalNukeSpell()
-        case "PredatorMissile": return PredatorMissileSpell()
-        // Add cases for other spells...
-        default: return FireballSpell() // Default fallback
-        }
-    }
+    // // Helper method to create spell instance
+    // private func createSpell(named spellName: String) -> Spell {
+    //     // Add cases for each spell type
+    //     switch spellName {
+    //     case "AC130": return AC130Spell()
+    //     case "TacticalNuke": return TacticalNukeSpell()
+    //     case "PredatorMissile": return PredatorMissileSpell()
+    //     // Add cases for other spells...
+    //     default: return FireballSpell() // Default fallback
+    //     }
+    // }
 
     private func setupComboLabel() {
         guard let scene = parentScene else { return }
@@ -650,7 +650,7 @@ class PlayerView: SKNode {
         
         if currentTime - lastSpecialTapTime < doubleTapThreshold {
             // Double tap detected - cycle special
-            state.cycleSpecial()
+            state.cycleSpecialSlot()
             updateSpecialButton()
             lastSpecialTapTime = 0 // Reset to prevent triple-tap
             return true
