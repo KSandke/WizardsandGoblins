@@ -199,20 +199,20 @@ class Special {
         return true
     }
     
-    private func applyEffect(at position: CGPoint, in scene: SKScene) {
-        guard let gameScene = scene as? GameScene else { return }
+    // private func applyEffect(at position: CGPoint, in scene: SKScene) {
+    //     guard let gameScene = scene as? GameScene else { return }
         
-        let modifiedSpecial = Special(
-            name: self.name,
-            aoeRadius: self.aoeRadius,
-            aoeColor: self.aoeColor,
-            duration: self.duration,
-            damage: self.damage * gameScene.playerState.spellPowerMultiplier,
-            effect: self.effect,
-            cooldown: self.cooldown,
-            targetingMode: self.targetingMode,
-            rarity: self.rarity
-        )
-        gameScene.applySpecial(modifiedSpecial, at: position)
-    }
+    //     let modifiedSpecial = Special(
+    //         name: self.name,
+    //         aoeRadius: self.aoeRadius,
+    //         aoeColor: self.aoeColor,
+    //         duration: self.duration,
+    //         damage: self.damage * gameScene.playerState.spellPowerMultiplier,
+    //         effect: self.effect,
+    //         cooldown: self.cooldown,
+    //         targetingMode: self.targetingMode,
+    //         rarity: self.rarity
+    //     )
+    //     gameScene.applySpecial(modifiedSpecial, at: position)
+    // }
 }
