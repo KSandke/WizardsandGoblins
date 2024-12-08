@@ -355,10 +355,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func castSpell(to location: CGPoint) {
         let casterPosition = playerView.playerPosition
         let spell = playerState.getCurrentSpell()
-        
-        // Check if player has enough mana for the spell
-        if playerState.useSpell(cost: spell.manaCost) {
-            spell.cast(from: casterPosition, to: location, by: playerState, in: self)
+
+        if(spell.cast(from: casterPosition, to: location, by: playerState, in: self)) {
             playerView.animateSpellCast()
         }
     }
