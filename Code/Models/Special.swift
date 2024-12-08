@@ -71,19 +71,24 @@ class Special {
         let fadeOut = SKAction.fadeAlpha(to: 0.0, duration: 0.2)
         let remove = SKAction.removeFromParent()
         
-        flash.run(SKAction.sequence([fadeIn, fadeOut, remove]))
-        
-        // Apply effect to all goblins with modified damage
-        let modifiedDamage = damage * playerState.spellPowerMultiplier
-        let allGoblins = scene.goblinManager.getGoblins()
-        for goblin in allGoblins {
-            goblin.applyDamage(modifiedDamage)
-            if let effect = effect {
-                effect.apply(spell: self, on: goblin)
+        // Apply damage after the animation completes
+        let applyDamage = SKAction.run { [weak self] in
+            guard let self = self else { return }
+            // Apply effect to all goblins with modified damage
+            let modifiedDamage = self.damage * playerState.spellPowerMultiplier
+            let allGoblins = scene.goblinManager.getGoblins()
+            for goblin in allGoblins {
+                goblin.applyDamage(modifiedDamage)
+                if let effect = self.effect {
+                    effect.apply(spell: self, on: goblin)
+                }
             }
         }
         
-        return !allGoblins.isEmpty
+        // Sequence the animations and damage application
+        flash.run(SKAction.sequence([fadeIn, fadeOut, remove, applyDamage]))
+        
+        return !scene.goblinManager.getGoblins().isEmpty
     }
     
     private func useMaxHealthTargeting(from casterPosition: CGPoint, by playerState: PlayerState, in scene: GameScene) -> Bool {
@@ -115,14 +120,19 @@ class Special {
         let fadeOut = SKAction.fadeOut(withDuration: 0.2)
         let remove = SKAction.removeFromParent()
         
-        targetEffect.run(SKAction.sequence([scaleUp, fadeOut, remove]))
-        
-        // Apply modified damage and effect
-        let modifiedDamage = damage * playerState.spellPowerMultiplier
-        target.applyDamage(modifiedDamage)
-        if let effect = effect {
-            effect.apply(spell: self, on: target)
+        // Apply damage after animation completes
+        let applyDamage = SKAction.run { [weak self] in
+            guard let self = self else { return }
+            // Apply modified damage and effect
+            let modifiedDamage = self.damage * playerState.spellPowerMultiplier
+            target.applyDamage(modifiedDamage)
+            if let effect = self.effect {
+                effect.apply(spell: self, on: target)
+            }
         }
+        
+        // Run the complete sequence
+        targetEffect.run(SKAction.sequence([scaleUp, fadeOut, remove, applyDamage]))
         
         return true
     }
@@ -158,8 +168,8 @@ class Special {
         let moveAction = SKAction.move(to: target.sprite.position, duration: travelDuration)
         let rotateAction = SKAction.rotate(byAngle: .pi * 2, duration: travelDuration)
         
-        // Create impact effect
-        let createImpact = SKAction.run { [weak self] in
+        // Create impact effect and apply damage
+        let createImpactAndDamage = SKAction.run { [weak self] in
             guard let self = self else { return }
             
             // Create visual effect at target with modified AOE size
@@ -172,10 +182,10 @@ class Special {
             scene.addChild(targetEffect)
             
             // Animate the impact
-            let scaleUp = SKAction.scale(to: 1.5, duration: 0.2)
-            let fadeOut = SKAction.fadeOut(withDuration: 0.2)
-            let remove = SKAction.removeFromParent()
-            targetEffect.run(SKAction.sequence([scaleUp, fadeOut, remove]))
+            let impactScaleUp = SKAction.scale(to: 1.5, duration: 0.2)
+            let impactFadeOut = SKAction.fadeOut(withDuration: 0.2)
+            let impactRemove = SKAction.removeFromParent()
+            targetEffect.run(SKAction.sequence([impactScaleUp, impactFadeOut, impactRemove]))
             
             // Apply modified damage and effect
             let modifiedDamage = self.damage * playerState.spellPowerMultiplier
@@ -190,7 +200,7 @@ class Special {
         // Run the complete sequence
         let sequence = SKAction.sequence([
             SKAction.group([moveAction, rotateAction]),
-            createImpact,
+            createImpactAndDamage,
             removeSpecial
         ])
         
