@@ -55,17 +55,16 @@ class Spell {
     }
 
     func applyEffect(at position: CGPoint, in scene: SKScene) {
-
         if let gameScene = scene as? GameScene {
             let modifiedSpell = Spell(
                 name: self.name,
-                aoeRadius: self.aoeRadius * gameScene.playerState.spellAOEMultiplier, aoeColor: <#SKColor#>,
+                aoeRadius: self.aoeRadius * gameScene.playerState.spellAOEMultiplier,
+                aoeColor: self.aoeColor,
                 duration: self.duration,
                 damage: self.damage * gameScene.playerState.spellPowerMultiplier,
                 effect: self.effect,
                 rarity: self.rarity
             )
-
             let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius * gameScene.playerState.spellAOEMultiplier)
             aoeCircle.fillColor = aoeColor
             aoeCircle.strokeColor = .red
@@ -76,14 +75,14 @@ class Spell {
 
 
             gameScene.applySpell(modifiedSpell, at: position)
+
+            
+            let fadeOut = SKAction.fadeOut(withDuration: duration)
+            let remove = SKAction.removeFromParent()
+            let sequence = SKAction.sequence([fadeOut, remove])
+
+            aoeCircle.run(sequence)
         }
-
-
-        let fadeOut = SKAction.fadeOut(withDuration: duration)
-        let remove = SKAction.removeFromParent()
-        let sequence = SKAction.sequence([fadeOut, remove])
-
-        aoeCircle.run(sequence)
     }
 
     func applySpecialEffect(on goblin: Goblin.GoblinContainer) {
