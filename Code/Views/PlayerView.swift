@@ -668,8 +668,9 @@ class PlayerView: SKNode {
             
             // Calculate remaining cooldown percentage
             if let lastUsed = currentSpecial.lastUsedTime {
-                let elapsed = Date().timeIntervalSince(lastUsed)
-                let percentage = max(0, min(1, elapsed / currentSpecial.cooldown))
+                // Get the effective elapsed time (accounting for pauses)
+                let effectiveElapsed = currentSpecial.getEffectiveElapsedTime()
+                let percentage = max(0, min(1, effectiveElapsed / currentSpecial.cooldown))
                 
                 // Create arc for remaining cooldown
                 let path = CGMutablePath()

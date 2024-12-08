@@ -456,10 +456,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func waveCompleted() {
-        // Add guard to prevent shop from showing if game is over
         guard !isGameOver else { return }
         
         endWave()
+        
+        // Pause special cooldowns when showing score screen
+        if let special = playerState.getCurrentSpecial() {
+            special.pauseCooldown()
+        }
         
         // Check for perfect wave bonus
         let perfectWaveBonus = currentWaveDamageTaken == 0
@@ -486,8 +490,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func showShopView() {
-        // Get the configuration for the next wave
-        let nextWaveConfig = getWaveConfig(forWave: currentWave + 1)
+        // Special cooldown is already paused from score screen
         
         let shopView = ShopView(
             size: self.size, 
@@ -508,6 +511,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             shopView.removeFromParent()
         }
         isInShop = false
+        
+        // Resume special cooldowns when closing shop
+        if let special = playerState.getCurrentSpecial() {
+            special.resumeCooldown()
+        }
+        
         startNextWave()
     }
     
@@ -746,5 +755,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if special.use(from: casterPosition, to: location, by: playerState, in: self) {
             playerView.updateSpecialCooldown()
         }
+    }
+    
+    private var nextWaveConfig: WaveConfig {
+        let nextWaveNumber = currentWave + 1
+        
+        // Try to get specific config for next wave
+        if let config = waveConfigs[nextWaveNumber] {
+            return config
+        }
+        
+        // If no specific config exists, check for default config (-1)
+        if let defaultConfig = waveConfigs[-1] {
+            // Modify default config based on wave number
+            var modifiedConfig = defaultConfig
+            modifiedConfig.maxGoblins = (nextWaveNumber - 1) * 5
+            modifiedConfig.baseSpawnInterval = max(2.0 - 0.1 * Double(nextWaveNumber - 1), 0.5)
+            return modifiedConfig
+        }
+        
+        // If no configs found, create a new default config
+        return WaveConfig.createDefaultConfig(forWave: nextWaveNumber)
     }
 }

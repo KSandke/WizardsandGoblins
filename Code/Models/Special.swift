@@ -18,6 +18,8 @@ class Special {
     let targetingMode: TargetingMode
     let rarity: ItemRarity
     var lastUsedTime: Date?
+    private var totalPausedTime: TimeInterval = 0
+    private var pauseStartTime: Date?
 
     init(name: String, aoeRadius: CGFloat, aoeColor: SKColor, duration: TimeInterval, damage: CGFloat, effect: SpecialEffect?, cooldown: TimeInterval, targetingMode: TargetingMode, rarity: ItemRarity = .common) {
         self.name = name
@@ -33,7 +35,21 @@ class Special {
 
     func canUse() -> Bool {
         guard let lastUsed = lastUsedTime else { return true }
-        return Date().timeIntervalSince(lastUsed) >= cooldown
+        
+        // Calculate effective time passed, subtracting any paused time
+        let effectiveTimePassed = Date().timeIntervalSince(lastUsed) - totalPausedTime
+        return effectiveTimePassed >= cooldown
+    }
+
+    func pauseCooldown() {
+        guard pauseStartTime == nil else { return } // Already paused
+        pauseStartTime = Date()
+    }
+    
+    func resumeCooldown() {
+        guard let pauseStart = pauseStartTime else { return } // Not paused
+        totalPausedTime += Date().timeIntervalSince(pauseStart)
+        pauseStartTime = nil
     }
 
     func use(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, in scene: SKScene) -> Bool {
@@ -42,6 +58,8 @@ class Special {
         }
 
         lastUsedTime = Date()
+        totalPausedTime = 0 // Reset paused time when used
+        pauseStartTime = nil
         
         guard let gameScene = scene as? GameScene else { return false }
         
@@ -209,11 +227,18 @@ class Special {
         return true
     }
     
-
-
-
-    // private func applyEffect(at position: CGPoint, in scene: SKScene) {
-    //     guard let gameScene = scene as? GameScene else { return }
+    func getEffectiveElapsedTime() -> TimeInterval {
+        guard let lastUsed = lastUsedTime else { return cooldown }
+        
+        var effectiveElapsed = Date().timeIntervalSince(lastUsed)
+        
+        // Subtract the total paused time
+        effectiveElapsed -= totalPausedTime
+        
+        // If currently paused, also subtract the current pause duration
+        if let pauseStart = pauseStartTime {
+            effectiveElapsed -= Date().timeIntervalSince(pauseStart)
+        }
         
     //     let modifiedSpecial = Special(
     //         name: self.name,
@@ -228,6 +253,8 @@ class Special {
     //     )
     //     gameScene.applySpecial(modifiedSpecial, at: position)
     // }
+        return effectiveElapsed
+    }
 }
 
 protocol SpecialEffect {
