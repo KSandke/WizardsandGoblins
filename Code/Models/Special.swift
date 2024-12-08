@@ -45,31 +45,135 @@ class Special {
 
         lastUsedTime = Date()
         
-        let specialNode = SKSpriteNode(imageNamed: name)
-        specialNode.size = CGSize(width: 50, height: 50)
-        specialNode.position = casterPosition
+        guard let gameScene = scene as? GameScene else { return false }
+        
+        // Handle different targeting modes
+        switch targetingMode {
+        case .direct:
+            return useDirectTargeting(from: casterPosition, to: targetPosition, by: playerState, in: gameScene)
+            
+        case .area:
+            return useAreaTargeting(from: casterPosition, to: targetPosition, by: playerState, in: gameScene)
+            
+        case .automatic:
+            if let nearestGoblin = findNearestGoblin(from: casterPosition, in: gameScene) {
+                return useDirectTargeting(from: casterPosition, to: nearestGoblin.position, by: playerState, in: gameScene)
+            }
+            return false
+            
+        case .global:
+            return useGlobalTargeting(from: casterPosition, by: playerState, in: gameScene)
+            
+        case .maxHealth:
+            return useMaxHealthTargeting(from: casterPosition, by: playerState, in: gameScene)
+        }
+    }
+    
+    private func useDirectTargeting(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, in scene: GameScene) -> Bool {
+        let specialNode = createSpecialNode(at: casterPosition)
         scene.addChild(specialNode)
-
-        let dx = targetPosition.x - casterPosition.x
-        let dy = targetPosition.y - casterPosition.y
-        let angle = atan2(dy, dx)
+        
+        let angle = calculateAngle(from: casterPosition, to: targetPosition)
         specialNode.zRotation = angle + .pi / 2 + .pi
-
-        let distance = casterPosition.distance(to: targetPosition)
-        let adjustedSpeed = GameConfig.defaultSpellSpeed * playerState.spellSpeedMultiplier
-        let travelDuration = TimeInterval(distance / adjustedSpeed)
-
+        
+        let travelDuration = calculateTravelDuration(from: casterPosition, to: targetPosition, with: playerState)
+        
         let moveAction = SKAction.move(to: targetPosition, duration: travelDuration)
-        let applyEffect = SKAction.run { [weak self, weak scene] in
-            guard let self = self, let scene = scene else { return }
-            self.applyEffect(at: targetPosition, in: scene)
+        let applyEffect = SKAction.run { [weak self] in
+            self?.applyEffect(at: targetPosition, in: scene)
         }
         let removeSpecial = SKAction.removeFromParent()
-
-        let sequence = SKAction.sequence([moveAction, applyEffect, removeSpecial])
-        specialNode.run(sequence)
-
+        
+        specialNode.run(SKAction.sequence([moveAction, applyEffect, removeSpecial]))
         return true
+    }
+    
+    private func useAreaTargeting(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, in scene: GameScene) -> Bool {
+        // Create targeting indicator
+        let aoeIndicator = SKShapeNode(circleOfRadius: aoeRadius)
+        aoeIndicator.strokeColor = aoeColor.withAlphaComponent(0.5)
+        aoeIndicator.fillColor = aoeColor.withAlphaComponent(0.2)
+        aoeIndicator.position = targetPosition
+        scene.addChild(aoeIndicator)
+        
+        // Fade in and out animation
+        let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.2)
+        let wait = SKAction.wait(forDuration: 0.1)
+        let fadeOut = SKAction.fadeAlpha(to: 0.0, duration: 0.2)
+        let remove = SKAction.removeFromParent()
+        
+        aoeIndicator.run(SKAction.sequence([fadeIn, wait, fadeOut, remove]))
+        
+        // Apply effect to all goblins in the area
+        let goblinsInRange = scene.goblinManager.getGoblins().filter { goblin in
+            let distance = targetPosition.distance(to: goblin.sprite.position)
+            return distance <= aoeRadius
+        }
+        
+        for goblin in goblinsInRange {
+            applyEffect(at: goblin.sprite.position, in: scene)
+        }
+        
+        return true
+    }
+    
+    private func useGlobalTargeting(from casterPosition: CGPoint, by playerState: PlayerState, in scene: GameScene) -> Bool {
+        // Create full screen flash effect
+        let flash = SKSpriteNode(color: aoeColor, size: scene.size)
+        flash.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
+        flash.alpha = 0.0
+        scene.addChild(flash)
+        
+        let fadeIn = SKAction.fadeAlpha(to: 0.3, duration: 0.2)
+        let wait = SKAction.wait(forDuration: 0.1)
+        let fadeOut = SKAction.fadeAlpha(to: 0.0, duration: 0.2)
+        let remove = SKAction.removeFromParent()
+        
+        flash.run(SKAction.sequence([fadeIn, wait, fadeOut, remove]))
+        
+        // Apply effect to all goblins
+        for goblin in scene.goblinManager.getGoblins() {
+            applyEffect(at: goblin.sprite.position, in: scene)
+        }
+        
+        return true
+    }
+    
+    private func useMaxHealthTargeting(from casterPosition: CGPoint, by playerState: PlayerState, in scene: GameScene) -> Bool {
+        let maxHealthGoblins = scene.goblinManager.getGoblins().filter { goblin in
+            goblin.health >= goblin.maxHealth
+        }
+        
+        for goblin in maxHealthGoblins {
+            applyEffect(at: goblin.sprite.position, in: scene)
+        }
+        
+        return !maxHealthGoblins.isEmpty
+    }
+    
+    private func findNearestGoblin(from position: CGPoint, in scene: GameScene) -> Goblin.GoblinContainer? {
+        return scene.goblinManager.getGoblins().min { goblin1, goblin2 in
+            position.distance(to: goblin1.sprite.position) < position.distance(to: goblin2.sprite.position)
+        }
+    }
+    
+    private func createSpecialNode(at position: CGPoint) -> SKSpriteNode {
+        let specialNode = SKSpriteNode(imageNamed: name)
+        specialNode.size = CGSize(width: 50, height: 50)
+        specialNode.position = position
+        return specialNode
+    }
+    
+    private func calculateAngle(from start: CGPoint, to end: CGPoint) -> CGFloat {
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        return atan2(dy, dx)
+    }
+    
+    private func calculateTravelDuration(from start: CGPoint, to end: CGPoint, with playerState: PlayerState) -> TimeInterval {
+        let distance = start.distance(to: end)
+        let adjustedSpeed = GameConfig.defaultSpellSpeed * playerState.spellSpeedMultiplier
+        return TimeInterval(distance / adjustedSpeed)
     }
 
     func applyEffect(at position: CGPoint, in scene: SKScene) {
