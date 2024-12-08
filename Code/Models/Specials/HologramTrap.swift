@@ -17,8 +17,8 @@ class HologramTrapSpecial: Special {
     }
 }
 
-class HologramTrapEffect: SpellEffect {
-    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+class HologramTrapEffect: SpecialEffect {
+    func apply(spell: Special, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
         // Create hologram projector

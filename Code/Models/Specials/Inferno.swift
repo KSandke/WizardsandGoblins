@@ -17,8 +17,8 @@ class InfernoSpecial: Special {
     }
 }
 
-class InfernoEffect: SpellEffect {
-    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+class InfernoEffect: SpecialEffect {
+    func apply(spell: Special, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene else { return }
         
         let inferno = InfernoEmitter(at: goblin.sprite.position)

@@ -17,8 +17,8 @@ class BlizzardSpecial: Special {
     }
 }
 
-class BlizzardEffect: SpellEffect {
-    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+class BlizzardEffect: SpecialEffect {
+    func apply(spell: Special, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene else { return }
         
         let blizzard = BlizzardEmitter(at: goblin.sprite.position)

@@ -17,8 +17,8 @@ class MeteorShowerSpecial: Special {
     }
 }
 
-class MeteorShowerEffect: SpellEffect {
-    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+class MeteorShowerEffect: SpecialEffect {
+    func apply(spell: Special, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene else { return }
         
         let meteor = MeteorShowerEmitter(at: goblin.sprite.position)

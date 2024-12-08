@@ -17,7 +17,7 @@ class AC130Special: Special {
     }
 }
 
-class AC130Effect: SpellEffect {
+class AC130Effect: SpecialEffect {
     func apply(spell: Special, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 

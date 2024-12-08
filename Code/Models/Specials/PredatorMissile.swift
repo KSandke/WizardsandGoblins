@@ -17,8 +17,8 @@ class PredatorMissile: Special {
     }
 }
 
-class PredatorMissileEffect: SpellEffect {
-    func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
+class PredatorMissileEffect: SpecialEffect {
+    func apply(spell: Special, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene as? GameScene else { return }
 
         // Drone camera view
