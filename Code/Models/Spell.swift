@@ -23,7 +23,7 @@ class Spell {
     }
 
     func cast(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, in scene: SKScene) -> Bool {
-        if !playerState.useSpell(cost: manaCost, spellName: nil) {
+        if !playerState.useSpell(cost: manaCost) {
             return false
         }
 
@@ -55,13 +55,6 @@ class Spell {
     }
 
     func applyEffect(at position: CGPoint, in scene: SKScene) {
-        let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius * gameScene.playerState.spellAOEMultiplier)
-        aoeCircle.fillColor = aoeColor
-        aoeCircle.strokeColor = .red
-        aoeCircle.alpha = 0.5
-        aoeCircle.position = position
-        aoeCircle.zPosition = 1
-        scene.addChild(aoeCircle)
 
         if let gameScene = scene as? GameScene {
             let modifiedSpell = Spell(
@@ -72,8 +65,19 @@ class Spell {
                 effect: self.effect,
                 rarity: self.rarity
             )
+
+            let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius * gameScene.playerState.spellAOEMultiplier)
+            aoeCircle.fillColor = aoeColor
+            aoeCircle.strokeColor = .red
+            aoeCircle.alpha = 0.5
+            aoeCircle.position = position
+            aoeCircle.zPosition = 1
+            scene.addChild(aoeCircle)
+
+
             gameScene.applySpell(modifiedSpell, at: position)
         }
+
 
         let fadeOut = SKAction.fadeOut(withDuration: duration)
         let remove = SKAction.removeFromParent()
