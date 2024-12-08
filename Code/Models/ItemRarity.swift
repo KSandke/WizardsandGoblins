@@ -7,18 +7,18 @@ enum ItemRarity: Int, CaseIterable {
     case epic = 3
     case legendary = 4
     
-    var color: UIColor {
+    var color: SKColor {
         switch self {
         case .common:
             return .white
         case .uncommon:
-            return UIColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1.0)  // Green
+            return .green
         case .rare:
-            return UIColor(red: 0.0, green: 0.4, blue: 1.0, alpha: 1.0)  // Blue
+            return .blue
         case .epic:
-            return UIColor(red: 0.6, green: 0.2, blue: 0.8, alpha: 1.0)  // Purple
+            return .purple
         case .legendary:
-            return UIColor(red: 1.0, green: 0.6, blue: 0.0, alpha: 1.0)  // Orange
+            return .orange
         }
     }
     
