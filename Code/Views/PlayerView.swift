@@ -46,8 +46,9 @@ class PlayerView: SKNode {
     private var multiplierLabel: SKLabelNode!
     
     // Special ability UI
-    private var specialButton: SKSpriteNode!
-    private var specialCooldownOverlay: SKShapeNode!
+    private var specialButtons: [SKSpriteNode] = []
+    private var specialCooldownOverlays: [SKShapeNode] = []
+    
     private var lastSpecialTapTime: TimeInterval = 0
     
     init(scene: SKScene, state: PlayerState) {
@@ -621,54 +622,91 @@ class PlayerView: SKNode {
     }
 
     private func setupSpecialButton() {
-        guard let scene = parentScene,
-              let currentSpecial = state.getCurrentSpecial() else { return }
+        guard let scene = parentScene else { return }
         
-        specialButton = SKSpriteNode(imageNamed: currentSpecial.name)
-        specialButton.size = CGSize(width: 60, height: 60)
-        specialButton.position = CGPoint(x: scene.frame.maxX - 80,
-                                         y: scene.frame.minY + 80)
-        specialButton.name = "specialButton"
-        scene.addChild(specialButton)
+        // Constants for button layout
+        let buttonSize = CGSize(width: 60, height: 60)
+        let verticalSpacing: CGFloat = 70
+        let baseX = scene.frame.maxX - 80
+        let baseY = scene.frame.minY + 80
         
-        specialCooldownOverlay = SKShapeNode(circleOfRadius: 30)
-        specialCooldownOverlay.fillColor = SKColor.black.withAlphaComponent(0.5)
-        specialCooldownOverlay.strokeColor = .clear
-        specialCooldownOverlay.position = specialButton.position
-        specialCooldownOverlay.isHidden = true
-        scene.addChild(specialCooldownOverlay)
+        // Create three special buttons
+        for i in 0..<3 {
+            // Create button with default "empty" state
+            let button = SKSpriteNode(imageNamed: "EmptySpecial")
+            button.size = buttonSize
+            button.position = CGPoint(x: baseX, y: baseY + CGFloat(i) * verticalSpacing)
+            button.name = "specialButton\(i)"
+            scene.addChild(button)
+            specialButtons.append(button)
+            
+            // Create cooldown overlay for each button
+            let cooldownOverlay = SKShapeNode(circleOfRadius: 30)
+            cooldownOverlay.fillColor = SKColor.black.withAlphaComponent(0.5)
+            cooldownOverlay.strokeColor = .clear
+            cooldownOverlay.position = button.position
+            cooldownOverlay.isHidden = true
+            scene.addChild(cooldownOverlay)
+            specialCooldownOverlays.append(cooldownOverlay)
+            
+            // Update button if there's an active special for this slot
+            let specialSlots = state.getSpecialSlots()
+            if let currentSpecial = specialSlots[i] {
+                button.texture = SKTexture(imageNamed: currentSpecial.name)
+            }
+        }
         
         let updateAction = SKAction.run { [weak self] in
-            self?.updateSpecialCooldown()
+            self?.updateSpecialCooldowns()
         }
         let wait = SKAction.wait(forDuration: 0.1)
         scene.run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
     }
     
-    func handleSpecialButtonTap(_ currentTime: TimeInterval) -> Bool {
-        let doubleTapThreshold: TimeInterval = 0.3
-        
-        if currentTime - lastSpecialTapTime < doubleTapThreshold {
-            // Double tap detected - cycle special
-            state.cycleSpecialSlot()
-            updateSpecialButton()
-            lastSpecialTapTime = 0 // Reset to prevent triple-tap
-            return true
+    func handleSpecialButtonTap(_ touchedNode: SKNode, _ currentTime: TimeInterval) -> Bool {
+        // Extract the button index from the node name
+        guard let buttonName = touchedNode.name,
+              buttonName.hasPrefix("specialButton"),
+              let index = Int(buttonName.dropFirst("specialButton".count)) else {
+            print("🎮 Special Button Tap: Invalid button name")
+            return false
         }
         
-        lastSpecialTapTime = currentTime
+        // Print debug info about the tapped special slot
+        let specialSlots = state.getSpecialSlots()
+        if let special = specialSlots[index] {
+            print("🎮 Special Button \(index) Tapped: \(special.name) (Cooldown: \(special.cooldown)s)")
+            if special.canUse() {
+                print("✅ Special is ready to use")
+            } else {
+                if let lastUsed = special.lastUsedTime {
+                    let elapsed = special.getEffectiveElapsedTime()
+                    print("⏳ Special on cooldown: \(elapsed)/\(special.cooldown) seconds elapsed")
+                }
+            }
+        } else {
+            print("🎮 Special Button \(index) Tapped: Empty slot")
+        }
+        
         return false
     }
     
-    func updateSpecialCooldown() {
-        guard let currentSpecial = state.getCurrentSpecial() else { return }
+    private func updateSpecialCooldowns() {
+        for i in 0..<specialButtons.count {
+            updateSpecialCooldown(at: i)
+        }
+    }
+    
+    func updateSpecialCooldown(at index: Int) {
+        let specialSlots = state.getSpecialSlots()
+        guard let currentSpecial = specialSlots[index] else { return }
+        let overlay = specialCooldownOverlays[index]
         
         if !currentSpecial.canUse() {
-            specialCooldownOverlay.isHidden = false
+            overlay.isHidden = false
             
             // Calculate remaining cooldown percentage
             if let lastUsed = currentSpecial.lastUsedTime {
-                // Get the effective elapsed time (accounting for pauses)
                 let effectiveElapsed = currentSpecial.getEffectiveElapsedTime()
                 let percentage = max(0, min(1, effectiveElapsed / currentSpecial.cooldown))
                 
@@ -683,16 +721,23 @@ class PlayerView: SKNode {
                            clockwise: false)
                 path.addLine(to: center)
                 
-                specialCooldownOverlay.path = path
+                overlay.path = path
             }
         } else {
-            specialCooldownOverlay.isHidden = true
+            overlay.isHidden = true
         }
     }
     
-    func updateSpecialButton() {
-        guard let currentSpecial = state.getCurrentSpecial() else { return }
-        specialButton.texture = SKTexture(imageNamed: currentSpecial.name)
-        updateSpecialCooldown()
+    func updateSpecialButton(at index: Int) {
+        guard index < specialButtons.count else { return }
+        let specialSlots = state.getSpecialSlots()
+        if let currentSpecial = specialSlots[index] {
+            print("🔄 Updating Special Button \(index): \(currentSpecial.name)")
+            specialButtons[index].texture = SKTexture(imageNamed: currentSpecial.name)
+        } else {
+            print("🔄 Updating Special Button \(index): Empty")
+            specialButtons[index].texture = SKTexture(imageNamed: "EmptySpecial")
+        }
+        updateSpecialCooldown(at: index)
     }
 }

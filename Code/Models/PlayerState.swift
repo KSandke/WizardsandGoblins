@@ -104,6 +104,11 @@ class PlayerState: SpellCaster {
     // Add callback for special changes
     var onSpecialChanged: ((Special?, Int) -> Void)?
     
+    // Add this property
+    var currentSpecialIndex: Int {
+        return selectedSpecialIndex
+    }
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition

@@ -332,14 +332,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             case "mainMenuButton":
                 goToMainMenu()
                 return
-            case "specialButton":
-                if !playerView.handleSpecialButtonTap(touch.timestamp) {
-                    // Single tap - use special if not on cooldown
-                    if let special = playerState.getCurrentSpecial(), special.canUse() {
-                        useSpecial(at: location)
+            default:
+                if let node = touchedNode, 
+                   node.name?.hasPrefix("specialButton") == true {
+                    if !playerView.handleSpecialButtonTap(node, touch.timestamp) {
+                        // Single tap - use special if not on cooldown
+                        if let special = playerState.getCurrentSpecial(), special.canUse() {
+                            useSpecial(at: location)
+                        }
                     }
                 }
-            default:
                 break
             }
         }
@@ -748,12 +750,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func useSpecial(at location: CGPoint) {
         guard let special = playerState.getCurrentSpecial(),
-              special.canUse() else { return }
+              special.canUse() else {
+            if let special = playerState.getCurrentSpecial() {
+                print("❌ Cannot use special \(special.name) - on cooldown")
+            } else {
+                print("❌ No special ability selected")
+            }
+            return
+        }
         
+        print("🎯 Using special \(special.name) at position: \(location)")
         let casterPosition = playerView.playerPosition
         
         if special.use(from: casterPosition, to: location, by: playerState, in: self) {
-            playerView.updateSpecialCooldown()
+            print("✨ Special \(special.name) successfully used")
+            playerView.updateSpecialCooldown(at: playerState.currentSpecialIndex)
+        } else {
+            print("❌ Special \(special.name) failed to activate")
         }
     }
     
