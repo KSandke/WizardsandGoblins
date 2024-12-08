@@ -13,7 +13,7 @@ class Special {
     var aoeColor: SKColor
     var duration: TimeInterval
     var damage: CGFloat
-    let effect: SpellEffect?
+    let effect: SpecialEffect?
     let cooldown: TimeInterval
     let targetingMode: TargetingMode
     let rarity: ItemRarity
@@ -201,7 +201,7 @@ class Special {
     
 
     protocol SpecialEffect {
-        func apply(special: Special, on goblin: Goblin.GoblinContainer)
+        func apply(spell: Special, on goblin: Goblin.GoblinContainer)
     }
 
     // private func applyEffect(at position: CGPoint, in scene: SKScene) {
