@@ -669,7 +669,7 @@ class PlayerView: SKNode {
         return false
     }
     
-    private func updateSpecialCooldown() {
+    func updateSpecialCooldown() {
         guard let currentSpecial = state.getCurrentSpecial() else { return }
         
         if !currentSpecial.canUse() {
