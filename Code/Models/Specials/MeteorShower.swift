@@ -11,7 +11,7 @@ class MeteorShowerSpecial: Special {
             damage: 80,
             effect: MeteorShowerEffect(),
             cooldown: 90.0,
-            targetingMode: .area,
+            targetingMode: .global,
             rarity: .legendary
         )
     }

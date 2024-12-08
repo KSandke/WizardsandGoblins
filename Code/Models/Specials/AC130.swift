@@ -11,7 +11,7 @@ class AC130Special: Special {
             damage: 35,
             effect: AC130Effect(),
             cooldown: 45.0,
-            targetingMode: .area,
+            targetingMode: .random,
             rarity: .legendary
         )
     }

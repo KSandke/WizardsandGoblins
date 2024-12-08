@@ -11,7 +11,7 @@ class PredatorMissile: Special {
             damage: 45,
             effect: PredatorMissileEffect(),
             cooldown: 30.0,  // 30 second cooldown
-            targetingMode: .direct,
+            targetingMode: .global,
             rarity: .epic
         )
     }

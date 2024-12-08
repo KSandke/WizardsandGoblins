@@ -11,7 +11,7 @@ class HologramTrapSpecial: Special {
             damage: 30,
             effect: HologramTrapEffect(),
             cooldown: 25.0,
-            targetingMode: .direct,
+            targetingMode: .global,
             rarity: .uncommon
         )
     }

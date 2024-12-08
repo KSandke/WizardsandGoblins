@@ -11,7 +11,7 @@ class BlizzardSpecial: Special {
             damage: 40,
             effect: BlizzardEffect(),
             cooldown: 60.0,
-            targetingMode: .area,
+            targetingMode: .global,
             rarity: .epic
         )
     }

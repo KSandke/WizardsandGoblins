@@ -11,7 +11,7 @@ class InfernoSpecial: Special {
             damage: 60,
             effect: InfernoEffect(),
             cooldown: 40.0,
-            targetingMode: .area,
+            targetingMode: .global,
             rarity: .epic
         )
     }
