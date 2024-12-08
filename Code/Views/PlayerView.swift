@@ -1,3 +1,4 @@
+import Foundation
 import SpriteKit
 
 class PlayerView: SKNode {
@@ -638,20 +639,10 @@ class PlayerView: SKNode {
         addChild(specialCooldownOverlay)
         
         let updateAction = SKAction.run { [weak self] in
-            self?.updateSpecialCooldownOverlay()
+            self?.updateSpecialCooldown()
         }
         let wait = SKAction.wait(forDuration: 0.1)
         run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
-    }
-    
-    private func updateSpecialCooldownOverlay() {
-        // Update cooldown overlay
-        if state.specialCooldown > 0 {
-            specialCooldownOverlay.isHidden = false
-            specialCooldownOverlay.xScale = CGFloat(state.specialCooldown / state.specialCooldownMax)
-        } else {
-            specialCooldownOverlay.isHidden = true
-        }
     }
     
     func handleSpecialButtonTap(_ currentTime: TimeInterval) -> Bool {

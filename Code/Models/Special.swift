@@ -17,7 +17,7 @@ class Special {
     let cooldown: TimeInterval
     let targetingMode: TargetingMode
     let rarity: ItemRarity
-    private var lastUsedTime: Date?
+    var lastUsedTime: Date?
 
     init(name: String, aoeRadius: CGFloat, aoeColor: SKColor, duration: TimeInterval, damage: CGFloat, effect: SpecialEffect?, cooldown: TimeInterval, targetingMode: TargetingMode, rarity: ItemRarity = .common) {
         self.name = name
