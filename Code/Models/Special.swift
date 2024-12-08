@@ -201,7 +201,7 @@ class Special {
     
 
     protocol SpecialEffect {
-        func apply(spell: Special, on goblin: Goblin.GoblinContainer)
+        func apply(special: Special, on goblin: Goblin.GoblinContainer)
     }
 
     // private func applyEffect(at position: CGPoint, in scene: SKScene) {
