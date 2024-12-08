@@ -22,7 +22,11 @@ public class Goblin {
         var isRanged: Bool
         var isAttacking: Bool = false
         private var attackTimer: Timer?
-                
+        
+        // Add status effects tracking
+        private var statusEffects: Set<String> = []
+        private var statusDurations: [String: TimeInterval] = [:]
+        
         init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat, goldValue: Int, isRanged: Bool = false) {
             self.type = type
             self.sprite = sprite
@@ -195,6 +199,44 @@ public class Goblin {
             sprite.removeAction(forKey: "rangedAttack")
             attackTimer?.invalidate()
             attackTimer = nil
+        }
+        
+        // Add methods for status effects
+        func hasStatusEffect(_ effectName: String) -> Bool {
+            return statusEffects.contains(effectName)
+        }
+        
+        func addStatusEffect(_ effectName: String, duration: TimeInterval) {
+            statusEffects.insert(effectName)
+            statusDurations[effectName] = duration
+            
+            // Schedule removal of status effect
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+                self?.removeStatusEffect(effectName)
+            }
+        }
+        
+        func removeStatusEffect(_ effectName: String) {
+            statusEffects.remove(effectName)
+            statusDurations.removeValue(forKey: effectName)
+        }
+        
+        func getRemainingDuration(for effectName: String) -> TimeInterval? {
+            guard let endTime = statusDurations[effectName] else { return nil }
+            return max(0, endTime - Date().timeIntervalSinceReferenceDate)
+        }
+        
+        // Add helper methods for targeting
+        func isAtFullHealth() -> Bool {
+            return health >= maxHealth
+        }
+        
+        func getHealthPercentage() -> CGFloat {
+            return health / maxHealth
+        }
+        
+        func isInRange(of point: CGPoint, radius: CGFloat) -> Bool {
+            return sprite.position.distance(to: point) <= radius
         }
     }
     
@@ -517,6 +559,41 @@ public class Goblin {
         shadowGoblins.removeAll { $0 === shadowGoblin }
         shadowGoblin.sprite.removeFromParent()
     }
+    
+    // Add targeting helper methods
+    func getGoblins() -> [GoblinContainer] {
+        return goblinContainers
+    }
+    
+    func getGoblinsInRange(of point: CGPoint, radius: CGFloat) -> [GoblinContainer] {
+        return goblinContainers.filter { $0.isInRange(of: point, radius: radius) }
+    }
+    
+    func getGoblinsWithFullHealth() -> [GoblinContainer] {
+        return goblinContainers.filter { $0.isAtFullHealth() }
+    }
+    
+    func getGoblinsWithHealthPercentage(above percentage: CGFloat) -> [GoblinContainer] {
+        return goblinContainers.filter { $0.getHealthPercentage() >= percentage }
+    }
+    
+    func getGoblinsWithHealthPercentage(below percentage: CGFloat) -> [GoblinContainer] {
+        return goblinContainers.filter { $0.getHealthPercentage() <= percentage }
+    }
+    
+    func getNearestGoblin(to point: CGPoint) -> GoblinContainer? {
+        return goblinContainers.min { goblin1, goblin2 in
+            point.distance(to: goblin1.sprite.position) < point.distance(to: goblin2.sprite.position)
+        }
+    }
+    
+    func getGoblinsWithStatusEffect(_ effectName: String) -> [GoblinContainer] {
+        return goblinContainers.filter { $0.hasStatusEffect(effectName) }
+    }
+    
+    func getGoblinsWithoutStatusEffect(_ effectName: String) -> [GoblinContainer] {
+        return goblinContainers.filter { !$0.hasStatusEffect(effectName) }
+    }
 }
 
 // Add this extension to your Goblin.swift file
@@ -531,5 +608,3 @@ extension Goblin.GoblinContainer: Hashable {
         hasher.combine(ObjectIdentifier(self))
     }
 }
-
-
