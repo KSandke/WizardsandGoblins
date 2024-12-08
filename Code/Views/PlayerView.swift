@@ -627,22 +627,22 @@ class PlayerView: SKNode {
         specialButton = SKSpriteNode(imageNamed: currentSpecial.name)
         specialButton.size = CGSize(width: 60, height: 60)
         specialButton.position = CGPoint(x: scene.frame.maxX - 80,
-                                       y: scene.frame.minY + 80)
+                                         y: scene.frame.minY + 80)
         specialButton.name = "specialButton"
-        addChild(specialButton)
+        scene.addChild(specialButton)
         
         specialCooldownOverlay = SKShapeNode(circleOfRadius: 30)
         specialCooldownOverlay.fillColor = SKColor.black.withAlphaComponent(0.5)
         specialCooldownOverlay.strokeColor = .clear
         specialCooldownOverlay.position = specialButton.position
         specialCooldownOverlay.isHidden = true
-        addChild(specialCooldownOverlay)
+        scene.addChild(specialCooldownOverlay)
         
         let updateAction = SKAction.run { [weak self] in
             self?.updateSpecialCooldown()
         }
         let wait = SKAction.wait(forDuration: 0.1)
-        run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
+        scene.run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
     }
     
     func handleSpecialButtonTap(_ currentTime: TimeInterval) -> Bool {
