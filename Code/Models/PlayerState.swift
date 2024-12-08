@@ -279,14 +279,16 @@ class PlayerState: SpellCaster {
         onSpecialChanged?(currentSpecial, selectedSpecialIndex)
     }
     
-    func addSpecial(_ special: Special) -> Bool {
-        // Find first empty slot
+    func addSpecial(_ special: Special) {
         if let emptyIndex = specialSlots.firstIndex(where: { $0 == nil }) {
+            // Found an empty slot, add the special there
             specialSlots[emptyIndex] = special
             onSpecialChanged?(special, emptyIndex)
-            return true
+        } else {
+            // replace this with the new special selection screen
+            specialSlots[selectedSpecialIndex] = special
+            onSpecialChanged?(special, selectedSpecialIndex)
         }
-        return false // No empty slots available
     }
     
     func replaceSpecial(_ special: Special, at index: Int) {

@@ -8,6 +8,7 @@ struct ShopItem {
     var basePrice: Int
     let icon: String  // Name of image asset
     let effect: (PlayerState, @escaping (String) -> Void) -> Void
+    let rarity: ItemRarity?  // Add optional rarity property
     
     // Add current price tracking
     private static var purchaseCounts: [String: Int] = [:]
@@ -74,6 +75,16 @@ struct ShopItem {
     static func recordPurchase(of itemName: String) {
         purchaseCounts[itemName] = (purchaseCounts[itemName] ?? 0) + 1
     }
+    
+    // Update initializer to include rarity
+    init(name: String, description: String, basePrice: Int, icon: String, effect: @escaping (PlayerState, @escaping (String) -> Void) -> Void, rarity: ItemRarity? = nil) {
+        self.name = name
+        self.description = description
+        self.basePrice = basePrice
+        self.icon = icon
+        self.effect = effect
+        self.rarity = rarity
+    }
 }
 
 class ShopView: SKNode {
@@ -93,6 +104,10 @@ class ShopView: SKNode {
     // Add new property to track current available upgrades
     private var availableUpgrades: [ShopItem] = []
     
+    // Add property to track when special was last refreshed
+    private static var lastSpecialRefreshWave = 0
+    private static var currentSpecialOffer: Special?
+    
     init(size: CGSize, playerState: PlayerState, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
         // Initialize all properties before super.init()
         self.playerState = playerState
@@ -107,7 +122,7 @@ class ShopView: SKNode {
         super.init()
         
         // Select random upgrades BEFORE setting up UI
-        selectRandomUpgrades()  // Make sure this happens first
+        selectRandomUpgrades(currentWave)  // Pass currentWave to the method
         
         // Setup UI after initialization
         setupUI(size: size)
@@ -150,33 +165,50 @@ class ShopView: SKNode {
         let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
-        // Calculate total width needed for both buttons
+        // Calculate total width needed for both permanent upgrade buttons
         let totalWidth = (buttonWidth * 2) + padding
         let startX = (size.width - totalWidth) / 2 + buttonWidth / 2
         
         // Position buttons between coin display and close button
-        let buttonY = size.height * 0.45  // Adjusted to be lower than middle
+        let upperButtonY = size.height * 0.55  // Upper row for permanent upgrades
+        let lowerButtonY = size.height * 0.35  // Lower row for special
         
-        // Position the available upgrades
-        for (index, item) in availableUpgrades.enumerated() {
+        // First, position the permanent upgrades
+        let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
+        for (index, item) in permanentUpgrades.enumerated() {
             let x = startX + CGFloat(index) * (buttonWidth + padding)
             let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: x, y: buttonY)
+            button.position = CGPoint(x: x, y: upperButtonY)
             addChild(button)
             itemButtons.append(button)
         }
         
-        // Position close button lower
-        closeButton.position = CGPoint(x: size.width/2, y: buttonY - buttonHeight - 40)
+        // Then, position the special upgrade if available
+        if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
+            let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: size.width/2, y: lowerButtonY)
+            addChild(button)
+            itemButtons.append(button)
+        }
+        
+        // Position close button at the bottom
+        closeButton.position = CGPoint(x: size.width/2, y: lowerButtonY - buttonHeight - 40)
         addChild(closeButton)
     }
     
     private func createItemButton(item: ShopItem, size: CGSize) -> SKNode {
         let container = SKNode()
+        container.name = "itemButton_\(item.name)"
         
-        // Button background
-        let background = SKSpriteNode(color: .darkGray, size: size)
-        background.name = "itemButton_\(item.name)"
+        // Create background with rarity color if applicable
+        let background = SKShapeNode(rectOf: size, cornerRadius: 10)
+        if let rarity = item.rarity {
+            background.fillColor = rarity.color.withAlphaComponent(0.3)
+            background.strokeColor = rarity.color
+        } else {
+            background.fillColor = .gray.withAlphaComponent(0.3)
+            background.strokeColor = .white
+        }
         container.addChild(background)
         
         let padding: CGFloat = 10  // Padding from button edges
@@ -228,6 +260,18 @@ class ShopView: SKNode {
         priceLabel.verticalAlignmentMode = .center
         container.addChild(priceLabel)
         
+        // Add rarity label if applicable
+        if let rarity = item.rarity {
+            let rarityLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+            rarityLabel.text = rarity.name
+            rarityLabel.fontSize = 10
+            rarityLabel.fontColor = rarity.color
+            rarityLabel.position = CGPoint(x: 0, y: -45)
+            rarityLabel.horizontalAlignmentMode = .center
+            rarityLabel.verticalAlignmentMode = .center
+            container.addChild(rarityLabel)
+        }
+        
         return container
     }
     
@@ -269,8 +313,31 @@ class ShopView: SKNode {
         }
         
         playerState.coins -= item.currentPrice
+        
+        // Debug prints for special purchases
+        if item.rarity != nil {
+            print("🎯 Purchasing special: \(item.name) (Rarity: \(item.rarity?.name ?? "Unknown"))")
+            
+            // Print special slots before purchase
+            print("📋 Special slots BEFORE purchase:")
+            let beforeSlots = playerState.getSpecialSlots()
+            for (index, special) in beforeSlots.enumerated() {
+                print("  Slot \(index): \(special?.name ?? "Empty")")
+            }
+        }
+        
         item.effect(playerState, showMessage)
         ShopItem.recordPurchase(of: item.name)
+        
+        // Print special slots after purchase if it was a special
+        if item.rarity != nil {
+            print("📋 Special slots AFTER purchase:")
+            let afterSlots = playerState.getSpecialSlots()
+            for (index, special) in afterSlots.enumerated() {
+                print("  Slot \(index): \(special?.name ?? "Empty")")
+            }
+            print("-------------------")
+        }
         
         // Show level up message
         showMessage("\(item.name) upgraded to Level \(item.level)!")
@@ -288,16 +355,28 @@ class ShopView: SKNode {
         let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
-        // Calculate total width needed for both buttons - same as setupUI
+        // Calculate total width needed for both permanent upgrade buttons
         let totalWidth = (buttonWidth * 2) + padding
         let startX = (background.frame.width - totalWidth) / 2 + buttonWidth / 2
-        let buttonY = background.frame.height * 0.45  // Match setupUI positioning
         
-        // Position the available upgrades - same as setupUI
-        for (index, item) in availableUpgrades.enumerated() {
+        // Position buttons with same layout as setupUI
+        let upperButtonY = background.frame.height * 0.55  // Upper row for permanent upgrades
+        let lowerButtonY = background.frame.height * 0.35  // Lower row for special
+        
+        // First, position the permanent upgrades
+        let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
+        for (index, item) in permanentUpgrades.enumerated() {
             let x = startX + CGFloat(index) * (buttonWidth + padding)
             let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: x, y: buttonY)
+            button.position = CGPoint(x: x, y: upperButtonY)
+            addChild(button)
+            itemButtons.append(button)
+        }
+        
+        // Then, position the special upgrade if available
+        if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
+            let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: background.frame.width/2, y: lowerButtonY)
             addChild(button)
             itemButtons.append(button)
         }
@@ -387,10 +466,106 @@ class ShopView: SKNode {
         }
     }
     
-    private func selectRandomUpgrades() {
-        // Add print statement for debugging
-        print("Available upgrades pool: \(ShopItem.permanentUpgrades.count)")
-        availableUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
-        print("Selected upgrades: \(availableUpgrades.map { $0.name })")
+    private func selectRandomUpgrades(_ currentWave: Int) {
+        // Check if we need to refresh the special (every 2 waves)
+        if currentWave % 2 == 1 || ShopView.currentSpecialOffer == nil {
+            let special = generateRandomSpecial()
+            // Only offer the special if the player doesn't already have it
+            let currentSpecials = playerState.getSpecialSlots()
+            let currentSpecialNames = Set(currentSpecials.compactMap { $0?.name })
+            
+            if !currentSpecialNames.contains(special.name) {
+                ShopView.currentSpecialOffer = special
+            } else {
+                ShopView.currentSpecialOffer = nil
+            }
+            ShopView.lastSpecialRefreshWave = currentWave
+        }
+        
+        // Create special shop item if available
+        var upgrades = [ShopItem]()
+        if let special = ShopView.currentSpecialOffer {
+            upgrades.append(ShopItem(
+                name: special.name,
+                description: "Special Attack",
+                basePrice: calculateSpecialPrice(special),
+                icon: special.name,
+                effect: { state, showMessage in
+                    state.addSpecial(special)
+                    showMessage("Special ability acquired!")
+                },
+                rarity: special.rarity
+            ))
+        }
+        
+        // Add regular upgrades
+        let regularUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
+        upgrades.append(contentsOf: regularUpgrades)
+        
+        availableUpgrades = upgrades
+    }
+    
+    private func calculateSpecialPrice(_ special: Special) -> Int {
+        let basePrice = 15
+        let rarityMultiplier: Int
+        
+        switch special.rarity {
+        case .common: rarityMultiplier = 1
+        case .uncommon: rarityMultiplier = 2
+        case .rare: rarityMultiplier = 4
+        case .epic: rarityMultiplier = 8
+        case .legendary: rarityMultiplier = 15
+        }
+        
+        return basePrice * rarityMultiplier
+    }
+    
+    private func generateRandomSpecial() -> Special {
+        // Get current specials from player state
+        let currentSpecials = playerState.getSpecialSlots()
+        let currentSpecialNames = Set(currentSpecials.compactMap { $0?.name })
+        
+        // Roll for rarity
+        let roll = Double.random(in: 0...1)
+        var selectedRarity: ItemRarity = .common
+        
+        var cumulativeChance = 0.0
+        for rarity in ItemRarity.allCases {
+            cumulativeChance += rarity.dropChance
+            if roll <= cumulativeChance {
+                selectedRarity = rarity
+                break
+            }
+        }
+        
+        // Define all possible specials
+        let allSpecials: [Special] = [
+            Special(name: "FireStorm", aoeRadius: 100, aoeColor: .red, duration: 0.5, damage: 20, effect: nil, cooldown: 10, targetingMode: .global, rarity: .common),
+            Special(name: "IceBlast", aoeRadius: 80, aoeColor: .cyan, duration: 0.5, damage: 30, effect: nil, cooldown: 8, targetingMode: .random, rarity: .uncommon),
+            Special(name: "LightningStrike", aoeRadius: 60, aoeColor: .yellow, duration: 0.5, damage: 45, effect: nil, cooldown: 6, targetingMode: .maxHealth, rarity: .rare),
+            Special(name: "VoidBlast", aoeRadius: 120, aoeColor: .purple, duration: 0.5, damage: 60, effect: nil, cooldown: 5, targetingMode: .global, rarity: .epic),
+            Special(name: "DragonBreath", aoeRadius: 150, aoeColor: .orange, duration: 0.5, damage: 100, effect: nil, cooldown: 4, targetingMode: .global, rarity: .legendary)
+        ]
+        
+        // Filter out specials the player already has and match the selected rarity
+        let availableSpecials = allSpecials.filter { special in
+            !currentSpecialNames.contains(special.name) && special.rarity == selectedRarity
+        }
+        
+        // If no specials available for selected rarity, try other rarities
+        if availableSpecials.isEmpty {
+            let anyAvailableSpecials = allSpecials.filter { special in
+                !currentSpecialNames.contains(special.name)
+            }
+            
+            // If no specials available at all, return nil and handle in selectRandomUpgrades
+            if anyAvailableSpecials.isEmpty {
+                return allSpecials[0] // Fallback to first special if somehow nothing is available
+            }
+            
+            return anyAvailableSpecials.randomElement() ?? allSpecials[0]
+        }
+        
+        return availableSpecials.randomElement() ?? allSpecials[0]
     }
 } 
