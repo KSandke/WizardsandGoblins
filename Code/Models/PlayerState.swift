@@ -127,6 +127,13 @@ class PlayerState: SpellCaster {
         
         // Initialize with PredatorMissile special in first slot
         // specialSlots[0] = PredatorMissile()
+        
+        // Initialize with some default specials for debugging
+        specialSlots = [
+            Special(name: "FireStorm", aoeRadius: 100, aoeColor: .red, duration: 0.5, damage: 20, effect: nil, cooldown: 10, targetingMode: .global, rarity: .common),
+            Special(name: "IceBlast", aoeRadius: 80, aoeColor: .cyan, duration: 0.5, damage: 30, effect: nil, cooldown: 8, targetingMode: .random, rarity: .uncommon),
+            Special(name: "LightningStrike", aoeRadius: 60, aoeColor: .yellow, duration: 0.5, damage: 45, effect: nil, cooldown: 6, targetingMode: .maxHealth, rarity: .rare)
+        ]
     }
     
     // Callbacks for binding

@@ -89,6 +89,7 @@ struct ShopItem {
 
 class ShopView: SKNode {
     private let playerState: PlayerState
+    private let playerView: PlayerView
     private var onClose: () -> Void
     
     // UI Elements
@@ -108,9 +109,22 @@ class ShopView: SKNode {
     private static var lastSpecialRefreshWave = 0
     private static var currentSpecialOffer: Special?
     
-    init(size: CGSize, playerState: PlayerState, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
+    // Add property to track the special slot selector
+    private var slotSelector: SKNode?
+    
+    // Add this property to store all available specials
+    private let allSpecials: [Special] = [
+        Special(name: "FireStorm", aoeRadius: 100, aoeColor: .red, duration: 0.5, damage: 20, effect: nil, cooldown: 10, targetingMode: .global, rarity: .common),
+        Special(name: "IceBlast", aoeRadius: 80, aoeColor: .cyan, duration: 0.5, damage: 30, effect: nil, cooldown: 8, targetingMode: .random, rarity: .uncommon),
+        Special(name: "LightningStrike", aoeRadius: 60, aoeColor: .yellow, duration: 0.5, damage: 45, effect: nil, cooldown: 6, targetingMode: .maxHealth, rarity: .rare),
+        Special(name: "VoidBlast", aoeRadius: 120, aoeColor: .purple, duration: 0.5, damage: 60, effect: nil, cooldown: 5, targetingMode: .global, rarity: .epic),
+        Special(name: "DragonBreath", aoeRadius: 150, aoeColor: .orange, duration: 0.5, damage: 100, effect: nil, cooldown: 4, targetingMode: .global, rarity: .legendary)
+    ]
+    
+    init(size: CGSize, playerState: PlayerState, playerView: PlayerView, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
         // Initialize all properties before super.init()
         self.playerState = playerState
+        self.playerView = playerView
         self.onClose = onClose
         self.background = SKSpriteNode(color: .black.withAlphaComponent(0.8), size: size)
         self.statsLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
@@ -291,6 +305,28 @@ class ShopView: SKNode {
     func handleTap(at point: CGPoint) {
         let nodes = self.nodes(at: point)
         
+        // Handle special selector taps if it's showing
+        if slotSelector != nil {
+            for node in nodes {
+                if node.name == "specialSelectorCancel" {
+                    slotSelector?.removeFromParent()
+                    slotSelector = nil
+                    return
+                }
+                
+                if let buttonName = node.name,
+                   buttonName.starts(with: "specialSlotButton_"),
+                   let index = Int(buttonName.dropFirst("specialSlotButton_".count)),
+                   let item = availableUpgrades.first(where: { $0.rarity != nil }) {
+                    completePurchase(item, replacingSlot: index)
+                    slotSelector?.removeFromParent()
+                    slotSelector = nil
+                    return
+                }
+            }
+            return
+        }
+        
         for node in nodes {
             if node.name == "closeShopButton" {
                 onClose()
@@ -312,36 +348,28 @@ class ShopView: SKNode {
             return
         }
         
+        // If this is a special and all slots are filled, show slot selector
+        if item.rarity != nil {
+            let specialSlots = playerState.getSpecialSlots()
+            if !specialSlots.contains(where: { $0 == nil }) {
+                if let special = allSpecials.first(where: { $0.name == item.name }) {
+                    showSpecialSlotSelector(for: special)
+                    return
+                }
+            }
+        }
+        
+        // Normal purchase flow for non-specials or when empty slots are available
+        completePurchase(item)
+    }
+    
+    private func completePurchase(_ item: ShopItem, replacingSlot: Int? = nil) {
         playerState.coins -= item.currentPrice
-        
-        // Debug prints for special purchases
-        if item.rarity != nil {
-            print("🎯 Purchasing special: \(item.name) (Rarity: \(item.rarity?.name ?? "Unknown"))")
-            
-            // Print special slots before purchase
-            print("📋 Special slots BEFORE purchase:")
-            let beforeSlots = playerState.getSpecialSlots()
-            for (index, special) in beforeSlots.enumerated() {
-                print("  Slot \(index): \(special?.name ?? "Empty")")
-            }
+        item.effect(playerState) { [weak self] message in
+            self?.showMessage(message)
         }
-        
-        item.effect(playerState, showMessage)
         ShopItem.recordPurchase(of: item.name)
-        
-        // Print special slots after purchase if it was a special
-        if item.rarity != nil {
-            print("📋 Special slots AFTER purchase:")
-            let afterSlots = playerState.getSpecialSlots()
-            for (index, special) in afterSlots.enumerated() {
-                print("  Slot \(index): \(special?.name ?? "Empty")")
-            }
-            print("-------------------")
-        }
-        
-        // Show level up message
         showMessage("\(item.name) upgraded to Level \(item.level)!")
-        
         refreshItemButtons()
         updateStats()
     }
@@ -506,6 +534,11 @@ class ShopView: SKNode {
     }
     
     private func calculateSpecialPrice(_ special: Special) -> Int {
+        // Debug: All specials cost 0
+        return 0
+        
+        // Original code commented out for reference
+        /*
         let basePrice = 15
         let rarityMultiplier: Int
         
@@ -518,6 +551,7 @@ class ShopView: SKNode {
         }
         
         return basePrice * rarityMultiplier
+        */
     }
     
     private func generateRandomSpecial() -> Special {
@@ -537,15 +571,6 @@ class ShopView: SKNode {
                 break
             }
         }
-        
-        // Define all possible specials
-        let allSpecials: [Special] = [
-            Special(name: "FireStorm", aoeRadius: 100, aoeColor: .red, duration: 0.5, damage: 20, effect: nil, cooldown: 10, targetingMode: .global, rarity: .common),
-            Special(name: "IceBlast", aoeRadius: 80, aoeColor: .cyan, duration: 0.5, damage: 30, effect: nil, cooldown: 8, targetingMode: .random, rarity: .uncommon),
-            Special(name: "LightningStrike", aoeRadius: 60, aoeColor: .yellow, duration: 0.5, damage: 45, effect: nil, cooldown: 6, targetingMode: .maxHealth, rarity: .rare),
-            Special(name: "VoidBlast", aoeRadius: 120, aoeColor: .purple, duration: 0.5, damage: 60, effect: nil, cooldown: 5, targetingMode: .global, rarity: .epic),
-            Special(name: "DragonBreath", aoeRadius: 150, aoeColor: .orange, duration: 0.5, damage: 100, effect: nil, cooldown: 4, targetingMode: .global, rarity: .legendary)
-        ]
         
         // Filter out specials the player already has and match the selected rarity
         let availableSpecials = allSpecials.filter { special in
@@ -567,5 +592,128 @@ class ShopView: SKNode {
         }
         
         return availableSpecials.randomElement() ?? allSpecials[0]
+    }
+    
+    private func showSpecialSlotSelector(for special: Special) {
+        // Remove any existing selector first
+        slotSelector?.removeFromParent()
+        
+        // Calculate container size to fit the entire screen
+        let containerWidth = background.frame.width
+        let containerHeight = background.frame.height
+        
+        // Create selector node
+        let selector = SKNode()
+        selector.zPosition = 2000
+        
+        // Add semi-transparent background
+        let background = SKShapeNode(rectOf: CGSize(width: containerWidth, height: containerHeight))
+        background.fillColor = .black
+        background.alpha = 0.7
+        background.strokeColor = .clear
+        selector.addChild(background)
+        
+        // Add title
+        let titleLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        titleLabel.text = "Select slot to replace"
+        titleLabel.fontSize = 32
+        titleLabel.position = CGPoint(x: 0, y: containerHeight/4)
+        selector.addChild(titleLabel)
+        
+        // Setup slot buttons
+        let buttonWidth: CGFloat = min(100, containerWidth / 4)
+        let buttonHeight: CGFloat = min(100, containerHeight / 3)
+        let padding: CGFloat = 15
+        
+        let totalWidth = (buttonWidth * 3) + (padding * 2)
+        let startX = -totalWidth/2 + buttonWidth/2
+        let buttonY: CGFloat = 0  // Center Y
+        
+        let slots = playerState.getSpecialSlots()
+        for i in 0..<slots.count {
+            let button = createSpecialSlotButton(
+                slots[i],
+                at: i,
+                size: CGSize(width: buttonWidth, height: buttonHeight)
+            )
+            button.position = CGPoint(x: startX + CGFloat(i) * (buttonWidth + padding), y: buttonY)
+            button.name = "specialSlotButton_\(i)"  // Ensure correct naming
+            selector.addChild(button)
+        }
+        
+        // Add cancel button
+        let cancelButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        cancelButton.text = "Cancel"
+        cancelButton.fontSize = 24
+        cancelButton.fontColor = .red
+        cancelButton.position = CGPoint(x: 0, y: -containerHeight/4)
+        cancelButton.name = "specialSelectorCancel"
+        selector.addChild(cancelButton)
+        
+        // Position the entire selector node in the center of the screen
+        selector.position = CGPoint(x: background.frame.width/2, y: background.frame.height/2)
+        
+        addChild(selector)
+        slotSelector = selector
+    }
+    
+    private func createSpecialSlotButton(_ currentSpecial: Special?, at index: Int, size: CGSize) -> SKNode {
+        let container = SKNode()
+        container.name = "specialSlotButton_\(index)"
+        
+        let background = SKShapeNode(rectOf: size, cornerRadius: 10)
+        if let special = currentSpecial {
+            background.fillColor = special.rarity.color.withAlphaComponent(0.3)
+            background.strokeColor = special.rarity.color
+        } else {
+            background.fillColor = .gray.withAlphaComponent(0.3)
+            background.strokeColor = .white
+        }
+        container.addChild(background)
+        
+        let icon = SKSpriteNode(imageNamed: currentSpecial?.name ?? "EmptySpecial")
+        icon.size = CGSize(width: size.width * 0.6, height: size.height * 0.6)
+        container.addChild(icon)
+        
+        if let special = currentSpecial {
+            let nameLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+            nameLabel.text = special.name
+            nameLabel.fontSize = 12
+            nameLabel.position = CGPoint(x: 0, y: -size.height/2 - 10)
+            container.addChild(nameLabel)
+            
+            let rarityLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+            rarityLabel.text = special.rarity.name
+            rarityLabel.fontSize = 10
+            rarityLabel.fontColor = special.rarity.color
+            rarityLabel.position = CGPoint(x: 0, y: -size.height/2 - 25)
+            container.addChild(rarityLabel)
+        }
+        
+        return container
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        handleTouch(at: location)
+    }
+    
+    private func handleTouch(at location: CGPoint) {
+        let nodes = self.nodes(at: location)
+        for node in nodes {
+            if let name = node.name {
+                if name.hasPrefix("specialSlotButton_") {  // Ensure correct prefix
+                    if let index = Int(name.dropFirst("specialSlotButton_".count)),
+                       let special = ShopView.currentSpecialOffer {
+                        playerState.replaceSpecial(special, at: index)
+                        playerView.updateSpecialButton(at: index)
+                        slotSelector?.removeFromParent() // Close the selector after selection
+                    }
+                } else if name == "specialSelectorCancel" {
+                    slotSelector?.removeFromParent() // Close the selector if cancel is tapped
+                }
+            }
+        }
     }
 } 

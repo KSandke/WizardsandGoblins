@@ -334,13 +334,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 return
             default:
                 if let node = touchedNode, 
-                   node.name?.hasPrefix("specialButton") == true {
+                   node.name?.hasPrefix("specialButton") == true,
+                   let index = Int(node.name?.dropFirst("specialButton".count) ?? "") {
                     if !playerView.handleSpecialButtonTap(node, touch.timestamp) {
-                        // Single tap - use special if not on cooldown
-                        if let special = playerState.getCurrentSpecial(), special.canUse() {
+                        // Get the special for this specific button index
+                        let specialSlots = playerState.getSpecialSlots()
+                        if let special = specialSlots[index], special.canUse() {
+                            playerState.selectSpecialSlot(index)
                             useSpecial(at: location)
                         }
                     }
+                    return  // Add return here to prevent spell casting
                 }
                 break
             }
@@ -497,6 +501,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let shopView = ShopView(
             size: self.size, 
             playerState: playerState,
+            playerView: playerView,
             config: nextWaveConfig,
             currentWave: currentWave,
             onClose: { [weak self] in
