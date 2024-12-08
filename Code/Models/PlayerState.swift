@@ -121,7 +121,7 @@ class PlayerState: SpellCaster {
         ]
         
         // Initialize with PredatorMissile special in first slot
-        specialSlots[0] = PredatorMissile()
+        // specialSlots[0] = PredatorMissile()
     }
     
     // Callbacks for binding

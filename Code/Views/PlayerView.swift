@@ -404,7 +404,7 @@ class PlayerView: SKNode {
         
         // Create a container node for the inactive spell and its border
         let inactiveContainer = SKNode()
-        inactiveContainer.position = CGPoint(x: scene.size.width - 50, y: scene.size.height * 0.10)
+        inactiveContainer.position = CGPoint(x: wizard.position.x + 90, y: wizard.position.y)  // Position to the left of wizard
         
         // Add border box
         let borderBox = SKShapeNode(rectOf: CGSize(width: 36, height: 36))
