@@ -200,9 +200,7 @@ class Special {
     }
     
 
-    protocol SpecialEffect {
-        func apply(spell: Special, on goblin: Goblin.GoblinContainer)
-    }
+
 
     // private func applyEffect(at position: CGPoint, in scene: SKScene) {
     //     guard let gameScene = scene as? GameScene else { return }
@@ -220,4 +218,8 @@ class Special {
     //     )
     //     gameScene.applySpecial(modifiedSpecial, at: position)
     // }
+}
+
+protocol SpecialEffect {
+    func apply(spell: Special, on goblin: Goblin.GoblinContainer)
 }
