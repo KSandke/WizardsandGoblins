@@ -638,13 +638,13 @@ class PlayerView: SKNode {
         addChild(specialCooldownOverlay)
         
         let updateAction = SKAction.run { [weak self] in
-            self?.updateSpecialCooldown()
+            self?.updateSpecialCooldownOverlay()
         }
         let wait = SKAction.wait(forDuration: 0.1)
         run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
     }
     
-    private func updateSpecialCooldown() {
+    private func updateSpecialCooldownOverlay() {
         // Update cooldown overlay
         if state.specialCooldown > 0 {
             specialCooldownOverlay.isHidden = false
@@ -669,7 +669,7 @@ class PlayerView: SKNode {
         return false
     }
     
-    func updateSpecialCooldown() {
+    private func updateSpecialCooldown() {
         guard let currentSpecial = state.getCurrentSpecial() else { return }
         
         if !currentSpecial.canUse() {
