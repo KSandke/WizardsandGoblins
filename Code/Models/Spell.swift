@@ -66,7 +66,7 @@ class Spell {
                 rarity: self.rarity
             )
             let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius * gameScene.playerState.spellAOEMultiplier)
-            aoeCircle.fillColor = aoeColor
+            aoeCircle.fillColor = modifiedSpell.aoeColor
             aoeCircle.strokeColor = .red
             aoeCircle.alpha = 0.5
             aoeCircle.position = position
