@@ -238,6 +238,11 @@ public class Goblin {
         func isInRange(of point: CGPoint, radius: CGFloat) -> Bool {
             return sprite.position.distance(to: point) <= radius
         }
+        
+        // Add this computed property
+        var position: CGPoint {
+            return sprite.position
+        }
     }
     
     weak var scene: SKScene?
