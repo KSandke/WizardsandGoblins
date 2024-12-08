@@ -79,7 +79,7 @@ class Special {
         for goblin in allGoblins {
             goblin.applyDamage(modifiedDamage)
             if let effect = effect {
-                effect.apply(to: goblin)
+                effect.apply(spell: self, on: goblin)
             }
         }
         
@@ -121,7 +121,7 @@ class Special {
         let modifiedDamage = damage * playerState.spellPowerMultiplier
         target.applyDamage(modifiedDamage)
         if let effect = effect {
-            effect.apply(to: target)
+            effect.apply(spell: self, on: target)
         }
         
         return true
@@ -181,7 +181,7 @@ class Special {
             let modifiedDamage = self.damage * playerState.spellPowerMultiplier
             target.applyDamage(modifiedDamage)
             if let effect = self.effect {
-                effect.apply(to: target)
+                effect.apply(spell: self, on: target)
             }
         }
         
