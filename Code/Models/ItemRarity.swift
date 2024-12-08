@@ -1,4 +1,5 @@
 import Foundation
+import SpriteKit
 import UIKit
 
 enum ItemRarity: Int, CaseIterable {
