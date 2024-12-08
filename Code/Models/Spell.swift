@@ -57,7 +57,7 @@ class Spell {
     func applyEffect(at position: CGPoint, in scene: SKScene) {
         let aoeCircle = SKShapeNode(circleOfRadius: aoeRadius * gameScene.playerState.spellAOEMultiplier)
         aoeCircle.fillColor = aoeColor
-        aoeCircle.strokeColor = .clear
+        aoeCircle.strokeColor = .red
         aoeCircle.alpha = 0.5
         aoeCircle.position = position
         aoeCircle.zPosition = 1
@@ -66,7 +66,7 @@ class Spell {
         if let gameScene = scene as? GameScene {
             let modifiedSpell = Spell(
                 name: self.name,
-                aoeRadius: self.aoeRadius * gameScene.playerState.spellAOEMultiplier,
+                aoeRadius: self.aoeRadius * gameScene.playerState.spellAOEMultiplier, aoeColor: <#SKColor#>,
                 duration: self.duration,
                 damage: self.damage * gameScene.playerState.spellPowerMultiplier,
                 effect: self.effect,

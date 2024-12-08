@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum ItemRarity: Int, CaseIterable {
     case common = 0
