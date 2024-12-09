@@ -32,16 +32,13 @@ class LightningEffect: SpellEffect {
             createLightningStrike(at: goblin.sprite.position, in: gameScene) {
                 // After initial strike, create chain effects to nearby targets
                 for (index, targetGoblin) in nearbyGoblins.enumerated() {
-                    // Small delay between each chain
                     let chainDelay = 0.1 * Double(index)
                     DispatchQueue.main.asyncAfter(deadline: .now() + chainDelay) {
-                        // Create lightning bolt to next target
                         self.createLightningBolt(
                             from: goblin.sprite.position,
                             to: targetGoblin.sprite.position,
                             in: gameScene
                         ) {
-                            // Create strike effect on chained target
                             self.createLightningStrike(
                                 at: targetGoblin.sprite.position,
                                 in: gameScene,
@@ -55,13 +52,10 @@ class LightningEffect: SpellEffect {
             // Apply gameplay effects to all targets
             let affectedGoblins = [goblin] + nearbyGoblins
             for affectedGoblin in affectedGoblins {
-                // Store current position and any ongoing actions
-                let currentPosition = affectedGoblin.sprite.position
-                let currentActions = affectedGoblin.sprite.actions(forKey: "movement")
-                
-                // Remove current movement action
-                affectedGoblin.sprite.removeAction(forKey: "movement")
+                // First, stop ALL current actions and attacks
+                affectedGoblin.sprite.removeAllActions()  // This ensures all movement stops
                 affectedGoblin.pauseAttacks()
+                affectedGoblin.stopAttacking()
 
                 // Apply damage
                 if affectedGoblin === goblin {
@@ -70,26 +64,39 @@ class LightningEffect: SpellEffect {
                     affectedGoblin.applyDamage(chainDamage)
                 }
 
-                // Reset after duration
+                // Add visual feedback for stun
+                let stunEffect = SKAction.sequence([
+                    SKAction.colorize(with: .yellow, colorBlendFactor: 0.5, duration: 0.1),
+                    SKAction.wait(forDuration: effectDuration - 0.2),
+                    SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.1)
+                ])
+                affectedGoblin.sprite.run(stunEffect, withKey: "stunEffect")  // Add specific key for stun effect
+
+                // Resume movement and attacks after stun duration
                 DispatchQueue.main.asyncAfter(deadline: .now() + effectDuration) {
-                    // If there was a movement action, calculate remaining distance and create new movement
-                    if let targetPosition = gameScene.castlePosition {
-                        let remainingDistance = currentPosition.distance(to: targetPosition)
-                        if remainingDistance > 0 {
-                            let speed = gameScene.goblinManager.goblinSpeed(for: affectedGoblin.type)
-                            let remainingDuration = TimeInterval(remainingDistance / speed)
-                            
-                            let moveAction = SKAction.move(to: targetPosition, duration: remainingDuration)
-                            let startAttackAction = SKAction.run {
-                                affectedGoblin.startAttacking()
-                            }
-                            
-                            let sequence = SKAction.sequence([moveAction, startAttackAction])
-                            affectedGoblin.sprite.run(sequence, withKey: "movement")
-                        }
-                    }
+                    guard affectedGoblin.sprite.parent != nil else { return }
                     
-                    affectedGoblin.resumeAttacks()
+                    let currentPos = affectedGoblin.sprite.position
+                    let targetPosition = CGPoint(x: gameScene.size.width / 2, y: 100)
+                    let remainingDistance = currentPos.distance(to: targetPosition)
+                    
+                    if remainingDistance > 0 {
+                        let speed = gameScene.goblinManager.goblinSpeed(for: affectedGoblin.type)
+                        let remainingDuration = TimeInterval(remainingDistance / speed)
+                        
+                        let moveAction = SKAction.move(to: targetPosition, duration: remainingDuration)
+                        let startAttackAction = SKAction.run {
+                            affectedGoblin.resumeAttacks()
+                            affectedGoblin.startAttacking()
+                        }
+                        
+                        let sequence = SKAction.sequence([moveAction, startAttackAction])
+                        affectedGoblin.sprite.run(sequence, withKey: "movement")
+                    } else {
+                        // If already at target position, just resume attacks
+                        affectedGoblin.resumeAttacks()
+                        affectedGoblin.startAttacking()
+                    }
                 }
             }
         }

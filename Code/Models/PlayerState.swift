@@ -113,20 +113,17 @@ class PlayerState: SpellCaster {
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
         
-        // Initialize with fireball as the default spell
-        currentSpell = FireballSpell()
+        // Initialize with Lightning as the default spell
+        currentSpell = LightningSpell()
         
         // Initialize maxHealth to match castleHealth
         maxHealth = maxCastleHealth
         
-        // Initialize with only Fireball spell
+        // Initialize with Lightning and Ice spells
         availableSpells = [
-            FireballSpell(),
+            LightningSpell(),
             IceSpell()
         ]
-        
-        // Initialize with PredatorMissile special in first slot
-        // specialSlots[0] = PredatorMissile()
         
         // Initialize with some default specials for debugging
         specialSlots = [
