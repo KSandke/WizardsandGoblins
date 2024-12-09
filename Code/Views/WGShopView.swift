@@ -374,9 +374,36 @@ class ShopView: SKNode {
                     return
                 }
             }
-            return
+            return  // Early return if selector is open
         }
         
+        // Handle spell selector taps if it's showing
+        if spellSelector != nil {
+            for node in nodes {
+                if node.name == "spellSelectorCancel" {
+                    spellSelector?.removeFromParent()
+                    spellSelector = nil
+                    return
+                }
+                
+                if let buttonName = node.name,
+                   buttonName.starts(with: "spellSlotButton_"),
+                   let index = Int(buttonName.dropFirst("spellSlotButton_".count)),
+                   let newSpell = ShopView.currentSpellOffer {
+                    let currentSpells = playerState.getAvailableSpells()
+                    if index < currentSpells.count {
+                        playerState.replaceSpell(newSpell, at: index)
+                        spellSelector?.removeFromParent()
+                        spellSelector = nil
+                        refreshItemButtons()
+                    }
+                    return
+                }
+            }
+            return  // Early return if selector is open
+        }
+        
+        // Only handle shop buttons if no selector is open
         for node in nodes {
             if node.name == "closeShopButton" {
                 onClose()
@@ -421,11 +448,23 @@ class ShopView: SKNode {
     
     private func completePurchase(_ item: ShopItem, replacingSlot: Int? = nil) {
         playerState.coins -= item.currentPrice
-        item.effect(playerState) { [weak self] message in
-            self?.showMessage(message)
+        
+        // If this is a special and we have a slot to replace
+        if let special = ShopView.currentSpecialOffer,
+           item.name == special.name,
+           let slotIndex = replacingSlot {
+            // Replace the special in the specific slot
+            playerState.replaceSpecial(special, at: slotIndex)
+            playerView.updateSpecialButton(at: slotIndex)
+        } else {
+            // Normal purchase flow for other items
+            item.effect(playerState) { [weak self] message in
+                self?.showMessage(message)
+            }
         }
+        
         ShopItem.recordPurchase(of: item.name)
-        showMessage("\(item.name) upgraded to Level \(item.level)!")
+        showMessage("\(item.name) acquired!")
         refreshItemButtons()
         updateStats()
     }
@@ -927,11 +966,12 @@ class ShopView: SKNode {
             if let name = node.name {
                 if name.hasPrefix("specialSlotButton_") {
                     if let index = Int(name.dropFirst("specialSlotButton_".count)),
-                       let special = ShopView.currentSpecialOffer {
-                        playerState.replaceSpecial(special, at: index)
-                        playerView.updateSpecialButton(at: index)
+                       let special = ShopView.currentSpecialOffer,
+                       let item = availableUpgrades.first(where: { $0.name == special.name }) {
+                        // Complete the purchase with the specific slot index
+                        completePurchase(item, replacingSlot: index)
                         slotSelector?.removeFromParent()
-                        refreshItemButtons() // Refresh buttons to show updated state
+                        slotSelector = nil
                     }
                 } else if name == "specialSelectorCancel" {
                     slotSelector?.removeFromParent()
