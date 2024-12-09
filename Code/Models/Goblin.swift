@@ -289,22 +289,20 @@ public class Goblin {
         let thirdWidth = targetScreenWidth / 3.2
         
         // Create debug overlay if it doesn't exist
-        if gameScene.childNode(withName: "targetAreaOverlay") == nil {
-            let targetArea = SKShapeNode(rectOf: CGSize(
-                width: thirdWidth * 2,
-                height: 50
-            ))
-            targetArea.position = CGPoint(
-                x: targetScreenWidth / 2,
-                y: 120
-            )
-            targetArea.fillColor = .red
-            targetArea.strokeColor = .clear
-            targetArea.alpha = 0.2
-            targetArea.name = "targetAreaOverlay"
-            targetArea.zPosition = 100  // Ensure it's visible above other elements
-            gameScene.addChild(targetArea)
-        }
+        //if gameScene.childNode(withName: "targetAreaOverlay") == nil {
+        //    let targetArea = SKShapeNode(rectOf: CGSize(
+         //       width: thirdWidth * 2,
+         //       height: 50
+         //   ))
+        //        x: targetScreenWidth / 2,
+          //      y: 120
+         ////   )
+          //  targetArea.fillColor = .red
+        //    targetArea.strokeColor = .clear
+         //   targetArea.alpha = 0.2
+          //  targetArea.name = "targetAreaOverlay"
+         //   gameScene.addChild(targetArea)
+        //}
         
         // Create a goblin of that type
         let nextGoblinType = specificType ?? getRandomGoblinType()
