@@ -121,6 +121,7 @@ class PlayerState: SpellCaster {
         
         // Initialize with Lightning and Ice spells
         availableSpells = [
+            FireballSpell(),
             LightningSpell(),
             IceSpell()
         ]
