@@ -16,58 +16,63 @@ class FrostEffect: SpellEffect {
     }
 }
 
-class PlayerState {
+protocol SpellCaster {
+    var currentSpell: Spell { get set }
+    var spellCharges: Int { get set }
+    var maxSpellCharges: Int { get set }
+    var spellPowerMultiplier: CGFloat { get set }
+    var spellAOEMultiplier: CGFloat { get set }
+    var spellSpeedMultiplier: CGFloat { get set }
+    func cycleSpell()
+    func cycleSpellBackwards()
+}
+
+class PlayerState: SpellCaster {
     // Castle state
-    var castleHealth: CGFloat = 100 {
+    var castleHealth: CGFloat = GameConfig.defaultCastleHealth {
         didSet {
             onCastleHealthChanged?(castleHealth)
         }
     }
-    let maxCastleHealth: CGFloat = 100
+    let maxCastleHealth: CGFloat = GameConfig.defaultCastleHealth
     
     // Wizard state
-    var spellCharges: Int = 5 {
+    var spellCharges: Int = GameConfig.defaultSpellCharges {
         didSet {
             onPlayerChargesChanged?(spellCharges)
         }
     }
-    var maxSpellCharges: Int = 5 {
+    var maxSpellCharges: Int = GameConfig.defaultMaxSpellCharges {
         didSet {
             onMaxSpellChargesChanged?(maxSpellCharges)
         }
     }
     
-    // Single spell property instead of primary/secondary
     var currentSpell: Spell {
         didSet {
             onSpellChanged?(currentSpell)
         }
     }
     
-    // New properties for upgrades
-    var maxHealth: CGFloat = 100 {
+    var maxHealth: CGFloat = GameConfig.defaultCastleHealth {
         didSet {
-            // When maxHealth increases, increase current health proportionally
             let healthPercentage = castleHealth / oldValue
             castleHealth = maxHealth * healthPercentage
         }
     }
     
-    var spellPowerMultiplier: CGFloat = 1.0
+    var spellPowerMultiplier: CGFloat = GameConfig.defaultSpellPowerMultiplier
+    var spellAOEMultiplier: CGFloat = GameConfig.defaultSpellAOEMultiplier
+    var spellSpeedMultiplier: CGFloat = GameConfig.defaultSpellSpeedMultiplier
+    var manaRegenRate: CGFloat = GameConfig.defaultManaRegenRate
     
-    // Add this property to track available spells
+    // New properties for upgrades
     private var availableSpells: [Spell] = []
     
     // Add playerPosition property
     var playerPosition: CGPoint = .zero
     
-    var consumableSpells: [String: Int] = [:] // Tracks spell name and quantity
-    
     // Add after the existing properties
-    var spellAOEMultiplier: CGFloat = 1.0
-    var spellSpeedMultiplier: CGFloat = 1.0
-    var manaRegenRate: CGFloat = 1.0
-    
     // Add new properties for combo tracking
     var currentCombo: Int = 0 {
         didSet {
@@ -80,35 +85,47 @@ class PlayerState {
     }
     var highestCombo: Int = 0
     var comboTimer: Timer?
-    let comboTimeout: TimeInterval = 3.0 // Adjust this value to control combo duration
+    let comboTimeout: TimeInterval = GameConfig.comboTimeoutDuration
     
     // Add callback for UI updates
     var onComboChanged: ((Int) -> Void)?
     
-    // Add property to track selected inventory spell
-    var selectedInventorySpell: String?
+    // New properties for specials
+    private var specialSlots: [Special?] = [nil, nil, nil]
+    private var selectedSpecialIndex: Int = 0
+    var currentSpecial: Special? {
+        get { specialSlots[selectedSpecialIndex] }
+        set {
+            specialSlots[selectedSpecialIndex] = newValue
+            onSpecialChanged?(newValue, selectedSpecialIndex)
+        }
+    }
     
-    // Add after selectedInventorySpell property
-    var temporarySpell: Spell?
+    // Add callback for special changes
+    var onSpecialChanged: ((Special?, Int) -> Void)?
     
-    // Add this with other callbacks
-    var onTemporarySpellChanged: ((Spell?) -> Void)?
+    // Add this property
+    var currentSpecialIndex: Int {
+        return selectedSpecialIndex
+    }
     
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
         
-        // Initialize with fireball as the default spell
+        // Initialize with Lightning as the default spell
         currentSpell = FireballSpell()
         
         // Initialize maxHealth to match castleHealth
         maxHealth = maxCastleHealth
         
-        // Initialize with only Fireball and Ice spells
+        // Initialize with Lightning and Ice spells
         availableSpells = [
             FireballSpell(),
-            IceSpell(),
+
         ]
+        
+        specialSlots = [nil, nil, nil]
     }
     
     // Callbacks for binding
@@ -158,7 +175,7 @@ class PlayerState {
         castleHealth = maxHealth
         score = 0
         coins = 0
-        spellPowerMultiplier = 1.0  // Reset spell power
+        spellPowerMultiplier = GameConfig.defaultSpellPowerMultiplier  // Reset spell power
         spellCharges = maxSpellCharges
         currentCombo = 0
         highestCombo = 0
@@ -166,23 +183,9 @@ class PlayerState {
         comboTimer = nil
     }
     
-    // Simplify spell usage to handle both cooldowns and mana
-    func useSpell(cost: Int, spellName: String? = nil) -> Bool {
-        if temporarySpell != nil {
-            // If we have a temporary spell, always allow casting
-            return true
-        }
-        
-        if let name = spellName {
-            // Handle one-time use spells
-            if let quantity = consumableSpells[name], quantity > 0 {
-                consumableSpells[name] = quantity - 1
-                return true
-            }
-            return false
-        }
-        
-        // Handle regular spells with mana cost
+    // Simplify spell usage to single wizard
+    func useSpell(cost: Int) -> Bool {
+        // Use the provided cost (which should be the spell's manaCost)
         if spellCharges >= cost {
             spellCharges -= cost
             return true
@@ -223,7 +226,6 @@ class PlayerState {
         currentSpell = spell
     }
     
-    // Add this new method to PlayerState
     func getCurrentSpellName() -> String {
         return currentSpell.name
     }
@@ -232,30 +234,21 @@ class PlayerState {
     func addSpell(_ spell: Spell) {
         // Check if we already have this type of spell
         if !availableSpells.contains(where: { $0.name == spell.name }) {
-            availableSpells.append(spell)
+            // Only add if we haven't hit the limit
+            if availableSpells.count < GameConfig.maxSpellSlots {
+                availableSpells.append(spell)
+                // Trigger update of spell icons by notifying of current spell
+                onSpellChanged?(currentSpell)
+            }
         }
     }
     
-    // Add this method to get available spells
     func getAvailableSpells() -> [Spell] {
         return availableSpells
     }
     
-    // Add method to update player position
     func updatePlayerPosition(_ newPosition: CGPoint) {
         playerPosition = newPosition
-    }
-    
-    func addConsumableSpell(_ spellName: String, quantity: Int = 1) {
-        consumableSpells[spellName] = (consumableSpells[spellName] ?? 0) + quantity
-    }
-    
-    func hasConsumableSpell(_ spellName: String) -> Bool {
-        return (consumableSpells[spellName] ?? 0) > 0
-    }
-    
-    func getConsumableSpellCount(_ spellName: String) -> Int {
-        return consumableSpells[spellName] ?? 0
     }
     
     // Add new method for combo handling
@@ -298,84 +291,91 @@ class PlayerState {
         return availableSpells[nextIndex]
     }
     
-    // Modify useInventorySpell to handle creation and UI update safely
-    func useInventorySpell(_ spellName: String) -> Bool {
-        if let count = consumableSpells[spellName], count > 0 {
-            guard let spell = createSpellByName(spellName) else {
-                print("Failed to create spell with name: \(spellName)")
-                return false
-            }
-            temporarySpell = spell
-            // Reduce count
-            consumableSpells[spellName] = count - 1
-
-            // Remove if depleted
-            if count - 1 <= 0 {
-                consumableSpells.removeValue(forKey: spellName)
-            }
-
-            // Notify UI that a temporary spell is set
-            onTemporarySpellChanged?(spell)
-
-            return true
-        }
-        return false
+    // Special management functions
+    func getCurrentSpecial() -> Special? {
+        return specialSlots[selectedSpecialIndex]
     }
     
-    // Add this method to add spells to the inventory
-    func addSpellToInventory(_ spell: Spell) {
-        print("Adding spell to inventory: \(spell.name)")  // Debug log
-        consumableSpells[spell.name] = (consumableSpells[spell.name] ?? 0) + 1
-        print("New inventory count for \(spell.name): \(consumableSpells[spell.name] ?? 0)")  // Debug log
+    func cycleSpecialSlot() {
+        selectedSpecialIndex = (selectedSpecialIndex + 1) % specialSlots.count
+        onSpecialChanged?(currentSpecial, selectedSpecialIndex)
     }
     
-    // Add this method to check if there's a temporary spell
-    func hasTemporarySpell() -> Bool {
-        return temporarySpell != nil
-    }
-    
-    func createSpellByName(_ spellName: String) -> Spell? {
-        switch spellName {
-        case AC130Spell().name:
-            return AC130Spell()
-        case TacticalNukeSpell().name:
-            return TacticalNukeSpell()
-        case DivineWrathSpell().name:
-            return DivineWrathSpell()
-        case ArcaneStormSpell().name:
-            return ArcaneStormSpell()
-        case MeteorShowerSpell().name:
-            return MeteorShowerSpell()
-        case PredatorMissileSpell().name:
-            return PredatorMissileSpell()
-        case CrowSwarmSpell().name:
-            return CrowSwarmSpell()
-        case SwarmQueenSpell().name:
-            return SwarmQueenSpell()
-        case NanoSwarmSpell().name:
-            return NanoSwarmSpell()
-        case SteampunkTimeBombSpell().name:
-            return SteampunkTimeBombSpell()
-        case ShadowPuppetSpell().name:
-            return ShadowPuppetSpell()
-        case TemporalDistortionSpell().name:
-            return TemporalDistortionSpell()
-        case MysticBarrierSpell().name:
-            return MysticBarrierSpell()
-        case BlizzardSpell().name:
-            return BlizzardSpell()
-        case InfernoSpell().name:
-            return InfernoSpell()
-        case FireballSpell().name:
-            return FireballSpell()
-        case IceSpell().name:
-            return IceSpell()
-        case LightningSpell().name:
-            return LightningSpell()
-        // Add any additional spells here
-        default:
-            print("Unknown spell name: \(spellName)")
-            return nil
+    func addSpecial(_ special: Special) {
+        if let emptyIndex = specialSlots.firstIndex(where: { $0 == nil }) {
+            // Found an empty slot, add the special there
+            specialSlots[emptyIndex] = special
+            onSpecialChanged?(special, emptyIndex)
+        } else {
+            // replace this with the new special selection screen
+            specialSlots[selectedSpecialIndex] = special
+            onSpecialChanged?(special, selectedSpecialIndex)
         }
     }
-} 
+    
+    func replaceSpecial(_ special: Special, at index: Int) {
+        guard index >= 0 && index < specialSlots.count else { return }
+        specialSlots[index] = special
+        onSpecialChanged?(special, index)
+    }
+    
+    func removeSpecial(at index: Int) {
+        guard index >= 0 && index < specialSlots.count else { return }
+        specialSlots[index] = nil
+        onSpecialChanged?(nil, index)
+    }
+    
+    func getSpecialSlots() -> [Special?] {
+        return specialSlots
+    }
+    
+    func selectSpecialSlot(_ index: Int) {
+        guard index >= 0 && index < specialSlots.count else { return }
+        selectedSpecialIndex = index
+        onSpecialChanged?(currentSpecial, selectedSpecialIndex)
+    }
+    
+    // Add new method to check if player owns a spell
+    func hasSpell(named spellName: String) -> Bool {
+        return availableSpells.contains { $0.name == spellName }
+    }
+    
+    func replaceSpell(_ newSpell: Spell, at index: Int) {
+        guard index >= 0 && index < availableSpells.count else { return }
+        
+        // If replacing current spell, update currentSpell
+        if availableSpells[index].name == currentSpell.name {
+            currentSpell = newSpell
+        }
+        
+        // Replace the spell at the specified index
+        availableSpells[index] = newSpell
+        
+        // Notify listeners if needed
+        onSpellChanged?(currentSpell)
+    }
+    
+    // Add these new functions
+    func getNextSpell() -> Spell {
+        let availableSpells = getAvailableSpells()
+        guard availableSpells.count > 1,
+              let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) else {
+            return currentSpell
+        }
+        
+        let nextIndex = (currentIndex + 1) % availableSpells.count
+        return availableSpells[nextIndex]
+    }
+    
+    func getPreviousSpell() -> Spell {
+        let availableSpells = getAvailableSpells()
+        guard availableSpells.count > 1,
+              let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) else {
+            return currentSpell
+        }
+        
+        let previousIndex = (currentIndex - 1 + availableSpells.count) % availableSpells.count
+        return availableSpells[previousIndex]
+    }
+
+}

@@ -20,6 +20,19 @@
 		1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454028B2CCB67B300624AF9 /* WGGameView.swift */; };
 		145E596D2CF576FB009A6A09 /* WaveConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FB8F672CF55EDD00281ACF /* WaveConfig.swift */; };
 		145E59A52CFEEC66009A6A09 /* WGScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145E59A42CFEEC66009A6A09 /* WGScoreView.swift */; };
+		146503A22D052A0800022691 /* ItemRarity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A12D052A0800022691 /* ItemRarity.swift */; };
+		146503A42D052A1A00022691 /* Special.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A32D052A1A00022691 /* Special.swift */; };
+		146503AD2D052A2100022691 /* AC130.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A52D052A2100022691 /* AC130.swift */; };
+		146503AE2D052A2100022691 /* PredatorMissile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503AA2D052A2100022691 /* PredatorMissile.swift */; };
+		146503AF2D052A2100022691 /* UnverifiedSpecials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503AB2D052A2100022691 /* UnverifiedSpecials.swift */; };
+		146503B02D052A2100022691 /* Blizzard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A62D052A2100022691 /* Blizzard.swift */; };
+		146503B12D052A2100022691 /* Inferno.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A82D052A2100022691 /* Inferno.swift */; };
+		146503B22D052A2100022691 /* MeteorShower.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A92D052A2100022691 /* MeteorShower.swift */; };
+		146503B32D052A2100022691 /* HologramTrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A72D052A2100022691 /* HologramTrap.swift */; };
+		146503B92D052A5400022691 /* Fireball.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B42D052A5400022691 /* Fireball.swift */; };
+		146503BA2D052A5400022691 /* PoisonCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B72D052A5400022691 /* PoisonCloud.swift */; };
+		146503BB2D052A5400022691 /* Ice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B52D052A5400022691 /* Ice.swift */; };
+		146503BC2D052A5400022691 /* Lightning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B62D052A5400022691 /* Lightning.swift */; };
 		1488B8342CE46E40007F0D4C /* CGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1488B8322CE46E40007F0D4C /* CGExtensions.swift */; };
 		148974842CE49467001F7350 /* Goblin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148974832CE49467001F7350 /* Goblin.swift */; };
 		148FAAB72CE4B82A005CCBC3 /* WGShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148FAAB62CE4B82A005CCBC3 /* WGShopView.swift */; };
@@ -54,6 +67,7 @@
 		925D72F52CF1668D00E11E34 /* ArcaneStormEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EC2CF1668D00E11E34 /* ArcaneStormEmitter.swift */; };
 		925D72F62CF1668D00E11E34 /* DivineWrathEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */; };
 		925D72F72CF1668D00E11E34 /* BlizzardEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */; };
+		92A076C42D050797004A79DE /* GameConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A076C22D050797004A79DE /* GameConfig.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +106,19 @@
 		1454028B2CCB67B300624AF9 /* WGGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGGameView.swift; sourceTree = "<group>"; };
 		1454028D2CCB7DFF00624AF9 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
 		145E59A42CFEEC66009A6A09 /* WGScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGScoreView.swift; sourceTree = "<group>"; };
+		146503A12D052A0800022691 /* ItemRarity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRarity.swift; sourceTree = "<group>"; };
+		146503A32D052A1A00022691 /* Special.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Special.swift; sourceTree = "<group>"; };
+		146503A52D052A2100022691 /* AC130.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AC130.swift; sourceTree = "<group>"; };
+		146503A62D052A2100022691 /* Blizzard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blizzard.swift; sourceTree = "<group>"; };
+		146503A72D052A2100022691 /* HologramTrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HologramTrap.swift; sourceTree = "<group>"; };
+		146503A82D052A2100022691 /* Inferno.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Inferno.swift; sourceTree = "<group>"; };
+		146503A92D052A2100022691 /* MeteorShower.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeteorShower.swift; sourceTree = "<group>"; };
+		146503AA2D052A2100022691 /* PredatorMissile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredatorMissile.swift; sourceTree = "<group>"; };
+		146503AB2D052A2100022691 /* UnverifiedSpecials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnverifiedSpecials.swift; sourceTree = "<group>"; };
+		146503B42D052A5400022691 /* Fireball.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fireball.swift; sourceTree = "<group>"; };
+		146503B52D052A5400022691 /* Ice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ice.swift; sourceTree = "<group>"; };
+		146503B62D052A5400022691 /* Lightning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lightning.swift; sourceTree = "<group>"; };
+		146503B72D052A5400022691 /* PoisonCloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoisonCloud.swift; sourceTree = "<group>"; };
 		1488B8322CE46E40007F0D4C /* CGExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGExtensions.swift; sourceTree = "<group>"; };
 		148974832CE49467001F7350 /* Goblin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goblin.swift; sourceTree = "<group>"; };
 		148FAAB62CE4B82A005CCBC3 /* WGShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGShopView.swift; sourceTree = "<group>"; };
@@ -128,6 +155,7 @@
 		925D72EF2CF1668D00E11E34 /* InfernoEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfernoEmitter.swift; sourceTree = "<group>"; };
 		925D72F02CF1668D00E11E34 /* MeteorShowerEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeteorShowerEmitter.swift; sourceTree = "<group>"; };
 		925D72F12CF1668D00E11E34 /* NecromancersGripEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NecromancersGripEmitter.swift; sourceTree = "<group>"; };
+		92A076C22D050797004A79DE /* GameConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -200,6 +228,7 @@
 		14101F0C2CCA215B00BD8C7D /* Code */ = {
 			isa = PBXGroup;
 			children = (
+				92A076C32D050797004A79DE /* Config */,
 				14DDF43F2CF1551100A0EBAB /* Effects */,
 				14DDF42D2CF14C5D00A0EBAB /* Particles */,
 				14EDC1722CE96559002EFCF1 /* Tutorial */,
@@ -261,6 +290,31 @@
 				145402882CCB675200624AF9 /* WGMainMenuView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		146503AC2D052A2100022691 /* Specials */ = {
+			isa = PBXGroup;
+			children = (
+				146503A52D052A2100022691 /* AC130.swift */,
+				146503A62D052A2100022691 /* Blizzard.swift */,
+				146503A72D052A2100022691 /* HologramTrap.swift */,
+				146503A82D052A2100022691 /* Inferno.swift */,
+				146503A92D052A2100022691 /* MeteorShower.swift */,
+				146503AA2D052A2100022691 /* PredatorMissile.swift */,
+				146503AB2D052A2100022691 /* UnverifiedSpecials.swift */,
+			);
+			path = Specials;
+			sourceTree = "<group>";
+		};
+		146503B82D052A5400022691 /* Spells */ = {
+			isa = PBXGroup;
+			children = (
+				146503B42D052A5400022691 /* Fireball.swift */,
+				146503B52D052A5400022691 /* Ice.swift */,
+				146503B62D052A5400022691 /* Lightning.swift */,
+				146503B72D052A5400022691 /* PoisonCloud.swift */,
+			);
+			path = Spells;
 			sourceTree = "<group>";
 		};
 		1488B8332CE46E40007F0D4C /* Extensions */ = {
@@ -332,6 +386,10 @@
 		14ECCEF12CE47BA8005A9627 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				146503B82D052A5400022691 /* Spells */,
+				146503AC2D052A2100022691 /* Specials */,
+				146503A32D052A1A00022691 /* Special.swift */,
+				146503A12D052A0800022691 /* ItemRarity.swift */,
 				14FB8F672CF55EDD00281ACF /* WaveConfig.swift */,
 				148974832CE49467001F7350 /* Goblin.swift */,
 				1443E97D2CE48A9E001C028C /* Spell.swift */,
@@ -346,6 +404,14 @@
 				14EDC1712CE96559002EFCF1 /* WGTutorialManager.swift */,
 			);
 			path = Tutorial;
+			sourceTree = "<group>";
+		};
+		92A076C32D050797004A79DE /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				92A076C22D050797004A79DE /* GameConfig.swift */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -498,6 +564,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1443E97E2CE48A9E001C028C /* Spell.swift in Sources */,
+				92A076C42D050797004A79DE /* GameConfig.swift in Sources */,
 				148974842CE49467001F7350 /* Goblin.swift in Sources */,
 				145402852CCB60A400624AF9 /* WGMainMenu.swift in Sources */,
 				14EDC1732CE96559002EFCF1 /* WGTutorialManager.swift in Sources */,
@@ -505,10 +572,19 @@
 				145402872CCB60BA00624AF9 /* WGGameScene.swift in Sources */,
 				14ECCEEF2CE47B96005A9627 /* PlayerView.swift in Sources */,
 				1488B8342CE46E40007F0D4C /* CGExtensions.swift in Sources */,
+				146503A22D052A0800022691 /* ItemRarity.swift in Sources */,
 				14ECCEF22CE47BA8005A9627 /* PlayerState.swift in Sources */,
 				145E59A52CFEEC66009A6A09 /* WGScoreView.swift in Sources */,
 				14F528DB2CF1639B0092C18F /* TemporalDistortionEmitter.swift in Sources */,
+				146503A42D052A1A00022691 /* Special.swift in Sources */,
 				14101F082CCA214A00BD8C7D /* GameContext.swift in Sources */,
+				146503AD2D052A2100022691 /* AC130.swift in Sources */,
+				146503AE2D052A2100022691 /* PredatorMissile.swift in Sources */,
+				146503AF2D052A2100022691 /* UnverifiedSpecials.swift in Sources */,
+				146503B02D052A2100022691 /* Blizzard.swift in Sources */,
+				146503B12D052A2100022691 /* Inferno.swift in Sources */,
+				146503B22D052A2100022691 /* MeteorShower.swift in Sources */,
+				146503B32D052A2100022691 /* HologramTrap.swift in Sources */,
 				14101F092CCA214A00BD8C7D /* GameType.swift in Sources */,
 				14F528D52CF162AF0092C18F /* TimeBombEmitter.swift in Sources */,
 				14F528D12CF1629A0092C18F /* CyberneticOverloadEmitter.swift in Sources */,
@@ -521,6 +597,10 @@
 				14DDF4452CF1551100A0EBAB /* SwarmQueenEmitter.swift in Sources */,
 				14DDF4462CF1551100A0EBAB /* MissileExplosion.swift in Sources */,
 				145E596D2CF576FB009A6A09 /* WaveConfig.swift in Sources */,
+				146503B92D052A5400022691 /* Fireball.swift in Sources */,
+				146503BA2D052A5400022691 /* PoisonCloud.swift in Sources */,
+				146503BB2D052A5400022691 /* Ice.swift in Sources */,
+				146503BC2D052A5400022691 /* Lightning.swift in Sources */,
 				14DDF4472CF1551100A0EBAB /* TracerEffect.swift in Sources */,
 				14F528D72CF1638C0092C18F /* QuantumCollapseEmitter.swift in Sources */,
 				14DDF4482CF1551100A0EBAB /* CodeRain.swift in Sources */,

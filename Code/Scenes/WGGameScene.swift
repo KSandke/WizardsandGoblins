@@ -12,54 +12,45 @@ import CoreGraphics
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
-    // Player State and View
+    // MARK: - Dependencies
     var playerState: PlayerState!
     var playerView: PlayerView!
-    
-    // Background
-    var background: SKSpriteNode!
-    
-    // Goblin Manager
     var goblinManager: Goblin!
-    var goblinSpawnInterval: TimeInterval = 2.0  // Changed to variable
-    
-    // Game over properties
-    var restartButton: SKLabelNode!
-    var mainMenuButton: SKLabelNode!
-    var currentWave: Int = 1
-    var remainingGoblins: Int = 10
-    
-    var isSpawningEnabled = true
-    var totalGoblinsSpawned = 0
-    var maxGoblinsPerWave = 10
-    
-    // New variables for wave management
-    var isInShop = false  // To track if the shop view is active
-    var isGameOver = false
-
-    // Update the property declaration
-    var waveConfigs: [Int: WaveConfig] = [:]
-    
-    // Add properties for mana potion drop chance and spell charge restore amount
-    var manaPotionDropChance: Double = 0.1  // 10% chance by default
-    var spellChargeRestoreAmount: Int = 2
-    
-    // Add to your existing properties
     private var tutorialManager: TutorialManager!
-    private var hasTutorialBeenShown: Bool = false
     
-    var castlePosition: CGPoint {
-        return CGPoint(x: size.width / 2, y: 100) // Adjust Y position as needed
-    }
+    // MARK: - Game State
+    private(set) var currentWave: Int = 1
+    private(set) var isGameOver = false
+    private(set) var isInShop = false
+    private(set) var isSpawningEnabled = true
+    private(set) var hasTutorialBeenShown = false
     
-    // Add this property with other game properties
+    // MARK: - Wave Management
+    private var waveConfigs: [Int: WaveConfig] = [:]
+    private var totalGoblinsSpawned = 0
+    private var remainingGoblins = GameConfig.defaultMaxGoblinsPerWave
+    private var maxGoblinsPerWave = GameConfig.defaultMaxGoblinsPerWave
+    private var goblinSpawnInterval: TimeInterval = GameConfig.defaultGoblinSpawnInterval
     private var currentWaveDamageTaken: CGFloat = 0
     
-    // Add these properties at the top of GameScene class
+    // MARK: - UI Elements
+    private var background: SKSpriteNode!
+    private var restartButton: SKLabelNode!
+    private var mainMenuButton: SKLabelNode!
+    
+    // MARK: - Combat Properties
+    private var manaPotionDropChance: Double = GameConfig.manaPotionDropChance
+    private var spellChargeRestoreAmount: Int = GameConfig.spellChargeRestoreAmount
+    
+    // MARK: - Input Handling
     private var touchStartLocation: CGPoint?
     private var touchStartTime: TimeInterval?
-    private let swipeThreshold: CGFloat = 50.0  // Minimum distance for a swipe
-    private let swipeTimeThreshold: TimeInterval = 0.3  // Maximum time for a swipe
+    private let swipeThreshold: CGFloat = GameConfig.swipeThreshold
+    private let swipeTimeThreshold: TimeInterval = GameConfig.swipeTimeThreshold
+    
+    var castlePosition: CGPoint {
+        return CGPoint(x: size.width / 2, y: GameConfig.defaultCastlePosition.y)
+    }
     
     override func didMove(to view: SKView) {
         // Initialize Player State and View
@@ -123,7 +114,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let regenerateCharges = SKAction.run { [weak self] in
             self?.playerState.regenerateSpellCharges()
         }
-        let wait = SKAction.wait(forDuration: 1.0)
+        let regenInterval = 1.0 / TimeInterval(playerState.manaRegenRate)
+        let wait = SKAction.wait(forDuration: regenInterval)
         let regenSequence = SKAction.sequence([wait, regenerateCharges])
         let repeatRegen = SKAction.repeatForever(regenSequence)
         self.run(repeatRegen, withKey: "regenerateCharges")
@@ -286,54 +278,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
               let startTime = touchStartTime else { return }
         
         let location = touch.location(in: self)
-        let touchedNode = self.atPoint(location)
+        // Calculate swipe distance and time
+        let dx = location.x - startLocation.x
         let timeDelta = touch.timestamp - startTime
         
-        // Debugging: Print the name of the touched node
-        print("Touched node: \(touchedNode.name ?? "Unnamed Node") at location \(location)")
-        
-        // Handle spell icon touches
-        if touchedNode.name == "spellIcon" {
-            playerView.handleSpellIconTouch(touchedNode)
-            return
-        }
-        
-        // Handle inventory button and close button taps
-        if touchedNode.name == "inventoryButton" || touchedNode.name == "closeInventory" {
-            playerView.handleInventoryButton(touchedNode)
-            return
-        }
-        
-        // Handle inventory spell icon taps
-        if let nodeName = touchedNode.name,
-           nodeName.starts(with: "inventorySpell_") {
-            print("Inventory spell icon tapped: \(nodeName)")
-            playerView.handleInventoryButton(touchedNode)
-            return
-        }
-        
-        // Only process swipes if inventory isn't open
-        if playerView.inventoryDisplay == nil {
-            let dx = location.x - startLocation.x
-            let dy = location.y - startLocation.y
-            
-            // Check if this is a swipe (quick enough and long enough)
-            if timeDelta <= swipeTimeThreshold {
-                // Check if the movement is large enough to be a swipe
-                if abs(dx) >= swipeThreshold || abs(dy) >= swipeThreshold {
-                    // Determine primary direction based on larger component
-                    let isHorizontalDominant = abs(dx) > abs(dy)
-                    
-                    // Handle horizontal swipes for spell cycling
-                    if isHorizontalDominant {
-                        if dx > 0 {
-                            playerState.cycleSpell()
-                        } else {
-                            playerState.cycleSpellBackwards()
-                        }
-                        return
-                    }
+        // Only process swipe if it was quick enough
+        if timeDelta <= swipeTimeThreshold {
+            if abs(dx) >= swipeThreshold {
+                // Swipe detected
+                if dx > 0 {
+                    // Swipe right
+                    playerState.cycleSpellBackwards()
+                } else {
+                    // Swipe left - cycle backwards
+                    playerState.cycleSpell()
                 }
+                return
             }
         }
         
@@ -363,7 +323,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
-        // Handle spell cycling
+        // Handle spell cycling via touch on spell icon
         for node in nodes(at: location) {
             if node.name == "cycleSpell" {
                 playerView.handleSpellCycleTouch(node)
@@ -381,6 +341,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 goToMainMenu()
                 return
             default:
+                if let node = touchedNode, 
+                   node.name?.hasPrefix("specialButton") == true,
+                   let index = Int(node.name?.dropFirst("specialButton".count) ?? "") {
+                    if !playerView.handleSpecialButtonTap(node, touch.timestamp) {
+                        // Get the special for this specific button index
+                        let specialSlots = playerState.getSpecialSlots()
+                        if let special = specialSlots[index], special.canUse() {
+                            playerState.selectSpecialSlot(index)
+                            useSpecial(at: location)
+                        }
+                    }
+                    return  // Add return here to prevent spell casting
+                }
                 break
             }
         }
@@ -402,9 +375,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func castSpell(to location: CGPoint) {
         let casterPosition = playerView.playerPosition
-        let spell = playerState.getSpellForCasting() // Use the updated method
-        let castResult = spell.cast(from: casterPosition, to: location, by: playerState, in: self)
-        playerView.animateSpellCast()
+        let spell = playerState.getCurrentSpell()
+
+        if(spell.cast(from: casterPosition, to: location, by: playerState, in: self)) {
+            playerView.animateSpellCast()
+        }
     }
     
     func applySpell(_ spell: Spell, at position: CGPoint) {
@@ -502,10 +477,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func waveCompleted() {
-        // Add guard to prevent shop from showing if game is over
         guard !isGameOver else { return }
         
         endWave()
+        
+        // Pause special cooldowns when showing score screen
+        if let special = playerState.getCurrentSpecial() {
+            special.pauseCooldown()
+        }
         
         // Check for perfect wave bonus
         let perfectWaveBonus = currentWaveDamageTaken == 0
@@ -532,12 +511,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func showShopView() {
-        // Get the configuration for the next wave
-        let nextWaveConfig = getWaveConfig(forWave: currentWave + 1)
+        // Special cooldown is already paused from score screen
         
         let shopView = ShopView(
             size: self.size, 
             playerState: playerState,
+            playerView: playerView,
             config: nextWaveConfig,
             currentWave: currentWave,
             playerView: playerView,  // Pass the playerView reference
@@ -555,6 +534,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             shopView.removeFromParent()
         }
         isInShop = false
+        
+        // Resume special cooldowns when closing shop
+        if let special = playerState.getCurrentSpecial() {
+            special.resumeCooldown()
+        }
+        
         startNextWave()
     }
     
@@ -571,7 +556,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Reset wave and goblin counters
         currentWave = 1
-        remainingGoblins = 10
+        remainingGoblins = GameConfig.defaultMaxGoblinsPerWave
         
         // Reset spawning properties
         isSpawningEnabled = false
@@ -694,15 +679,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         switch pattern {
         case .single:
             spawnSingleGoblin()
-            
         case .line(let count):
             spawnLineOfGoblins(count: count)
-            
         case .surrounded(let centerCount, let surroundCount):
             spawnSurroundedGoblins(centerCount: centerCount, surroundCount: surroundCount)
-            
         case .stream(let count, let interval):
             spawnStreamOfGoblins(count: count, interval: interval)
+        // Add new cases
+        case .vFormation(let count):
+            spawnVFormation(count: count)
+        case .circle(let count, let radius):
+            spawnCircleFormation(count: count, radius: radius)
+        case .crossFormation(let count):
+            spawnCrossFormation(count: count)
+        case .spiral(let count, let radius):
+            spawnSpiralFormation(count: count, radius: radius)
+        case .random(let count, let spread):
+            spawnRandomFormation(count: count, spread: spread)
         }
     }
     
@@ -756,6 +749,98 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    func spawnVFormation(count: Int) {
+        let spacing: CGFloat = 50
+        let angleInRadians: CGFloat = .pi / 4 // 45 degrees
+        
+        // Calculate starting position at top center
+        let startX = size.width / 2
+        let startY = size.height + 50
+        
+        for i in 0..<count {
+            let offset = CGFloat(i) * spacing
+            
+            // Left wing
+            if i > 0 {
+                let leftX = startX - (offset * cos(angleInRadians))
+                let leftY = startY - (offset * sin(angleInRadians))
+                spawnGoblin(at: CGPoint(x: leftX, y: leftY))
+            }
+            
+            // Right wing
+            if i > 0 {
+                let rightX = startX + (offset * cos(angleInRadians))
+                let rightY = startY - (offset * sin(angleInRadians))
+                spawnGoblin(at: CGPoint(x: rightX, y: rightY))
+            }
+            
+            // Leader
+            if i == 0 {
+                spawnGoblin(at: CGPoint(x: startX, y: startY))
+            }
+        }
+    }
+    
+    func spawnCircleFormation(count: Int, radius: CGFloat) {
+        let centerX = size.width / 2
+        let centerY = size.height + radius
+        
+        for i in 0..<count {
+            let angle = (CGFloat.pi * 2 * CGFloat(i)) / CGFloat(count)
+            let x = centerX + radius * cos(angle)
+            let y = centerY + radius * sin(angle)
+            spawnGoblin(at: CGPoint(x: x, y: y))
+        }
+    }
+    
+    func spawnCrossFormation(count: Int) {
+        let centerX = size.width / 2
+        let centerY = size.height + 50
+        let spacing: CGFloat = 50
+        
+        // Spawn center goblin
+        spawnGoblin(at: CGPoint(x: centerX, y: centerY))
+        
+        // Spawn in four directions
+        for i in 1...count {
+            let offset = CGFloat(i) * spacing
+            
+            // Up
+            spawnGoblin(at: CGPoint(x: centerX, y: centerY + offset))
+            // Down
+            spawnGoblin(at: CGPoint(x: centerX, y: centerY - offset))
+            // Left
+            spawnGoblin(at: CGPoint(x: centerX - offset, y: centerY))
+            // Right
+            spawnGoblin(at: CGPoint(x: centerX + offset, y: centerY))
+        }
+    }
+    
+    func spawnSpiralFormation(count: Int, radius: CGFloat) {
+        let centerX = size.width / 2
+        let centerY = size.height + radius
+        let radiusIncrement = radius / CGFloat(count)
+        
+        for i in 0..<count {
+            let currentRadius = radiusIncrement * CGFloat(i + 1)
+            let angle = CGFloat(i) * .pi / 2
+            let x = centerX + currentRadius * cos(angle)
+            let y = centerY + currentRadius * sin(angle)
+            spawnGoblin(at: CGPoint(x: x, y: y))
+        }
+    }
+    
+    func spawnRandomFormation(count: Int, spread: CGFloat) {
+        let centerX = size.width / 2
+        let centerY = size.height + 50
+        
+        for _ in 0..<count {
+            let randomX = centerX + CGFloat.random(in: -spread...spread)
+            let randomY = centerY + CGFloat.random(in: -spread...spread)
+            spawnGoblin(at: CGPoint(x: randomX, y: randomY))
+        }
+    }
+    
     func createFrameAnimation(at position: CGPoint, 
                             framePrefix: String, 
                             frameCount: Int, 
@@ -783,5 +868,47 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Run animation once
         animationNode.run(sequence)
     }
+    
+    func useSpecial(at location: CGPoint) {
+        guard let special = playerState.getCurrentSpecial(),
+              special.canUse() else {
+            if let special = playerState.getCurrentSpecial() {
+                print("❌ Cannot use special \(special.name) - on cooldown")
+            } else {
+                print("❌ No special ability selected")
+            }
+            return
+        }
+        
+        print("🎯 Using special \(special.name) at position: \(location)")
+        let casterPosition = playerView.playerPosition
+        
+        if special.use(from: casterPosition, to: location, by: playerState, in: self) {
+            print("✨ Special \(special.name) successfully used")
+            playerView.updateSpecialCooldown(at: playerState.currentSpecialIndex)
+        } else {
+            print("❌ Special \(special.name) failed to activate")
+        }
+    }
+    
+    private var nextWaveConfig: WaveConfig {
+        let nextWaveNumber = currentWave + 1
+        
+        // Try to get specific config for next wave
+        if let config = waveConfigs[nextWaveNumber] {
+            return config
+        }
+        
+        // If no specific config exists, check for default config (-1)
+        if let defaultConfig = waveConfigs[-1] {
+            // Modify default config based on wave number
+            var modifiedConfig = defaultConfig
+            modifiedConfig.maxGoblins = (nextWaveNumber - 1) * 5
+            modifiedConfig.baseSpawnInterval = max(2.0 - 0.1 * Double(nextWaveNumber - 1), 0.5)
+            return modifiedConfig
+        }
+        
+        // If no configs found, create a new default config
+        return WaveConfig.createDefaultConfig(forWave: nextWaveNumber)
+    }
 }
-

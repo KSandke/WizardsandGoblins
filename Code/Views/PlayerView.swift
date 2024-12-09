@@ -1,3 +1,4 @@
+import Foundation
 import SpriteKit
 
 class PlayerView: SKNode {
@@ -27,7 +28,8 @@ class PlayerView: SKNode {
     var playerPosition: CGPoint { wizard.position }
     
     internal var spellIcon: SKSpriteNode!
-    internal var inactiveSpellIcon: SKSpriteNode!
+    internal var inactiveSpellIconLeft: SKSpriteNode!
+    internal var inactiveSpellIconRight: SKSpriteNode!
     
     // Add new properties for animation
     private var castingFrames: [SKTexture] = []
@@ -40,16 +42,11 @@ class PlayerView: SKNode {
     // Add new property for multiplier label
     private var multiplierLabel: SKLabelNode!
     
-    // Add new properties
-    private var cooldownOverlay: SKShapeNode?
-    private var cooldownLabel: SKLabelNode?
+    // Special ability UI
+    private var specialButtons: [SKSpriteNode] = []
+    private var specialCooldownOverlays: [SKShapeNode] = []
     
-    // Add new properties for inventory
-    // private var topSwipeArea: SKShapeNode!
-    
-    // Add new properties
-    internal var inventoryDisplay: SKNode?
-    private var inventoryButton: SKSpriteNode!
+    private var lastSpecialTapTime: TimeInterval = 0
     
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
@@ -66,6 +63,7 @@ class PlayerView: SKNode {
         
         setupBindings()
         setupUI()
+        setupSpecialButton()
     }
     
     // Add required initializer
@@ -132,7 +130,7 @@ class PlayerView: SKNode {
         
         castleHealthBar.fillColor = .gray
         castleHealthBar.strokeColor = .black
-        castleHealthBar.position = CGPoint(x: scene.size.width/2, y: 25)
+        castleHealthBar.position = CGPoint(x: 120, y: 25)
         scene.addChild(castleHealthBar)
         
         castleHealthFill.fillColor = .red
@@ -152,7 +150,7 @@ class PlayerView: SKNode {
         loadCastingAnimation()
         
         wizard.size = CGSize(width: 125, height: 125)
-        wizard.position = CGPoint(x: scene.size.width * 0.5, y: 100)
+        wizard.position = CGPoint(x: 80, y: 100)
         scene.addChild(wizard)
     }
     
@@ -194,39 +192,41 @@ class PlayerView: SKNode {
     private func setupChargeSegments(segments: inout [SKShapeNode], atPosition pos: CGPoint) {
         guard let scene = parentScene else { return }
         
-        // Calculate maximum available width
-        let maxAvailableWidth = scene.size.width * 0.3  // 30% of screen width
-        
-        // Base segment sizes
+        let maxAvailableWidth = scene.size.width * 0.3
         let baseSegmentWidth: CGFloat = 18
         let baseSegmentHeight: CGFloat = 10
         let baseSpacing: CGFloat = 2
         
-        // Calculate total width needed for base sizes
-        let baseWidth = (baseSegmentWidth * CGFloat(state.maxSpellCharges)) + 
-                       (baseSpacing * CGFloat(state.maxSpellCharges - 1))
+        // Break down the complex width calculations
+        let totalSegmentWidth = baseSegmentWidth * CGFloat(state.maxSpellCharges)
+        let totalSpacingWidth = baseSpacing * CGFloat(state.maxSpellCharges - 1)
+        let baseWidth = totalSegmentWidth + totalSpacingWidth
         
-        // Calculate scale factor if needed
         let scaleFactor = min(1.0, maxAvailableWidth / baseWidth)
         
-        // Apply scale to measurements
         let segmentWidth = baseSegmentWidth * scaleFactor
         let segmentHeight = baseSegmentHeight * scaleFactor
         let spacing = baseSpacing * scaleFactor
         
-        // Calculate total width with scaled measurements
-        let totalWidth = (segmentWidth * CGFloat(state.maxSpellCharges)) + 
-                        (spacing * CGFloat(state.maxSpellCharges - 1))
+        // Calculate total width separately
+        let scaledSegmentWidth = segmentWidth * CGFloat(state.maxSpellCharges)
+        let scaledSpacingWidth = spacing * CGFloat(state.maxSpellCharges - 1)
+        let totalWidth = scaledSegmentWidth + scaledSpacingWidth
         
-        // Center the segments below the wizard
-        let startX = pos.x - (totalWidth / 2)
+        let startX = 20
         
         for i in 0..<state.maxSpellCharges {
             let segment = SKShapeNode(rectOf: CGSize(width: segmentWidth, height: segmentHeight))
             segment.fillColor = .blue
             segment.strokeColor = .black
+            
+            // Calculate x position in steps
+            let offset = CGFloat(i) * (segmentWidth + spacing)
+            let halfSegmentWidth = segmentWidth / 2
+            let xPosition = CGFloat(startX) + offset + halfSegmentWidth
+            
             segment.position = CGPoint(
-                x: startX + (CGFloat(i) * (segmentWidth + spacing)) + (segmentWidth / 2),
+                x: xPosition,
                 y: pos.y - 50
             )
             scene.addChild(segment)
@@ -289,7 +289,7 @@ class PlayerView: SKNode {
         scoreLabel = SKLabelNode(text: "Score: \(state.score)")
         scoreLabel.fontSize = 24
         scoreLabel.fontColor = .black
-        scoreLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 65)
+        scoreLabel.position = CGPoint(x: 10, y: scene.size.height - 65)
         scoreLabel.fontName = "AvenirNext-Bold"
         scoreLabel.horizontalAlignmentMode = .left
         scoreLabel.zPosition = 500
@@ -310,7 +310,7 @@ class PlayerView: SKNode {
         coinLabel = SKLabelNode(text: "Coins: \(state.coins)")
         coinLabel.fontSize = 24
         coinLabel.fontColor = .black
-        coinLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 95)
+        coinLabel.position = CGPoint(x: 10, y: scene.size.height - 95)
         coinLabel.fontName = "AvenirNext-Bold"
         coinLabel.horizontalAlignmentMode = .left
         coinLabel.zPosition = 500
@@ -331,7 +331,7 @@ class PlayerView: SKNode {
         waveLabel = SKLabelNode(text: "Wave: 1")
         waveLabel.fontSize = 24
         waveLabel.fontColor = .black
-        waveLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 125)
+        waveLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 65)
         waveLabel.fontName = "AvenirNext-Bold"
         waveLabel.horizontalAlignmentMode = .left
         waveLabel.zPosition = 500
@@ -394,132 +394,66 @@ class PlayerView: SKNode {
     private func setupSpellIcons() {
         guard let scene = parentScene else { return }
         
-        // Update spell icon with rarity border
+        // Active spell icon setup
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
-        spellIcon.size = CGSize(width: 50, height: 50)
-        spellIcon.position = CGPoint(x: 50, y: scene.size.height * 0.10)
-        spellIcon.name = "spellIcon"
-        spellIcon.isUserInteractionEnabled = true
+        spellIcon.size = CGSize(width: 45, height: 45)
+        spellIcon.position = CGPoint(x: wizard.position.x + 130, y: wizard.position.y - 10)
+        spellIcon.name = "cycleSpell"
         
-        // Add colored border based on rarity
-        let border = SKShapeNode(rectOf: spellIcon.size)
-        border.strokeColor = state.getCurrentSpell().rarity.color
-        border.lineWidth = 2
-        spellIcon.addChild(border)
+        let spellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        spellLabel.fontSize = 12
+        spellLabel.text = state.getCurrentSpell().name
+        spellLabel.position = CGPoint(x: 0, y: 25)
+        spellIcon.addChild(spellLabel)
         
+        // Create a white border for active spell
+        let borderBox = SKShapeNode(rectOf: CGSize(width: 51, height: 51))
+        borderBox.strokeColor = .white
+        borderBox.lineWidth = 2
+        borderBox.fillColor = .clear
+        borderBox.position = spellIcon.position
+        scene.addChild(borderBox)
+        
+        // Setup inactive spell icons
+        let inactiveSize = CGSize(width: 30, height: 30)
+        let spacing: CGFloat = 40
+        let baseX = spellIcon.position.x
+        
+        // Setup left inactive spell
+        inactiveSpellIconLeft = SKSpriteNode(imageNamed: "EmptySpell")
+        inactiveSpellIconLeft.size = inactiveSize
+        inactiveSpellIconLeft.alpha = 0.6
+        inactiveSpellIconLeft.position = CGPoint(x: baseX - spacing, y: wizard.position.y)
+        inactiveSpellIconLeft.name = "inactiveSpell_left"
+        
+        let leftBorder = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
+        leftBorder.strokeColor = .white
+        leftBorder.lineWidth = 1
+        leftBorder.position = inactiveSpellIconLeft.position
+        leftBorder.name = "inactiveSpellBorder_left"
+        leftBorder.alpha = 0.6
+        
+        // Setup right inactive spell
+        inactiveSpellIconRight = SKSpriteNode(imageNamed: "EmptySpell")
+        inactiveSpellIconRight.size = inactiveSize
+        inactiveSpellIconRight.alpha = 0.6
+        inactiveSpellIconRight.position = CGPoint(x: baseX + spacing, y: wizard.position.y)
+        inactiveSpellIconRight.name = "inactiveSpell_right"
+        
+        let rightBorder = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
+        rightBorder.strokeColor = .white
+        rightBorder.lineWidth = 1
+        rightBorder.position = inactiveSpellIconRight.position
+        rightBorder.name = "inactiveSpellBorder_right"
+        rightBorder.alpha = 0.6
+        
+        scene.addChild(leftBorder)
+        scene.addChild(rightBorder)
+        scene.addChild(inactiveSpellIconLeft)
+        scene.addChild(inactiveSpellIconRight)
         scene.addChild(spellIcon)
         
-        // Update inactive spell icon with rarity border
-        let inactiveSpell = state.getInactiveSpell()
-        inactiveSpellIcon = SKSpriteNode(imageNamed: inactiveSpell.name)
-        inactiveSpellIcon.size = CGSize(width: 40, height: 40)  // Slightly smaller
-        inactiveSpellIcon.position = CGPoint(x: 100, y: scene.size.height * 0.10)
-        inactiveSpellIcon.alpha = 0.7  // Slightly transparent
-        
-        // Add colored border for inactive spell
-        let inactiveBorder = SKShapeNode(rectOf: inactiveSpellIcon.size)
-        inactiveBorder.strokeColor = inactiveSpell.rarity.color
-        inactiveBorder.lineWidth = 2
-        inactiveSpellIcon.addChild(inactiveBorder)
-        
-        scene.addChild(inactiveSpellIcon)
-        
-        // Add cooldown overlay (initially hidden)
-        cooldownOverlay = SKShapeNode(rectOf: spellIcon.size)
-        cooldownOverlay?.fillColor = .black
-        cooldownOverlay?.strokeColor = .clear
-        cooldownOverlay?.alpha = 0.6
-        cooldownOverlay?.isHidden = true
-        spellIcon.addChild(cooldownOverlay!)
-        
-        // Add cooldown label
-        cooldownLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        cooldownLabel?.fontSize = 16
-        cooldownLabel?.fontColor = .white
-        cooldownLabel?.verticalAlignmentMode = .center
-        cooldownLabel?.isHidden = true
-        spellIcon.addChild(cooldownLabel!)
-        
-        // Start cooldown update timer
-        let updateAction = SKAction.run { [weak self] in
-            self?.updateCooldownDisplay()
-        }
-        let wait = SKAction.wait(forDuration: 0.1) // Update 10 times per second
-        run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
-    }
-
-    private func updateCooldownDisplay() {
-        let currentSpell = state.getCurrentSpell()
-        
-        if currentSpell.isOnCooldown {
-            // Show cooldown overlay and update remaining time
-            cooldownOverlay?.isHidden = false
-            cooldownLabel?.isHidden = false
-            
-            let remainingTime = currentSpell.remainingCooldown
-            cooldownLabel?.text = String(format: "%.1f", remainingTime)
-            
-            // Update overlay height based on remaining cooldown
-            let progress = CGFloat(remainingTime / currentSpell.cooldownDuration)
-            cooldownOverlay?.yScale = progress
-            
-        } else {
-            // Hide cooldown display when not on cooldown
-            cooldownOverlay?.isHidden = true
-            cooldownLabel?.isHidden = true
-        }
-        
-        // Update one-time use spell count
-        if currentSpell.isOneTimeUse {
-            let count = state.getConsumableSpellCount(currentSpell.name)
-            updateSpellCount(count)
-        }
-    }
-    
-    private func updateSpellCount(_ count: Int) {
-        // Remove existing count label if any
-        spellIcon.children.forEach { node in
-            if node.name == "countLabel" {
-                node.removeFromParent()
-            }
-        }
-        
-        // Add new count label
-        let countLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        countLabel.text = "x\(count)"
-        countLabel.fontSize = 16
-        countLabel.fontColor = .white
-        countLabel.position = CGPoint(x: spellIcon.frame.width/2 - 5, y: -spellIcon.frame.height/2 + 5)
-        countLabel.horizontalAlignmentMode = .right
-        countLabel.name = "countLabel"
-        spellIcon.addChild(countLabel)
-    }
-    
-    private func updateSpellIcon() {
-        // Use getCurrentSpell to get the base spell
-        let baseSpell = state.getCurrentSpell()
-        
-        // Check if there's a temporary spell
-        if let tempSpell = state.temporarySpell {
-            spellIcon.texture = SKTexture(imageNamed: tempSpell.name)
-            if let border = spellIcon.children.first as? SKShapeNode {
-                border.strokeColor = tempSpell.rarity.color
-            }
-        } else {
-            spellIcon.texture = SKTexture(imageNamed: baseSpell.name)
-            if let border = spellIcon.children.first as? SKShapeNode {
-                border.strokeColor = baseSpell.rarity.color
-            }
-        }
-
-        let inactiveSpell = state.getInactiveSpell()
-        inactiveSpellIcon.texture = SKTexture(imageNamed: inactiveSpell.name)
-        if let border = inactiveSpellIcon.children.first as? SKShapeNode {
-            border.strokeColor = inactiveSpell.rarity.color
-        }
-
-        // Update cooldown and count display
-        updateCooldownDisplay()
+        updateSpellIcon() // Initial update of all spell icons
     }
 
     func handleSpellCycleTouch(_ touchedNode: SKNode) {
@@ -529,12 +463,44 @@ class PlayerView: SKNode {
         }
     }
 
+    private func updateSpellIcon() {
+        // Update main spell icon
+        let currentSpell = state.getCurrentSpell()
+        spellIcon.texture = SKTexture(imageNamed: currentSpell.name)
+        if let spellLabel = spellIcon.children.first as? SKLabelNode {
+            spellLabel.text = currentSpell.name
+        }
+        
+        // Update inactive spell icons
+        //let inactiveSpells = state.getInactiveSpells()
+        
+        // Update left inactive spell (previous spell)
+        let leftSpell = state.getPreviousSpell()
+        inactiveSpellIconLeft.texture = SKTexture(imageNamed: leftSpell.name)
+        if let border = scene?.childNode(withName: "inactiveSpellBorder_left") as? SKShapeNode {
+            border.strokeColor = leftSpell.rarity.color
+        }
+        
+        // Update right inactive spell (next spell)
+        let rightSpell = state.getNextSpell()
+        inactiveSpellIconRight.texture = SKTexture(imageNamed: rightSpell.name)
+        if let border = scene?.childNode(withName: "inactiveSpellBorder_right") as? SKShapeNode {
+            border.strokeColor = rightSpell.rarity.color
+        }
+        
+        // Animate active spell icon update
+        spellIcon.run(SKAction.sequence([
+            SKAction.scale(to: 1.2, duration: 0.1),
+            SKAction.scale(to: 1.0, duration: 0.1)
+        ]))
+    }
+
     private func setupComboLabel() {
         guard let scene = parentScene else { return }
         comboLabel = SKLabelNode(text: "Combo: 0")
         comboLabel.fontSize = 24
         comboLabel.fontColor = .yellow
-        comboLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 155)
+        comboLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 95)
         comboLabel.fontName = "AvenirNext-Bold"
         comboLabel.horizontalAlignmentMode = .left
         comboLabel.zPosition = 500
@@ -830,13 +796,123 @@ class PlayerView: SKNode {
         }
     }
 
-    func handleSpellIconTouch(_ touchedNode: SKNode) {
-        if touchedNode.name == "spellIcon" {
-            // Get the current spell name and create a temporary spell
-            let spellName = state.getCurrentSpell().name
-            if state.useInventorySpell(spellName) {
-                print("Created temporary spell: \(spellName)")
+    private func setupSpecialButton() {
+        guard let scene = parentScene else { return }
+        
+        // Constants for button layout
+        let buttonSize = CGSize(width: 60, height: 60)
+        let verticalSpacing: CGFloat = 70
+        let baseX = scene.frame.maxX - 60
+        let baseY = scene.frame.minY + 70
+        
+        // Create three special buttons
+        for i in 0..<3 {
+            // Create button with default "empty" state
+            let button = SKSpriteNode(imageNamed: "EmptySpecial")
+            button.size = buttonSize
+            button.position = CGPoint(x: baseX, y: baseY + CGFloat(i) * verticalSpacing)
+            button.name = "specialButton\(i)"
+            scene.addChild(button)
+            specialButtons.append(button)
+            
+            // Create cooldown overlay for each button
+            let cooldownOverlay = SKShapeNode(circleOfRadius: 30)
+            cooldownOverlay.fillColor = SKColor.black.withAlphaComponent(0.5)
+            cooldownOverlay.strokeColor = .clear
+            cooldownOverlay.position = button.position
+            cooldownOverlay.isHidden = true
+            scene.addChild(cooldownOverlay)
+            specialCooldownOverlays.append(cooldownOverlay)
+            
+            // Update button if there's an active special for this slot
+            let specialSlots = state.getSpecialSlots()
+            if let currentSpecial = specialSlots[i] {
+                button.texture = SKTexture(imageNamed: currentSpecial.name)
             }
         }
+        
+        let updateAction = SKAction.run { [weak self] in
+            self?.updateSpecialCooldowns()
+        }
+        let wait = SKAction.wait(forDuration: 0.1)
+        scene.run(SKAction.repeatForever(SKAction.sequence([updateAction, wait])))
     }
-} 
+    
+    func handleSpecialButtonTap(_ touchedNode: SKNode, _ currentTime: TimeInterval) -> Bool {
+        // Extract the button index from the node name
+        guard let buttonName = touchedNode.name,
+              buttonName.hasPrefix("specialButton"),
+              let index = Int(buttonName.dropFirst("specialButton".count)) else {
+            print("🎮 Special Button Tap: Invalid button name")
+            return false
+        }
+        
+        // Print debug info about the tapped special slot
+        let specialSlots = state.getSpecialSlots()
+        if let special = specialSlots[index] {
+            print("🎮 Special Button \(index) Tapped: \(special.name) (Cooldown: \(special.cooldown)s)")
+            if special.canUse() {
+                print("✅ Special is ready to use")
+            } else {
+                if let lastUsed = special.lastUsedTime {
+                    let elapsed = special.getEffectiveElapsedTime()
+                    print("⏳ Special on cooldown: \(elapsed)/\(special.cooldown) seconds elapsed")
+                }
+            }
+        } else {
+            print("🎮 Special Button \(index) Tapped: Empty slot")
+        }
+        
+        return false
+    }
+    
+    private func updateSpecialCooldowns() {
+        for i in 0..<specialButtons.count {
+            updateSpecialCooldown(at: i)
+        }
+    }
+    
+    func updateSpecialCooldown(at index: Int) {
+        let specialSlots = state.getSpecialSlots()
+        guard let currentSpecial = specialSlots[index] else { return }
+        let overlay = specialCooldownOverlays[index]
+        
+        if !currentSpecial.canUse() {
+            overlay.isHidden = false
+            
+            // Calculate remaining cooldown percentage
+            if let lastUsed = currentSpecial.lastUsedTime {
+                let effectiveElapsed = currentSpecial.getEffectiveElapsedTime()
+                let percentage = max(0, min(1, effectiveElapsed / currentSpecial.cooldown))
+                
+                // Create arc for remaining cooldown
+                let path = CGMutablePath()
+                let center = CGPoint.zero
+                path.move(to: center)
+                path.addArc(center: center,
+                           radius: 30,
+                           startAngle: -.pi / 2,
+                           endAngle: -.pi / 2 + (.pi * 2 * (1 - percentage)),
+                           clockwise: false)
+                path.addLine(to: center)
+                
+                overlay.path = path
+            }
+        } else {
+            overlay.isHidden = true
+        }
+    }
+    
+    func updateSpecialButton(at index: Int) {
+        guard index < specialButtons.count else { return }
+        let specialSlots = state.getSpecialSlots()
+        if let currentSpecial = specialSlots[index] {
+            print("🔄 Updating Special Button \(index): \(currentSpecial.name)")
+            specialButtons[index].texture = SKTexture(imageNamed: currentSpecial.name)
+        } else {
+            print("🔄 Updating Special Button \(index): Empty")
+            specialButtons[index].texture = SKTexture(imageNamed: "EmptySpecial")
+        }
+        updateSpecialCooldown(at: index)
+    }
+}

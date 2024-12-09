@@ -22,7 +22,11 @@ public class Goblin {
         var isRanged: Bool
         var isAttacking: Bool = false
         private var attackTimer: Timer?
-                
+        
+        // Add status effects tracking
+        private var statusEffects: Set<String> = []
+        private var statusDurations: [String: TimeInterval] = [:]
+        
         init(type: GoblinType, sprite: SKSpriteNode, healthBar: SKShapeNode, healthFill: SKShapeNode, health: CGFloat, damage: CGFloat, maxHealth: CGFloat, goldValue: Int, isRanged: Bool = false) {
             self.type = type
             self.sprite = sprite
@@ -142,7 +146,7 @@ public class Goblin {
         }
         
         private func startRangedAttack(scene: GameScene) {
-            let targetPosition = CGPoint(x: scene.size.width / 2, y: 100) // Use same position as castlePosition
+            let targetPosition = CGPoint(x: scene.size.width / 2, y: 130) // Match the target Y position
             let distanceToTarget = sprite.position.distance(to: targetPosition)
             
             if distanceToTarget <= 401 { // Matches the stopDistance in moveGoblin
@@ -196,6 +200,49 @@ public class Goblin {
             attackTimer?.invalidate()
             attackTimer = nil
         }
+        
+        // Add methods for status effects
+        func hasStatusEffect(_ effectName: String) -> Bool {
+            return statusEffects.contains(effectName)
+        }
+        
+        func addStatusEffect(_ effectName: String, duration: TimeInterval) {
+            statusEffects.insert(effectName)
+            statusDurations[effectName] = duration
+            
+            // Schedule removal of status effect
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+                self?.removeStatusEffect(effectName)
+            }
+        }
+        
+        func removeStatusEffect(_ effectName: String) {
+            statusEffects.remove(effectName)
+            statusDurations.removeValue(forKey: effectName)
+        }
+        
+        func getRemainingDuration(for effectName: String) -> TimeInterval? {
+            guard let endTime = statusDurations[effectName] else { return nil }
+            return max(0, endTime - Date().timeIntervalSinceReferenceDate)
+        }
+        
+        // Add helper methods for targeting
+        func isAtFullHealth() -> Bool {
+            return health >= maxHealth
+        }
+        
+        func getHealthPercentage() -> CGFloat {
+            return health / maxHealth
+        }
+        
+        func isInRange(of point: CGPoint, radius: CGFloat) -> Bool {
+            return sprite.position.distance(to: point) <= radius
+        }
+        
+        // Add this computed property
+        var position: CGPoint {
+            return sprite.position
+        }
     }
     
     weak var scene: SKScene?
@@ -236,6 +283,26 @@ public class Goblin {
 
     func spawnGoblin(at position: CGPoint, specificType: GoblinType? = nil) {
         guard let gameScene = scene as? GameScene else { return }
+        
+        // Calculate target area dimensions
+        let targetScreenWidth = gameScene.size.width
+        let thirdWidth = targetScreenWidth / 3.2
+        
+        // Create debug overlay if it doesn't exist
+        //if gameScene.childNode(withName: "targetAreaOverlay") == nil {
+        //    let targetArea = SKShapeNode(rectOf: CGSize(
+         //       width: thirdWidth * 2,
+         //       height: 50
+         //   ))
+        //        x: targetScreenWidth / 2,
+          //      y: 120
+         ////   )
+          //  targetArea.fillColor = .red
+        //    targetArea.strokeColor = .clear
+         //   targetArea.alpha = 0.2
+          //  targetArea.name = "targetAreaOverlay"
+         //   gameScene.addChild(targetArea)
+        //}
         
         // Create a goblin of that type
         let nextGoblinType = specificType ?? getRandomGoblinType()
@@ -289,7 +356,11 @@ public class Goblin {
         goblinContainers.append(container)
         gameScene.addChild(goblinSprite)
         
-        let targetPosition = CGPoint(x: gameScene.size.width / 2, y: 100)
+        // Calculate random target position in middle third
+        let randomX = CGFloat.random(in: thirdWidth...(2 * thirdWidth))
+        let targetPosition = CGPoint(x: randomX, y: 140) // Keep same Y coordinate
+        
+        
         moveGoblin(container: container, to: targetPosition, in: gameScene)
     }
     
@@ -311,7 +382,7 @@ public class Goblin {
     
     private func moveGoblin(container: GoblinContainer, to targetPosition: CGPoint, in gameScene: GameScene) {
         let distanceToTarget = container.sprite.position.distance(to: targetPosition)
-        let stopDistance: CGFloat = container.isRanged ? 400 : 0
+        let stopDistance: CGFloat = container.isRanged ? 400 : 0  // Ranged goblins stop at 400, melee at 0
 
         if distanceToTarget > stopDistance {
             // Calculate the actual stop position for ranged goblins
@@ -517,6 +588,45 @@ public class Goblin {
         shadowGoblins.removeAll { $0 === shadowGoblin }
         shadowGoblin.sprite.removeFromParent()
     }
+    
+    // Add targeting helper methods
+    func getGoblins() -> [GoblinContainer] {
+        return goblinContainers
+    }
+    
+    func getGoblinsInRange(of point: CGPoint, radius: CGFloat) -> [GoblinContainer] {
+        return goblinContainers.filter { $0.isInRange(of: point, radius: radius) }
+    }
+    
+    func getGoblinsWithFullHealth() -> [GoblinContainer] {
+        return goblinContainers.filter { $0.isAtFullHealth() }
+    }
+    
+    func getGoblinsWithHealthPercentage(above percentage: CGFloat) -> [GoblinContainer] {
+        return goblinContainers.filter { $0.getHealthPercentage() >= percentage }
+    }
+    
+    func getGoblinsWithHealthPercentage(below percentage: CGFloat) -> [GoblinContainer] {
+        return goblinContainers.filter { $0.getHealthPercentage() <= percentage }
+    }
+    
+    func getNearestGoblin(to point: CGPoint) -> GoblinContainer? {
+        return goblinContainers.min { goblin1, goblin2 in
+            point.distance(to: goblin1.sprite.position) < point.distance(to: goblin2.sprite.position)
+        }
+    }
+    
+    func getGoblinsWithStatusEffect(_ effectName: String) -> [GoblinContainer] {
+        return goblinContainers.filter { $0.hasStatusEffect(effectName) }
+    }
+    
+    func getGoblinsWithoutStatusEffect(_ effectName: String) -> [GoblinContainer] {
+        return goblinContainers.filter { !$0.hasStatusEffect(effectName) }
+    }
+
+    func removeTargetingOverlay() {
+        scene?.childNode(withName: "targetAreaOverlay")?.removeFromParent()
+    }
 }
 
 // Add this extension to your Goblin.swift file
@@ -531,5 +641,3 @@ extension Goblin.GoblinContainer: Hashable {
         hasher.combine(ObjectIdentifier(self))
     }
 }
-
-
