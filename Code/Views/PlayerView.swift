@@ -435,10 +435,12 @@ class PlayerView: SKNode {
             
             // Add border for visibility
             let border = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
-            border.strokeColor = .white
+            //border.strokeColor = .white
+            border.strokeColor = spell.rarity.color
             border.lineWidth = 1
             border.position = inactiveIcon.position
-            border.zPosition = inactiveIcon.zPosition - 1
+            border.name = "inactiveSpellBorder_\(index)"
+            border.alpha = 0.6
             scene.addChild(border)
         }
         
@@ -469,6 +471,7 @@ class PlayerView: SKNode {
     private func cleanupInactiveSpellIcons() {
         scene?.children.forEach { node in
             if node.name?.hasPrefix("inactiveSpell_") == true || node.name?.hasPrefix("inactiveSpellBorder_") == true {
+                print("Removing inactive spell icon: \(node.name ?? "")")
                 node.removeFromParent()
             }
         }
@@ -476,6 +479,7 @@ class PlayerView: SKNode {
     
     private func createInactiveSpellIcons() {
         let inactiveSpells = state.getInactiveSpells()
+        print("Setting up \(inactiveSpells.count) inactive spells") 
         let spacing: CGFloat = 40
         let inactiveSize = CGSize(width: 30, height: 30)
         let baseX = spellIcon.position.x
@@ -486,7 +490,8 @@ class PlayerView: SKNode {
     }
     
     private func createInactiveSpellIcon(spell: Spell, index: Int, size: CGSize, baseX: CGFloat, spacing: CGFloat) {
-        let icon = SKSpriteNode(imageNamed: spell.name)
+        guard let scene = parentScene else { return }                                                                                                       
+        let icon = SKSpriteNode(imageNamed: spell.name)                                         
         icon.size = size
         icon.alpha = 0.6
         icon.name = "inactiveSpell_\(index)"
@@ -494,6 +499,7 @@ class PlayerView: SKNode {
         let xOffset = spacing * CGFloat(index + 1)
         let xPosition = index % 2 == 0 ? baseX - xOffset : baseX + xOffset
         icon.position = CGPoint(x: xPosition, y: wizard.position.y)
+        icon.zPosition = spellIcon.zPosition
         
         let border = SKShapeNode(rectOf: CGSize(width: size.width + 6, height: size.height + 6))
         border.strokeColor = spell.rarity.color
@@ -503,8 +509,8 @@ class PlayerView: SKNode {
         border.name = "inactiveSpellBorder_\(index)"
         border.alpha = 0.6
         
-        scene?.addChild(border)
-        scene?.addChild(icon)
+        scene.addChild(border)
+        scene.addChild(icon)
     }
 
     // // Helper method to create spell instance
