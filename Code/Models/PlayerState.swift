@@ -331,4 +331,19 @@ class PlayerState: SpellCaster {
     func hasSpell(named spellName: String) -> Bool {
         return availableSpells.contains { $0.name == spellName }
     }
+    
+    func replaceSpell(_ newSpell: Spell, at index: Int) {
+        guard index >= 0 && index < availableSpells.count else { return }
+        
+        // If replacing current spell, update currentSpell
+        if availableSpells[index].name == currentSpell.name {
+            currentSpell = newSpell
+        }
+        
+        // Replace the spell at the specified index
+        availableSpells[index] = newSpell
+        
+        // Notify listeners if needed
+        onSpellChanged?(currentSpell)
+    }
 }
