@@ -395,7 +395,7 @@ class PlayerView: SKNode {
         // Active spell icon setup
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
         spellIcon.size = CGSize(width: 45, height: 45)
-        spellIcon.position = CGPoint(x: wizard.position.x + 140, y: wizard.position.y)
+        spellIcon.position = CGPoint(x: wizard.position.x + 130, y: wizard.position.y - 10)
         spellIcon.name = "cycleSpell"
         
         let spellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
