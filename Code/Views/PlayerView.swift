@@ -28,7 +28,8 @@ class PlayerView: SKNode {
     var playerPosition: CGPoint { wizard.position }
     
     internal var spellIcon: SKSpriteNode!
-    internal var inactiveSpellIcon: SKSpriteNode!
+    internal var inactiveSpellIconLeft: SKSpriteNode!
+    internal var inactiveSpellIconRight: SKSpriteNode!
     
     var isInventoryOpen = false
     private var inventoryButton: SKSpriteNode!
@@ -391,7 +392,7 @@ class PlayerView: SKNode {
     private func setupSpellIcons() {
         guard let scene = parentScene else { return }
         
-        // Active spell icon setup - moved further right
+        // Active spell icon setup
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
         spellIcon.size = CGSize(width: 45, height: 45)
         spellIcon.position = CGPoint(x: wizard.position.x + 80, y: wizard.position.y)
@@ -412,39 +413,45 @@ class PlayerView: SKNode {
         scene.addChild(borderBox)
         
         // Setup inactive spell icons
-        let inactiveSpells = state.getInactiveSpells()
-        print("Setting up \(inactiveSpells.count) inactive spells")
-        
-        let spacing: CGFloat = 40
         let inactiveSize = CGSize(width: 30, height: 30)
+        let spacing: CGFloat = 40
         let baseX = spellIcon.position.x
         
-        for (index, spell) in inactiveSpells.enumerated() {
-            let inactiveIcon = SKSpriteNode(imageNamed: spell.name)
-            inactiveIcon.size = inactiveSize
-            inactiveIcon.alpha = 0.6
-            inactiveIcon.name = "inactiveSpell_\(index)"
-            
-            let xOffset = spacing * CGFloat(index + 1)
-            let xPosition = index % 2 == 0 ? baseX - xOffset : baseX + xOffset
-            inactiveIcon.position = CGPoint(x: xPosition, y: wizard.position.y)
-            inactiveIcon.zPosition = spellIcon.zPosition
-            
-            print("Adding inactive spell: \(spell.name) at position: \(xPosition), \(wizard.position.y)")
-            scene.addChild(inactiveIcon)
-            
-            // Add border for visibility
-            let border = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
-            //border.strokeColor = .white
-            border.strokeColor = spell.rarity.color
-            border.lineWidth = 1
-            border.position = inactiveIcon.position
-            border.name = "inactiveSpellBorder_\(index)"
-            border.alpha = 0.6
-            scene.addChild(border)
-        }
+        // Setup left inactive spell
+        inactiveSpellIconLeft = SKSpriteNode(imageNamed: "EmptySpell")
+        inactiveSpellIconLeft.size = inactiveSize
+        inactiveSpellIconLeft.alpha = 0.6
+        inactiveSpellIconLeft.position = CGPoint(x: baseX - spacing, y: wizard.position.y)
+        inactiveSpellIconLeft.name = "inactiveSpell_left"
         
+        let leftBorder = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
+        leftBorder.strokeColor = .white
+        leftBorder.lineWidth = 1
+        leftBorder.position = inactiveSpellIconLeft.position
+        leftBorder.name = "inactiveSpellBorder_left"
+        leftBorder.alpha = 0.6
+        
+        // Setup right inactive spell
+        inactiveSpellIconRight = SKSpriteNode(imageNamed: "EmptySpell")
+        inactiveSpellIconRight.size = inactiveSize
+        inactiveSpellIconRight.alpha = 0.6
+        inactiveSpellIconRight.position = CGPoint(x: baseX + spacing, y: wizard.position.y)
+        inactiveSpellIconRight.name = "inactiveSpell_right"
+        
+        let rightBorder = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
+        rightBorder.strokeColor = .white
+        rightBorder.lineWidth = 1
+        rightBorder.position = inactiveSpellIconRight.position
+        rightBorder.name = "inactiveSpellBorder_right"
+        rightBorder.alpha = 0.6
+        
+        scene.addChild(leftBorder)
+        scene.addChild(rightBorder)
+        scene.addChild(inactiveSpellIconLeft)
+        scene.addChild(inactiveSpellIconRight)
         scene.addChild(spellIcon)
+        
+        updateSpellIcon() // Initial update of all spell icons
     }
 
     func handleSpellCycleTouch(_ touchedNode: SKNode) {
@@ -456,74 +463,47 @@ class PlayerView: SKNode {
 
     private func updateSpellIcon() {
         // Update main spell icon
-        let nextSpell = state.getCurrentSpell()
-        spellIcon.texture = SKTexture(imageNamed: nextSpell.name)
+        let currentSpell = state.getCurrentSpell()
+        spellIcon.texture = SKTexture(imageNamed: currentSpell.name)
         if let spellLabel = spellIcon.children.first as? SKLabelNode {
-            spellLabel.text = nextSpell.name
+            spellLabel.text = currentSpell.name
         }
         
-        cleanupInactiveSpellIcons()
-        createInactiveSpellIcons()
+        // Update inactive spell icons
+        let inactiveSpells = state.getInactiveSpells()
         
-        spellIcon.run(SKAction.sequence([SKAction.scale(to: 1.2, duration: 0.1), SKAction.scale(to: 1.0, duration: 0.1)]))
-    }
-    
-    private func cleanupInactiveSpellIcons() {
-        scene?.children.forEach { node in
-            if node.name?.hasPrefix("inactiveSpell_") == true || node.name?.hasPrefix("inactiveSpellBorder_") == true {
-                print("Removing inactive spell icon: \(node.name ?? "")")
-                node.removeFromParent()
+        // Update left inactive spell
+        if inactiveSpells.count > 0 {
+            inactiveSpellIconLeft.texture = SKTexture(imageNamed: inactiveSpells[0].name)
+            if let border = scene?.childNode(withName: "inactiveSpellBorder_left") as? SKShapeNode {
+                border.strokeColor = inactiveSpells[0].rarity.color
+            }
+        } else {
+            inactiveSpellIconLeft.texture = SKTexture(imageNamed: "EmptySpell")
+            if let border = scene?.childNode(withName: "inactiveSpellBorder_left") as? SKShapeNode {
+                border.strokeColor = .white
             }
         }
-    }
-    
-    private func createInactiveSpellIcons() {
-        let inactiveSpells = state.getInactiveSpells()
-        print("Setting up \(inactiveSpells.count) inactive spells") 
-        let spacing: CGFloat = 40
-        let inactiveSize = CGSize(width: 30, height: 30)
-        let baseX = spellIcon.position.x
         
-        for (index, spell) in inactiveSpells.enumerated() {
-            createInactiveSpellIcon(spell: spell, index: index, size: inactiveSize, baseX: baseX, spacing: spacing)
+        // Update right inactive spell
+        if inactiveSpells.count > 1 {
+            inactiveSpellIconRight.texture = SKTexture(imageNamed: inactiveSpells[1].name)
+            if let border = scene?.childNode(withName: "inactiveSpellBorder_right") as? SKShapeNode {
+                border.strokeColor = inactiveSpells[1].rarity.color
+            }
+        } else {
+            inactiveSpellIconRight.texture = SKTexture(imageNamed: "EmptySpell")
+            if let border = scene?.childNode(withName: "inactiveSpellBorder_right") as? SKShapeNode {
+                border.strokeColor = .white
+            }
         }
+        
+        // Animate active spell icon update
+        spellIcon.run(SKAction.sequence([
+            SKAction.scale(to: 1.2, duration: 0.1),
+            SKAction.scale(to: 1.0, duration: 0.1)
+        ]))
     }
-    
-    private func createInactiveSpellIcon(spell: Spell, index: Int, size: CGSize, baseX: CGFloat, spacing: CGFloat) {
-        guard let scene = parentScene else { return }                                                                                                       
-        let icon = SKSpriteNode(imageNamed: spell.name)                                         
-        icon.size = size
-        icon.alpha = 0.6
-        icon.name = "inactiveSpell_\(index)"
-        
-        let xOffset = spacing * CGFloat(index + 1)
-        let xPosition = index % 2 == 0 ? baseX - xOffset : baseX + xOffset
-        icon.position = CGPoint(x: xPosition, y: wizard.position.y)
-        icon.zPosition = spellIcon.zPosition
-        
-        let border = SKShapeNode(rectOf: CGSize(width: size.width + 6, height: size.height + 6))
-        border.strokeColor = spell.rarity.color
-        border.lineWidth = 1
-        border.fillColor = .clear
-        border.position = icon.position
-        border.name = "inactiveSpellBorder_\(index)"
-        border.alpha = 0.6
-        
-        scene.addChild(border)
-        scene.addChild(icon)
-    }
-
-    // // Helper method to create spell instance
-    // private func createSpell(named spellName: String) -> Spell {
-    //     // Add cases for each spell type
-    //     switch spellName {
-    //     case "AC130": return AC130Spell()
-    //     case "TacticalNuke": return TacticalNukeSpell()
-    //     case "PredatorMissile": return PredatorMissileSpell()
-    //     // Add cases for other spells...
-    //     default: return FireballSpell() // Default fallback
-    //     }
-    // }
 
     private func setupComboLabel() {
         guard let scene = parentScene else { return }

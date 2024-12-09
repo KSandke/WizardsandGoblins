@@ -285,10 +285,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 // Swipe detected
                 if dx > 0 {
                     // Swipe right
-                    playerState.cycleSpell()
+                    playerState.cycleSpellBackwards()
                 } else {
                     // Swipe left - cycle backwards
-                    playerState.cycleSpellBackwards()
+                    playerState.cycleSpell()
                 }
                 return
             }
