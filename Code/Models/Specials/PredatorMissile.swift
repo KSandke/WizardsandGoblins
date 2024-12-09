@@ -1,7 +1,7 @@
 import Foundation
 import SpriteKit
 
-class PredatorMissileSpecial: Special {
+class PredatorMissile: Special {
     init() {
         super.init(
             name: "PredatorMissile",
