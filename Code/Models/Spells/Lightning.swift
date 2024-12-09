@@ -55,9 +55,12 @@ class LightningEffect: SpellEffect {
             // Apply gameplay effects to all targets
             let affectedGoblins = [goblin] + nearbyGoblins
             for affectedGoblin in affectedGoblins {
-                // Stop the goblin movement and attacks
-                let originalSpeed = affectedGoblin.sprite.speed
-                affectedGoblin.sprite.speed = 0
+                // Store current position and any ongoing actions
+                let currentPosition = affectedGoblin.sprite.position
+                let currentActions = affectedGoblin.sprite.actions(forKey: "movement")
+                
+                // Remove current movement action
+                affectedGoblin.sprite.removeAction(forKey: "movement")
                 affectedGoblin.pauseAttacks()
 
                 // Apply damage
@@ -69,7 +72,23 @@ class LightningEffect: SpellEffect {
 
                 // Reset after duration
                 DispatchQueue.main.asyncAfter(deadline: .now() + effectDuration) {
-                    affectedGoblin.sprite.speed = originalSpeed
+                    // If there was a movement action, calculate remaining distance and create new movement
+                    if let targetPosition = gameScene.castlePosition {
+                        let remainingDistance = currentPosition.distance(to: targetPosition)
+                        if remainingDistance > 0 {
+                            let speed = gameScene.goblinManager.goblinSpeed(for: affectedGoblin.type)
+                            let remainingDuration = TimeInterval(remainingDistance / speed)
+                            
+                            let moveAction = SKAction.move(to: targetPosition, duration: remainingDuration)
+                            let startAttackAction = SKAction.run {
+                                affectedGoblin.startAttacking()
+                            }
+                            
+                            let sequence = SKAction.sequence([moveAction, startAttackAction])
+                            affectedGoblin.sprite.run(sequence, withKey: "movement")
+                        }
+                    }
+                    
                     affectedGoblin.resumeAttacks()
                 }
             }

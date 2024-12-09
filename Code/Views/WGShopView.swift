@@ -442,6 +442,15 @@ class ShopView: SKNode {
             }
         }
         
+        // If this is a spell and all slots are filled, show spell selector
+        if let spell = ShopView.currentSpellOffer,
+           item.name == spell.name {
+            if playerState.getAvailableSpells().count >= GameConfig.maxSpellSlots {
+                showSpellSlotSelector(for: spell)
+                return
+            }
+        }
+        
         // Normal purchase flow for non-specials or when empty slots are available
         completePurchase(item)
     }
@@ -456,8 +465,20 @@ class ShopView: SKNode {
             // Replace the special in the specific slot
             playerState.replaceSpecial(special, at: slotIndex)
             playerView.updateSpecialButton(at: slotIndex)
-        } else {
-            // Normal purchase flow for other items
+        } 
+        // If this is a spell
+        else if let spell = ShopView.currentSpellOffer,
+                  item.name == spell.name {
+            if let slotIndex = replacingSlot {
+                // Replace existing spell
+                playerState.replaceSpell(spell, at: slotIndex)
+            } else {
+                // Add new spell
+                playerState.addSpell(spell)
+            }
+        }
+        // Normal purchase flow for other items
+        else {
             item.effect(playerState) { [weak self] message in
                 self?.showMessage(message)
             }
