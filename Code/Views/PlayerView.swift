@@ -286,7 +286,7 @@ class PlayerView: SKNode {
         scoreLabel = SKLabelNode(text: "Score: \(state.score)")
         scoreLabel.fontSize = 24
         scoreLabel.fontColor = .black
-        scoreLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 65)
+        scoreLabel.position = CGPoint(x: 10, y: scene.size.height - 65)
         scoreLabel.fontName = "AvenirNext-Bold"
         scoreLabel.horizontalAlignmentMode = .left
         scoreLabel.zPosition = 500
@@ -307,7 +307,7 @@ class PlayerView: SKNode {
         coinLabel = SKLabelNode(text: "Coins: \(state.coins)")
         coinLabel.fontSize = 24
         coinLabel.fontColor = .black
-        coinLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 95)
+        coinLabel.position = CGPoint(x: 10, y: scene.size.height - 95)
         coinLabel.fontName = "AvenirNext-Bold"
         coinLabel.horizontalAlignmentMode = .left
         coinLabel.zPosition = 500
@@ -328,7 +328,7 @@ class PlayerView: SKNode {
         waveLabel = SKLabelNode(text: "Wave: 1")
         waveLabel.fontSize = 24
         waveLabel.fontColor = .black
-        waveLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 125)
+        waveLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 65)
         waveLabel.fontName = "AvenirNext-Bold"
         waveLabel.horizontalAlignmentMode = .left
         waveLabel.zPosition = 500
@@ -511,7 +511,7 @@ class PlayerView: SKNode {
         comboLabel = SKLabelNode(text: "Combo: 0")
         comboLabel.fontSize = 24
         comboLabel.fontColor = .yellow
-        comboLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 155)
+        comboLabel.position = CGPoint(x: scene.size.width - 125, y: scene.size.height - 95)
         comboLabel.fontName = "AvenirNext-Bold"
         comboLabel.horizontalAlignmentMode = .left
         comboLabel.zPosition = 500
