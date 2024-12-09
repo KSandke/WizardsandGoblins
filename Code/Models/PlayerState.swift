@@ -122,6 +122,7 @@ class PlayerState: SpellCaster {
         // Initialize with only Fireball spell
         availableSpells = [
             FireballSpell(),
+            IceSpell()
         ]
         
         // Initialize with PredatorMissile special in first slot
@@ -352,16 +353,7 @@ class PlayerState: SpellCaster {
     // Add this new method to PlayerState
     func getInactiveSpells() -> [Spell] {
         let allSpells = getAvailableSpells()
-        guard let currentIndex = allSpells.firstIndex(where: { $0.name == currentSpell.name }) else {
-            return []
-        }
-        
-        var inactiveSpells: [Spell] = []
-        for i in 0..<allSpells.count {
-            if i != currentIndex {
-                inactiveSpells.append(allSpells[i])
-            }
-        }
-        return inactiveSpells
+        return allSpells.filter { $0.name != currentSpell.name }
     }
+
 }

@@ -394,7 +394,7 @@ class PlayerView: SKNode {
         // Active spell icon setup - moved further right
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
         spellIcon.size = CGSize(width: 45, height: 45)
-        spellIcon.position = CGPoint(x: wizard.position.x + 80, y: wizard.position.y) // Moved from +50 to +80
+        spellIcon.position = CGPoint(x: wizard.position.x + 80, y: wizard.position.y)
         spellIcon.name = "cycleSpell"
         
         let spellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
@@ -413,30 +413,33 @@ class PlayerView: SKNode {
         
         // Setup inactive spell icons
         let inactiveSpells = state.getInactiveSpells()
-        inactiveSpellIcon = nil // Clear existing reference
+        print("Setting up \(inactiveSpells.count) inactive spells")
         
-        // Position constants
         let spacing: CGFloat = 40
         let inactiveSize = CGSize(width: 30, height: 30)
         let baseX = spellIcon.position.x
         
-        // Add inactive spells on both sides
         for (index, spell) in inactiveSpells.enumerated() {
             let inactiveIcon = SKSpriteNode(imageNamed: spell.name)
             inactiveIcon.size = inactiveSize
             inactiveIcon.alpha = 0.6
             inactiveIcon.name = "inactiveSpell_\(index)"
             
-            // Position alternating left and right of active spell
             let xOffset = spacing * CGFloat(index + 1)
             let xPosition = index % 2 == 0 ? baseX - xOffset : baseX + xOffset
             inactiveIcon.position = CGPoint(x: xPosition, y: wizard.position.y)
+            inactiveIcon.zPosition = spellIcon.zPosition
             
-            if index == 0 {
-                inactiveSpellIcon = inactiveIcon
-            }
-            
+            print("Adding inactive spell: \(spell.name) at position: \(xPosition), \(wizard.position.y)")
             scene.addChild(inactiveIcon)
+            
+            // Add border for visibility
+            let border = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
+            border.strokeColor = .white
+            border.lineWidth = 1
+            border.position = inactiveIcon.position
+            border.zPosition = inactiveIcon.zPosition - 1
+            scene.addChild(border)
         }
         
         scene.addChild(spellIcon)
