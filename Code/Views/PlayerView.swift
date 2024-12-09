@@ -391,7 +391,7 @@ class PlayerView: SKNode {
     private func setupSpellIcons() {
         guard let scene = parentScene else { return }
         
-        // Existing active spell icon setup
+        // Active spell icon setup
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
         spellIcon.size = CGSize(width: 45, height: 45)
         spellIcon.position = CGPoint(x: wizard.position.x + 50, y: wizard.position.y)
@@ -403,26 +403,41 @@ class PlayerView: SKNode {
         spellLabel.position = CGPoint(x: 0, y: 25)
         spellIcon.addChild(spellLabel)
         
-        // Create a container node for the inactive spell and its border
-        let inactiveContainer = SKNode()
-        inactiveContainer.position = CGPoint(x: wizard.position.x + 90, y: wizard.position.y)  // Position to the left of wizard
-        
-        // Add border box
-        let borderBox = SKShapeNode(rectOf: CGSize(width: 36, height: 36))
+        // Create a white border for active spell
+        let borderBox = SKShapeNode(rectOf: CGSize(width: 51, height: 51))
         borderBox.strokeColor = .white
         borderBox.lineWidth = 2
         borderBox.fillColor = .clear
-        inactiveContainer.addChild(borderBox)
+        borderBox.position = spellIcon.position
+        scene.addChild(borderBox)
         
-        // Add inactive spell icon showing the alternate spell
-        inactiveSpellIcon = SKSpriteNode(imageNamed: state.getInactiveSpell().name)
-        inactiveSpellIcon.size = CGSize(width: 30, height: 30)
-        inactiveSpellIcon.alpha = 0.6
-        inactiveSpellIcon.name = "inactiveSpell"
-        inactiveContainer.addChild(inactiveSpellIcon)
+        // Setup inactive spell icons
+        let inactiveSpells = state.getInactiveSpells()
+        inactiveSpellIcon = nil // Clear existing reference
+        
+        // Position constants
+        let spacing: CGFloat = 40
+        let inactiveSize = CGSize(width: 30, height: 30)
+        let baseX = spellIcon.position.x
+        
+        // Add inactive spells
+        for (index, spell) in inactiveSpells.enumerated() {
+            let inactiveIcon = SKSpriteNode(imageNamed: spell.name)
+            inactiveIcon.size = inactiveSize
+            inactiveIcon.alpha = 0.6
+            
+            // Position on either side of active spell
+            let xOffset = spacing * CGFloat(index + 1)
+            inactiveIcon.position = CGPoint(x: baseX + xOffset, y: wizard.position.y)
+            
+            if index == 0 {
+                inactiveSpellIcon = inactiveIcon // Keep reference to first inactive spell
+            }
+            
+            scene.addChild(inactiveIcon)
+        }
         
         scene.addChild(spellIcon)
-        scene.addChild(inactiveContainer)
     }
 
     func handleSpellCycleTouch(_ touchedNode: SKNode) {
@@ -439,8 +454,34 @@ class PlayerView: SKNode {
             spellLabel.text = nextSpell.name
         }
         
-        // Update inactive spell icon to show the alternate spell
-        inactiveSpellIcon.texture = SKTexture(imageNamed: state.getInactiveSpell().name)
+        // Remove all existing inactive spell icons
+        scene?.children.forEach { node in
+            if node.name?.contains("inactiveSpell") == true {
+                node.removeFromParent()
+            }
+        }
+        
+        // Add new inactive spell icons
+        let inactiveSpells = state.getInactiveSpells()
+        let spacing: CGFloat = 40
+        let inactiveSize = CGSize(width: 30, height: 30)
+        let baseX = spellIcon.position.x
+        
+        for (index, spell) in inactiveSpells.enumerated() {
+            let inactiveIcon = SKSpriteNode(imageNamed: spell.name)
+            inactiveIcon.size = inactiveSize
+            inactiveIcon.alpha = 0.6
+            inactiveIcon.name = "inactiveSpell_\(index)"
+            
+            let xOffset = spacing * CGFloat(index + 1)
+            inactiveIcon.position = CGPoint(x: baseX + xOffset, y: wizard.position.y)
+            
+            if index == 0 {
+                inactiveSpellIcon = inactiveIcon
+            }
+            
+            scene?.addChild(inactiveIcon)
+        }
         
         let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
         let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)

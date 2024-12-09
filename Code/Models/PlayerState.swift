@@ -346,4 +346,20 @@ class PlayerState: SpellCaster {
         // Notify listeners if needed
         onSpellChanged?(currentSpell)
     }
+    
+    // Add this new method to PlayerState
+    func getInactiveSpells() -> [Spell] {
+        let allSpells = getAvailableSpells()
+        guard let currentIndex = allSpells.firstIndex(where: { $0.name == currentSpell.name }) else {
+            return []
+        }
+        
+        var inactiveSpells: [Spell] = []
+        for i in 0..<allSpells.count {
+            if i != currentIndex {
+                inactiveSpells.append(allSpells[i])
+            }
+        }
+        return inactiveSpells
+    }
 }

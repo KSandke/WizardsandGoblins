@@ -786,12 +786,16 @@ class ShopView: SKNode {
         // Remove any existing selector
         spellSelector?.removeFromParent()
         
-        // Create selector similar to special selector but for spells
+        // Calculate container size to fit the entire screen
+        let containerWidth = background.frame.width
+        let containerHeight = background.frame.height
+        
+        // Create selector node
         let selector = SKNode()
         selector.zPosition = 2000
         
         // Add semi-transparent background
-        let background = SKShapeNode(rectOf: CGSize(width: self.frame.width, height: self.frame.height))
+        let background = SKShapeNode(rectOf: CGSize(width: containerWidth, height: containerHeight))
         background.fillColor = .black
         background.alpha = 0.7
         background.strokeColor = .clear
@@ -801,21 +805,22 @@ class ShopView: SKNode {
         let titleLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         titleLabel.text = "Select spell to replace"
         titleLabel.fontSize = 32
-        titleLabel.position = CGPoint(x: 0, y: self.frame.height/4)
+        titleLabel.position = CGPoint(x: 0, y: containerHeight/4)
         selector.addChild(titleLabel)
         
         // Setup spell buttons
-        let buttonWidth: CGFloat = 100
-        let buttonHeight: CGFloat = 100
+        let buttonWidth: CGFloat = min(100, containerWidth / 4)
+        let buttonHeight: CGFloat = min(100, containerHeight / 3)
         let padding: CGFloat = 15
         
         let currentSpells = playerState.getAvailableSpells()
         let totalWidth = CGFloat(currentSpells.count) * (buttonWidth + padding) - padding
         let startX = -totalWidth/2 + buttonWidth/2
+        let buttonY: CGFloat = 0  // Center Y
         
         for (i, spell) in currentSpells.enumerated() {
             let button = createSpellButton(spell, at: i, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: startX + CGFloat(i) * (buttonWidth + padding), y: 0)
+            button.position = CGPoint(x: startX + CGFloat(i) * (buttonWidth + padding), y: buttonY)
             button.name = "spellSlotButton_\(i)"
             selector.addChild(button)
         }
@@ -825,11 +830,13 @@ class ShopView: SKNode {
         cancelButton.text = "Cancel"
         cancelButton.fontSize = 24
         cancelButton.fontColor = .red
-        cancelButton.position = CGPoint(x: 0, y: -self.frame.height/4)
+        cancelButton.position = CGPoint(x: 0, y: -containerHeight/4)
         cancelButton.name = "spellSelectorCancel"
         selector.addChild(cancelButton)
         
-        selector.position = CGPoint(x: self.frame.width/2, y: self.frame.height/2)
+        // Position the entire selector node in the center of the screen
+        selector.position = CGPoint(x: background.frame.width/2, y: background.frame.height/2)
+        
         addChild(selector)
         spellSelector = selector
     }
