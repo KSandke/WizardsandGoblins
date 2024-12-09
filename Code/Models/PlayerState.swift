@@ -232,7 +232,7 @@ class PlayerState: SpellCaster {
             if availableSpells.count < GameConfig.maxSpellSlots {
                 availableSpells.append(spell)
                 // Trigger update of spell icons
-                onSpellChanged?(currentSpell)
+                //onSpellChanged?(currentSpell)
             }
         }
     }
