@@ -114,7 +114,7 @@ class PlayerState: SpellCaster {
         self.playerPosition = initialPosition
         
         // Initialize with Lightning as the default spell
-        currentSpell = LightningSpell()
+        currentSpell = FireballSpell()
         
         // Initialize maxHealth to match castleHealth
         maxHealth = maxCastleHealth
