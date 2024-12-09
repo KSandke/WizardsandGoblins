@@ -450,6 +450,7 @@ class PlayerView: SKNode {
     }
 
     private func updateSpellIcon() {
+        // Update main spell icon
         let nextSpell = state.getCurrentSpell()
         spellIcon.texture = SKTexture(imageNamed: nextSpell.name)
         if let spellLabel = spellIcon.children.first as? SKLabelNode {
@@ -458,7 +459,8 @@ class PlayerView: SKNode {
         
         // Remove all existing inactive spell icons
         scene?.children.forEach { node in
-            if node.name?.contains("inactiveSpell") == true {
+            if node.name?.hasPrefix("inactiveSpell_") == true {
+                print("Removing inactive spell: \(node.name)")
                 node.removeFromParent()
             }
         }
@@ -469,7 +471,6 @@ class PlayerView: SKNode {
         let inactiveSize = CGSize(width: 30, height: 30)
         let baseX = spellIcon.position.x
         
-        // Add inactive spells on both sides
         for (index, spell) in inactiveSpells.enumerated() {
             let inactiveIcon = SKSpriteNode(imageNamed: spell.name)
             inactiveIcon.size = inactiveSize
@@ -480,10 +481,12 @@ class PlayerView: SKNode {
             let xOffset = spacing * CGFloat(index + 1)
             let xPosition = index % 2 == 0 ? baseX - xOffset : baseX + xOffset
             inactiveIcon.position = CGPoint(x: xPosition, y: wizard.position.y)
+
+            print("Adding inactive spell: \(inactiveIcon.name)")
             
-            if index == 0 {
-                inactiveSpellIcon = inactiveIcon
-            }
+            //if index == 0 {
+            //    inactiveSpellIcon = inactiveIcon
+            //}
             
             scene?.addChild(inactiveIcon)
         }
