@@ -196,10 +196,10 @@ class ShopView: SKNode {
         let totalWidth = (buttonWidth * 2) + padding
         let startX = (size.width - totalWidth) / 2 + buttonWidth / 2
         
-        // Position buttons between coin display and close button
-        let upperButtonY = size.height * 0.55  // Upper row for permanent upgrades
-        let middleButtonY = size.height * 0.35  // Middle row for special
-        let lowerButtonY = size.height * 0.25  // Lower row for spell
+        // Position buttons with consistent vertical spacing
+        let upperButtonY = size.height * 0.65  // Permanent upgrades
+        let specialButtonY = size.height * 0.45 // Special button
+        let spellButtonY = size.height * 0.25   // Spell button
         
         // First, position the permanent upgrades
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
@@ -214,7 +214,7 @@ class ShopView: SKNode {
         // Then, position the special upgrade if available
         if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
             let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: size.width/2, y: middleButtonY)
+            button.position = CGPoint(x: size.width/2, y: specialButtonY)
             addChild(button)
             itemButtons.append(button)
         }
@@ -222,13 +222,13 @@ class ShopView: SKNode {
         // Finally, position the spell upgrade if available
         if let spellItem = createSpellShopItem() {
             let button = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: size.width/2, y: lowerButtonY)
+            button.position = CGPoint(x: size.width/2, y: spellButtonY)
             addChild(button)
             itemButtons.append(button)
         }
         
         // Update close button position
-        closeButton.position = CGPoint(x: size.width/2, y: lowerButtonY - buttonHeight - 40)
+        closeButton.position = CGPoint(x: size.width/2, y: spellButtonY - buttonHeight - 40)
         addChild(closeButton)
     }
     
@@ -238,7 +238,15 @@ class ShopView: SKNode {
         
         // Create background with rarity color if applicable
         let background = SKShapeNode(rectOf: size, cornerRadius: 10)
-        if let rarity = item.rarity {
+        
+        // Check if item is already purchased (for specials/spells)
+        let isAlreadyPurchased = isItemPurchased(item)
+        
+        if isAlreadyPurchased {
+            // Use a darker, disabled appearance
+            background.fillColor = .gray.withAlphaComponent(0.1)
+            background.strokeColor = .gray
+        } else if let rarity = item.rarity {
             background.fillColor = rarity.color.withAlphaComponent(0.3)
             background.strokeColor = rarity.color
         } else {
@@ -286,11 +294,16 @@ class ShopView: SKNode {
         }
         container.addChild(descLabel)
         
-        // Price
+        // Price or "Already Purchased" text
         let priceLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        priceLabel.text = "\(item.currentPrice) coins"
+        if isAlreadyPurchased {
+            priceLabel.text = "Already Purchased"
+            priceLabel.fontColor = .gray
+        } else {
+            priceLabel.text = "\(item.currentPrice) coins"
+            priceLabel.fontColor = .yellow
+        }
         priceLabel.fontSize = 12
-        priceLabel.fontColor = .yellow
         priceLabel.position = CGPoint(x: 0, y: -30)
         priceLabel.horizontalAlignmentMode = .center
         priceLabel.verticalAlignmentMode = .center
@@ -309,6 +322,21 @@ class ShopView: SKNode {
         }
         
         return container
+    }
+    
+    private func isItemPurchased(_ item: ShopItem) -> Bool {
+        // For specials, check if it's in the player's special slots
+        if let special = ShopView.currentSpecialOffer, special.name == item.name {
+            let currentSpecials = playerState.getSpecialSlots()
+            return currentSpecials.contains { $0?.name == special.name }
+        }
+        
+        // For spells, check if it's in the player's spell inventory
+        if let spell = ShopView.currentSpellOffer, spell.name == item.name {
+            return playerState.hasSpell(named: spell.name)
+        }
+        
+        return false
     }
     
     private func updateStats() {
@@ -365,6 +393,12 @@ class ShopView: SKNode {
     }
     
     private func purchaseItem(_ item: ShopItem) {
+        // First check if item is already purchased
+        if isItemPurchased(item) {
+            showMessage("Already purchased!")
+            return
+        }
+        
         guard playerState.coins >= item.currentPrice else {
             showMessage("Not enough coins!")
             return
@@ -409,9 +443,10 @@ class ShopView: SKNode {
         let totalWidth = (buttonWidth * 2) + padding
         let startX = (background.frame.width - totalWidth) / 2 + buttonWidth / 2
         
-        // Position buttons with same layout as setupUI
-        let upperButtonY = background.frame.height * 0.55  // Upper row for permanent upgrades
-        let lowerButtonY = background.frame.height * 0.35  // Lower row for special
+        // Use the same vertical positions as setupUI
+        let upperButtonY = background.frame.height * 0.65  // Permanent upgrades
+        let specialButtonY = background.frame.height * 0.45 // Special button
+        let spellButtonY = background.frame.height * 0.25   // Spell button
         
         // First, position the permanent upgrades
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
@@ -426,7 +461,15 @@ class ShopView: SKNode {
         // Then, position the special upgrade if available
         if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
             let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: background.frame.width/2, y: lowerButtonY)
+            button.position = CGPoint(x: background.frame.width/2, y: specialButtonY)
+            addChild(button)
+            itemButtons.append(button)
+        }
+        
+        // Finally, position the spell upgrade if available
+        if let spellItem = createSpellShopItem() {
+            let button = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: background.frame.width/2, y: spellButtonY)
             addChild(button)
             itemButtons.append(button)
         }
@@ -849,11 +892,25 @@ class ShopView: SKNode {
         background.strokeColor = spell.rarity.color
         container.addChild(background)
         
+        // Add spell icon if available
+        let icon = SKSpriteNode(imageNamed: spell.name)
+        icon.size = CGSize(width: size.width * 0.6, height: size.height * 0.6)
+        container.addChild(icon)
+        
+        // Add spell name
         let nameLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         nameLabel.text = spell.name
         nameLabel.fontSize = 12
         nameLabel.position = CGPoint(x: 0, y: -size.height/2 - 10)
         container.addChild(nameLabel)
+        
+        // Add rarity label
+        let rarityLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        rarityLabel.text = spell.rarity.name
+        rarityLabel.fontSize = 10
+        rarityLabel.fontColor = spell.rarity.color
+        rarityLabel.position = CGPoint(x: 0, y: -size.height/2 - 25)
+        container.addChild(rarityLabel)
         
         return container
     }
@@ -868,15 +925,16 @@ class ShopView: SKNode {
         let nodes = self.nodes(at: location)
         for node in nodes {
             if let name = node.name {
-                if name.hasPrefix("specialSlotButton_") {  // Ensure correct prefix
+                if name.hasPrefix("specialSlotButton_") {
                     if let index = Int(name.dropFirst("specialSlotButton_".count)),
                        let special = ShopView.currentSpecialOffer {
                         playerState.replaceSpecial(special, at: index)
                         playerView.updateSpecialButton(at: index)
-                        slotSelector?.removeFromParent() // Close the selector after selection
+                        slotSelector?.removeFromParent()
+                        refreshItemButtons() // Refresh buttons to show updated state
                     }
                 } else if name == "specialSelectorCancel" {
-                    slotSelector?.removeFromParent() // Close the selector if cancel is tapped
+                    slotSelector?.removeFromParent()
                 } else if name.hasPrefix("spellSlotButton_") {
                     if let index = Int(name.dropFirst("spellSlotButton_".count)),
                        let newSpell = ShopView.currentSpellOffer {
@@ -884,6 +942,7 @@ class ShopView: SKNode {
                         if index < currentSpells.count {
                             playerState.replaceSpell(newSpell, at: index)
                             spellSelector?.removeFromParent()
+                            refreshItemButtons() // Refresh buttons to show updated state
                         }
                     }
                 } else if name == "spellSelectorCancel" {
