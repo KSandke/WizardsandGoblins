@@ -348,10 +348,27 @@ class PlayerState: SpellCaster {
         onSpellChanged?(currentSpell)
     }
     
-    // Add this new method to PlayerState
-    func getInactiveSpells() -> [Spell] {
-        let allSpells = getAvailableSpells()
-        return allSpells.filter { $0.name != currentSpell.name }
+    // Add these new functions
+    func getNextSpell() -> Spell {
+        let availableSpells = getAvailableSpells()
+        guard availableSpells.count > 1,
+              let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) else {
+            return currentSpell
+        }
+        
+        let nextIndex = (currentIndex + 1) % availableSpells.count
+        return availableSpells[nextIndex]
+    }
+    
+    func getPreviousSpell() -> Spell {
+        let availableSpells = getAvailableSpells()
+        guard availableSpells.count > 1,
+              let currentIndex = availableSpells.firstIndex(where: { $0.name == currentSpell.name }) else {
+            return currentSpell
+        }
+        
+        let previousIndex = (currentIndex - 1 + availableSpells.count) % availableSpells.count
+        return availableSpells[previousIndex]
     }
 
 }

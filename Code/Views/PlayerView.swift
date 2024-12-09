@@ -472,30 +472,18 @@ class PlayerView: SKNode {
         // Update inactive spell icons
         let inactiveSpells = state.getInactiveSpells()
         
-        // Update left inactive spell
-        if inactiveSpells.count > 0 {
-            inactiveSpellIconLeft.texture = SKTexture(imageNamed: inactiveSpells[0].name)
-            if let border = scene?.childNode(withName: "inactiveSpellBorder_left") as? SKShapeNode {
-                border.strokeColor = inactiveSpells[0].rarity.color
-            }
-        } else {
-            inactiveSpellIconLeft.texture = SKTexture(imageNamed: "EmptySpell")
-            if let border = scene?.childNode(withName: "inactiveSpellBorder_left") as? SKShapeNode {
-                border.strokeColor = .white
-            }
+        // Update left inactive spell (previous spell)
+        let leftSpell = state.getPreviousSpell()
+        inactiveSpellIconLeft.texture = SKTexture(imageNamed: leftSpell.name)
+        if let border = scene?.childNode(withName: "inactiveSpellBorder_left") as? SKShapeNode {
+            border.strokeColor = leftSpell.rarity.color
         }
         
-        // Update right inactive spell
-        if inactiveSpells.count > 1 {
-            inactiveSpellIconRight.texture = SKTexture(imageNamed: inactiveSpells[1].name)
-            if let border = scene?.childNode(withName: "inactiveSpellBorder_right") as? SKShapeNode {
-                border.strokeColor = inactiveSpells[1].rarity.color
-            }
-        } else {
-            inactiveSpellIconRight.texture = SKTexture(imageNamed: "EmptySpell")
-            if let border = scene?.childNode(withName: "inactiveSpellBorder_right") as? SKShapeNode {
-                border.strokeColor = .white
-            }
+        // Update right inactive spell (next spell)
+        let rightSpell = state.getNextSpell()
+        inactiveSpellIconRight.texture = SKTexture(imageNamed: rightSpell.name)
+        if let border = scene?.childNode(withName: "inactiveSpellBorder_right") as? SKShapeNode {
+            border.strokeColor = rightSpell.rarity.color
         }
         
         // Animate active spell icon update
