@@ -663,15 +663,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         switch pattern {
         case .single:
             spawnSingleGoblin()
-            
         case .line(let count):
             spawnLineOfGoblins(count: count)
-            
         case .surrounded(let centerCount, let surroundCount):
             spawnSurroundedGoblins(centerCount: centerCount, surroundCount: surroundCount)
-            
         case .stream(let count, let interval):
             spawnStreamOfGoblins(count: count, interval: interval)
+        // Add new cases
+        case .vFormation(let count):
+            spawnVFormation(count: count)
+        case .circle(let count, let radius):
+            spawnCircleFormation(count: count, radius: radius)
+        case .crossFormation(let count):
+            spawnCrossFormation(count: count)
+        case .spiral(let count, let radius):
+            spawnSpiralFormation(count: count, radius: radius)
+        case .random(let count, let spread):
+            spawnRandomFormation(count: count, spread: spread)
         }
     }
     
@@ -722,6 +730,98 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             let wait = SKAction.wait(forDuration: interval * Double(i))
             run(SKAction.sequence([wait, spawnAction]))
+        }
+    }
+    
+    func spawnVFormation(count: Int) {
+        let spacing: CGFloat = 50
+        let angleInRadians: CGFloat = .pi / 4 // 45 degrees
+        
+        // Calculate starting position at top center
+        let startX = size.width / 2
+        let startY = size.height + 50
+        
+        for i in 0..<count {
+            let offset = CGFloat(i) * spacing
+            
+            // Left wing
+            if i > 0 {
+                let leftX = startX - (offset * cos(angleInRadians))
+                let leftY = startY - (offset * sin(angleInRadians))
+                spawnGoblin(at: CGPoint(x: leftX, y: leftY))
+            }
+            
+            // Right wing
+            if i > 0 {
+                let rightX = startX + (offset * cos(angleInRadians))
+                let rightY = startY - (offset * sin(angleInRadians))
+                spawnGoblin(at: CGPoint(x: rightX, y: rightY))
+            }
+            
+            // Leader
+            if i == 0 {
+                spawnGoblin(at: CGPoint(x: startX, y: startY))
+            }
+        }
+    }
+    
+    func spawnCircleFormation(count: Int, radius: CGFloat) {
+        let centerX = size.width / 2
+        let centerY = size.height + radius
+        
+        for i in 0..<count {
+            let angle = (CGFloat.pi * 2 * CGFloat(i)) / CGFloat(count)
+            let x = centerX + radius * cos(angle)
+            let y = centerY + radius * sin(angle)
+            spawnGoblin(at: CGPoint(x: x, y: y))
+        }
+    }
+    
+    func spawnCrossFormation(count: Int) {
+        let centerX = size.width / 2
+        let centerY = size.height + 50
+        let spacing: CGFloat = 50
+        
+        // Spawn center goblin
+        spawnGoblin(at: CGPoint(x: centerX, y: centerY))
+        
+        // Spawn in four directions
+        for i in 1...count {
+            let offset = CGFloat(i) * spacing
+            
+            // Up
+            spawnGoblin(at: CGPoint(x: centerX, y: centerY + offset))
+            // Down
+            spawnGoblin(at: CGPoint(x: centerX, y: centerY - offset))
+            // Left
+            spawnGoblin(at: CGPoint(x: centerX - offset, y: centerY))
+            // Right
+            spawnGoblin(at: CGPoint(x: centerX + offset, y: centerY))
+        }
+    }
+    
+    func spawnSpiralFormation(count: Int, radius: CGFloat) {
+        let centerX = size.width / 2
+        let centerY = size.height + radius
+        let radiusIncrement = radius / CGFloat(count)
+        
+        for i in 0..<count {
+            let currentRadius = radiusIncrement * CGFloat(i + 1)
+            let angle = CGFloat(i) * .pi / 2
+            let x = centerX + currentRadius * cos(angle)
+            let y = centerY + currentRadius * sin(angle)
+            spawnGoblin(at: CGPoint(x: x, y: y))
+        }
+    }
+    
+    func spawnRandomFormation(count: Int, spread: CGFloat) {
+        let centerX = size.width / 2
+        let centerY = size.height + 50
+        
+        for _ in 0..<count {
+            let randomX = centerX + CGFloat.random(in: -spread...spread)
+            let randomY = centerY + CGFloat.random(in: -spread...spread)
+            spawnGoblin(at: CGPoint(x: randomX, y: randomY))
         }
     }
     
