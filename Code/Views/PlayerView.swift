@@ -470,7 +470,7 @@ class PlayerView: SKNode {
         }
         
         // Update inactive spell icons
-        let inactiveSpells = state.getInactiveSpells()
+        //let inactiveSpells = state.getInactiveSpells()
         
         // Update left inactive spell (previous spell)
         let leftSpell = state.getPreviousSpell()
