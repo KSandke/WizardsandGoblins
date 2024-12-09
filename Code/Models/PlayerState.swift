@@ -122,6 +122,7 @@ class PlayerState: SpellCaster {
         // Initialize with only Fireball spell
         availableSpells = [
             FireballSpell(),
+            IceSpell()
         ]
         
         // Initialize with PredatorMissile special in first slot
