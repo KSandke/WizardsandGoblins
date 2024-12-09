@@ -231,8 +231,8 @@ class PlayerState: SpellCaster {
             // Only add if we haven't hit the limit
             if availableSpells.count < GameConfig.maxSpellSlots {
                 availableSpells.append(spell)
-                // Trigger update of spell icons
-                //onSpellChanged?(currentSpell)
+                // Trigger update of spell icons by notifying of current spell
+                onSpellChanged?(currentSpell)
             }
         }
     }
