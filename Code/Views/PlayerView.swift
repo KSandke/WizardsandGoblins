@@ -391,10 +391,10 @@ class PlayerView: SKNode {
     private func setupSpellIcons() {
         guard let scene = parentScene else { return }
         
-        // Active spell icon setup
+        // Active spell icon setup - moved further right
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
         spellIcon.size = CGSize(width: 45, height: 45)
-        spellIcon.position = CGPoint(x: wizard.position.x + 50, y: wizard.position.y)
+        spellIcon.position = CGPoint(x: wizard.position.x + 80, y: wizard.position.y) // Moved from +50 to +80
         spellIcon.name = "cycleSpell"
         
         let spellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
@@ -420,18 +420,20 @@ class PlayerView: SKNode {
         let inactiveSize = CGSize(width: 30, height: 30)
         let baseX = spellIcon.position.x
         
-        // Add inactive spells
+        // Add inactive spells on both sides
         for (index, spell) in inactiveSpells.enumerated() {
             let inactiveIcon = SKSpriteNode(imageNamed: spell.name)
             inactiveIcon.size = inactiveSize
             inactiveIcon.alpha = 0.6
+            inactiveIcon.name = "inactiveSpell_\(index)"
             
-            // Position on either side of active spell
+            // Position alternating left and right of active spell
             let xOffset = spacing * CGFloat(index + 1)
-            inactiveIcon.position = CGPoint(x: baseX + xOffset, y: wizard.position.y)
+            let xPosition = index % 2 == 0 ? baseX - xOffset : baseX + xOffset
+            inactiveIcon.position = CGPoint(x: xPosition, y: wizard.position.y)
             
             if index == 0 {
-                inactiveSpellIcon = inactiveIcon // Keep reference to first inactive spell
+                inactiveSpellIcon = inactiveIcon
             }
             
             scene.addChild(inactiveIcon)
@@ -467,14 +469,17 @@ class PlayerView: SKNode {
         let inactiveSize = CGSize(width: 30, height: 30)
         let baseX = spellIcon.position.x
         
+        // Add inactive spells on both sides
         for (index, spell) in inactiveSpells.enumerated() {
             let inactiveIcon = SKSpriteNode(imageNamed: spell.name)
             inactiveIcon.size = inactiveSize
             inactiveIcon.alpha = 0.6
             inactiveIcon.name = "inactiveSpell_\(index)"
             
+            // Position alternating left and right of active spell
             let xOffset = spacing * CGFloat(index + 1)
-            inactiveIcon.position = CGPoint(x: baseX + xOffset, y: wizard.position.y)
+            let xPosition = index % 2 == 0 ? baseX - xOffset : baseX + xOffset
+            inactiveIcon.position = CGPoint(x: xPosition, y: wizard.position.y)
             
             if index == 0 {
                 inactiveSpellIcon = inactiveIcon
