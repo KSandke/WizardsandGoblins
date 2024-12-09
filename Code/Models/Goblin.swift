@@ -360,7 +360,8 @@ public class Goblin {
         
         // Calculate random target position in middle third
         let randomX = CGFloat.random(in: thirdWidth...(2 * thirdWidth))
-        let targetPosition = CGPoint(x: randomX, y: 130) // Keep same Y coordinate
+        let targetPosition = CGPoint(x: randomX, y: 140) // Keep same Y coordinate
+        
         
         moveGoblin(container: container, to: targetPosition, in: gameScene)
     }

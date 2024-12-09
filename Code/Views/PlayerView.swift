@@ -660,8 +660,8 @@ class PlayerView: SKNode {
         // Constants for button layout
         let buttonSize = CGSize(width: 60, height: 60)
         let verticalSpacing: CGFloat = 70
-        let baseX = scene.frame.maxX - 80
-        let baseY = scene.frame.minY + 80
+        let baseX = scene.frame.maxX - 60
+        let baseY = scene.frame.minY + 70
         
         // Create three special buttons
         for i in 0..<3 {
