@@ -146,7 +146,7 @@ public class Goblin {
         }
         
         private func startRangedAttack(scene: GameScene) {
-            let targetPosition = CGPoint(x: scene.size.width / 2, y: 100) // Use same position as castlePosition
+            let targetPosition = CGPoint(x: scene.size.width / 2, y: 130) // Match the target Y position
             let distanceToTarget = sprite.position.distance(to: targetPosition)
             
             if distanceToTarget <= 401 { // Matches the stopDistance in moveGoblin
@@ -284,6 +284,28 @@ public class Goblin {
     func spawnGoblin(at position: CGPoint, specificType: GoblinType? = nil) {
         guard let gameScene = scene as? GameScene else { return }
         
+        // Calculate target area dimensions
+        let targetScreenWidth = gameScene.size.width
+        let thirdWidth = targetScreenWidth / 3.2
+        
+        // Create debug overlay if it doesn't exist
+        if gameScene.childNode(withName: "targetAreaOverlay") == nil {
+            let targetArea = SKShapeNode(rectOf: CGSize(
+                width: thirdWidth * 2,
+                height: 50
+            ))
+            targetArea.position = CGPoint(
+                x: targetScreenWidth / 2,
+                y: 120
+            )
+            targetArea.fillColor = .red
+            targetArea.strokeColor = .clear
+            targetArea.alpha = 0.2
+            targetArea.name = "targetAreaOverlay"
+            targetArea.zPosition = 100  // Ensure it's visible above other elements
+            gameScene.addChild(targetArea)
+        }
+        
         // Create a goblin of that type
         let nextGoblinType = specificType ?? getRandomGoblinType()
         let goblinSprite = SKSpriteNode(imageNamed: imageName(for: nextGoblinType))
@@ -336,7 +358,10 @@ public class Goblin {
         goblinContainers.append(container)
         gameScene.addChild(goblinSprite)
         
-        let targetPosition = CGPoint(x: gameScene.size.width / 2, y: 100)
+        // Calculate random target position in middle third
+        let randomX = CGFloat.random(in: thirdWidth...(2 * thirdWidth))
+        let targetPosition = CGPoint(x: randomX, y: 130) // Keep same Y coordinate
+        
         moveGoblin(container: container, to: targetPosition, in: gameScene)
     }
     
@@ -358,7 +383,7 @@ public class Goblin {
     
     private func moveGoblin(container: GoblinContainer, to targetPosition: CGPoint, in gameScene: GameScene) {
         let distanceToTarget = container.sprite.position.distance(to: targetPosition)
-        let stopDistance: CGFloat = container.isRanged ? 400 : 0
+        let stopDistance: CGFloat = container.isRanged ? 400 : 0  // Ranged goblins stop at 400, melee at 0
 
         if distanceToTarget > stopDistance {
             // Calculate the actual stop position for ranged goblins
@@ -598,6 +623,10 @@ public class Goblin {
     
     func getGoblinsWithoutStatusEffect(_ effectName: String) -> [GoblinContainer] {
         return goblinContainers.filter { !$0.hasStatusEffect(effectName) }
+    }
+
+    func removeTargetingOverlay() {
+        scene?.childNode(withName: "targetAreaOverlay")?.removeFromParent()
     }
 }
 
