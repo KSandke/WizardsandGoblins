@@ -99,7 +99,7 @@ class PlayerView: SKNode {
 
         // Add this with the other bindings
         state.onSpellChanged = { [weak self] spell in
-            self?.updateSpellIcon()
+            self?.updateSpellDisplay()
         }
 
         // Add combo binding
@@ -785,5 +785,20 @@ class PlayerView: SKNode {
             specialButtons[index].texture = SKTexture(imageNamed: "EmptySpecial")
         }
         updateSpecialCooldown(at: index)
+    }
+
+    // Add this method to update all spell icons when a new spell is purchased
+    func updateSpellDisplay() {
+        // Remove all existing spell icons and borders
+        scene?.children.forEach { node in
+            if node.name?.contains("inactiveSpell") == true || 
+               node.name == "cycleSpell" ||
+               (node is SKShapeNode && node.position == spellIcon.position) {
+                node.removeFromParent()
+            }
+        }
+        
+        // Re-setup all spell icons
+        setupSpellIcons()
     }
 }
