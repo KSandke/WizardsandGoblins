@@ -121,6 +121,19 @@ class ShopView: SKNode {
         Special(name: "DragonBreath", aoeRadius: 150, aoeColor: .orange, duration: 0.5, damage: 100, effect: nil, cooldown: 4, targetingMode: .global, rarity: .legendary)
     ]
     
+    // Add new properties
+    private static var lastSpellRefreshWave = 0
+    private static var currentSpellOffer: Spell?
+    private var spellSelector: SKNode?
+    
+    // Add all available spells
+    private let allSpells: [Spell] = [
+        FireballSpell(),
+        IceSpell(),
+        LightningSpell(),
+        PoisonCloudSpell()
+    ]
+    
     init(size: CGSize, playerState: PlayerState, playerView: PlayerView, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
         // Initialize all properties before super.init()
         self.playerState = playerState
@@ -185,7 +198,8 @@ class ShopView: SKNode {
         
         // Position buttons between coin display and close button
         let upperButtonY = size.height * 0.55  // Upper row for permanent upgrades
-        let lowerButtonY = size.height * 0.35  // Lower row for special
+        let middleButtonY = size.height * 0.35  // Middle row for special
+        let lowerButtonY = size.height * 0.25  // Lower row for spell
         
         // First, position the permanent upgrades
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
@@ -200,12 +214,20 @@ class ShopView: SKNode {
         // Then, position the special upgrade if available
         if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
             let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: size.width/2, y: middleButtonY)
+            addChild(button)
+            itemButtons.append(button)
+        }
+        
+        // Finally, position the spell upgrade if available
+        if let spellItem = createSpellShopItem() {
+            let button = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
             button.position = CGPoint(x: size.width/2, y: lowerButtonY)
             addChild(button)
             itemButtons.append(button)
         }
         
-        // Position close button at the bottom
+        // Update close button position
         closeButton.position = CGPoint(x: size.width/2, y: lowerButtonY - buttonHeight - 40)
         addChild(closeButton)
     }
@@ -510,6 +532,13 @@ class ShopView: SKNode {
             ShopView.lastSpecialRefreshWave = currentWave
         }
         
+        // Check if we need to refresh the spell (every 2 waves)
+        if currentWave % 2 == 1 || ShopView.currentSpellOffer == nil {
+            let spell = generateRandomSpell()
+            ShopView.currentSpellOffer = spell
+            ShopView.lastSpellRefreshWave = currentWave
+        }
+        
         // Create special shop item if available
         var upgrades = [ShopItem]()
         if let special = ShopView.currentSpecialOffer {
@@ -524,6 +553,14 @@ class ShopView: SKNode {
                 },
                 rarity: special.rarity
             ))
+        }
+        
+        // Create spell shop item if available
+        if let spell = ShopView.currentSpellOffer {
+            let spellItem = createSpellShopItem()
+            if let item = spellItem {
+                upgrades.append(item)
+            }
         }
         
         // Add regular upgrades
@@ -592,6 +629,58 @@ class ShopView: SKNode {
         }
         
         return availableSpecials.randomElement() ?? allSpecials[0]
+    }
+    
+    private func generateRandomSpell() -> Spell? {
+        let availableSpells = allSpells.filter { spell in
+            !playerState.hasSpell(named: spell.name)
+        }
+        
+        return availableSpells.randomElement()
+    }
+    
+    private func createSpellShopItem() -> ShopItem? {
+        guard let spell = ShopView.currentSpellOffer,
+              !playerState.hasSpell(named: spell.name) else {
+            return nil
+        }
+
+        return ShopItem(
+            name: spell.name,
+            description: "New Spell",
+            basePrice: calculateSpellPrice(spell),
+            icon: spell.name,
+            effect: { [weak self] state, showMessage in
+                if state.getAvailableSpells().count >= GameConfig.maxSpellSlots {
+                    self?.showSpellSlotSelector(for: spell)
+                } else {
+                    state.addSpell(spell)
+                    showMessage("New spell acquired!")
+                }
+            },
+            rarity: spell.rarity
+        )
+    }
+    
+    private func calculateSpellPrice(_ spell: Spell) -> Int {
+        // Debug: All spells cost 0
+        return 0
+        
+        // Uncomment for real pricing
+        /*
+        let basePrice = 20
+        let rarityMultiplier: Int
+        
+        switch spell.rarity {
+        case .common: rarityMultiplier = 1
+        case .uncommon: rarityMultiplier = 2
+        case .rare: rarityMultiplier = 4
+        case .epic: rarityMultiplier = 8
+        case .legendary: rarityMultiplier = 15
+        }
+        
+        return basePrice * rarityMultiplier
+        */
     }
     
     private func showSpecialSlotSelector(for special: Special) {
@@ -693,6 +782,75 @@ class ShopView: SKNode {
         return container
     }
     
+    private func showSpellSlotSelector(for newSpell: Spell) {
+        // Remove any existing selector
+        spellSelector?.removeFromParent()
+        
+        // Create selector similar to special selector but for spells
+        let selector = SKNode()
+        selector.zPosition = 2000
+        
+        // Add semi-transparent background
+        let background = SKShapeNode(rectOf: CGSize(width: self.frame.width, height: self.frame.height))
+        background.fillColor = .black
+        background.alpha = 0.7
+        background.strokeColor = .clear
+        selector.addChild(background)
+        
+        // Add title
+        let titleLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        titleLabel.text = "Select spell to replace"
+        titleLabel.fontSize = 32
+        titleLabel.position = CGPoint(x: 0, y: self.frame.height/4)
+        selector.addChild(titleLabel)
+        
+        // Setup spell buttons
+        let buttonWidth: CGFloat = 100
+        let buttonHeight: CGFloat = 100
+        let padding: CGFloat = 15
+        
+        let currentSpells = playerState.getAvailableSpells()
+        let totalWidth = CGFloat(currentSpells.count) * (buttonWidth + padding) - padding
+        let startX = -totalWidth/2 + buttonWidth/2
+        
+        for (i, spell) in currentSpells.enumerated() {
+            let button = createSpellButton(spell, at: i, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: startX + CGFloat(i) * (buttonWidth + padding), y: 0)
+            button.name = "spellSlotButton_\(i)"
+            selector.addChild(button)
+        }
+        
+        // Add cancel button
+        let cancelButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        cancelButton.text = "Cancel"
+        cancelButton.fontSize = 24
+        cancelButton.fontColor = .red
+        cancelButton.position = CGPoint(x: 0, y: -self.frame.height/4)
+        cancelButton.name = "spellSelectorCancel"
+        selector.addChild(cancelButton)
+        
+        selector.position = CGPoint(x: self.frame.width/2, y: self.frame.height/2)
+        addChild(selector)
+        spellSelector = selector
+    }
+    
+    private func createSpellButton(_ spell: Spell, at index: Int, size: CGSize) -> SKNode {
+        let container = SKNode()
+        
+        let background = SKShapeNode(rectOf: size, cornerRadius: 10)
+        background.fillColor = spell.rarity.color.withAlphaComponent(0.3)
+        background.strokeColor = spell.rarity.color
+        container.addChild(background)
+        
+        let nameLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        nameLabel.text = spell.name
+        nameLabel.fontSize = 12
+        nameLabel.position = CGPoint(x: 0, y: -size.height/2 - 10)
+        container.addChild(nameLabel)
+        
+        return container
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
@@ -712,6 +870,17 @@ class ShopView: SKNode {
                     }
                 } else if name == "specialSelectorCancel" {
                     slotSelector?.removeFromParent() // Close the selector if cancel is tapped
+                } else if name.hasPrefix("spellSlotButton_") {
+                    if let index = Int(name.dropFirst("spellSlotButton_".count)),
+                       let newSpell = ShopView.currentSpellOffer {
+                        let currentSpells = playerState.getAvailableSpells()
+                        if index < currentSpells.count {
+                            playerState.replaceSpell(newSpell, at: index)
+                            spellSelector?.removeFromParent()
+                        }
+                    }
+                } else if name == "spellSelectorCancel" {
+                    spellSelector?.removeFromParent()
                 }
             }
         }

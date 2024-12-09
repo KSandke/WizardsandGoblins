@@ -29,4 +29,5 @@ struct GameConfig {
 
     // Spell
     static let defaultSpellSpeed: CGFloat = 400
+    static let maxSpellSlots: Int = 3
 }

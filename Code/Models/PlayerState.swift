@@ -119,10 +119,9 @@ class PlayerState: SpellCaster {
         // Initialize maxHealth to match castleHealth
         maxHealth = maxCastleHealth
         
-        // Initialize with only Fireball and Ice spells
+        // Initialize with only Fireball spell
         availableSpells = [
             FireballSpell(),
-            IceSpell(),
         ]
         
         // Initialize with PredatorMissile special in first slot
@@ -229,7 +228,10 @@ class PlayerState: SpellCaster {
     func addSpell(_ spell: Spell) {
         // Check if we already have this type of spell
         if !availableSpells.contains(where: { $0.name == spell.name }) {
-            availableSpells.append(spell)
+            // Only add if we haven't hit the limit
+            if availableSpells.count < GameConfig.maxSpellSlots {
+                availableSpells.append(spell)
+            }
         }
     }
     
@@ -323,5 +325,10 @@ class PlayerState: SpellCaster {
         guard index >= 0 && index < specialSlots.count else { return }
         selectedSpecialIndex = index
         onSpecialChanged?(currentSpecial, selectedSpecialIndex)
+    }
+    
+    // Add new method to check if player owns a spell
+    func hasSpell(named spellName: String) -> Bool {
+        return availableSpells.contains { $0.name == spellName }
     }
 }
