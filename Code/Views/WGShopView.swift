@@ -118,7 +118,7 @@ class ShopView: SKNode {
 //        Special(name: "IceBlast", aoeRadius: 80, aoeColor: .cyan, duration: 0.5, damage: 30, effect: nil, cooldown: 8, targetingMode: .random, rarity: .uncommon),
         Special(name: "LightningStrike", aoeRadius: 60, aoeColor: .yellow, duration: 0.5, damage: 45, effect: nil, cooldown: 6, targetingMode: .maxHealth, rarity: .rare),
         Special(name: "VoidBlast", aoeRadius: 120, aoeColor: .purple, duration: 0.5, damage: 60, effect: nil, cooldown: 5, targetingMode: .global, rarity: .epic),
-        Special(name: "DragonBreath", aoeRadius: 150, aoeColor: .orange, duration: 0.5, damage: 100, effect: nil, cooldown: 4, targetingMode: .global, rarity: .legendary)
+        Special(name: "DragonBreath", aoeRadius: 150, aoeColor: .orange, duration: 0.5, damage: 100, effect: nil, cooldown: 4, targetingMode: .global, rarity: .legendary),
         BlizzardSpecial(),
         //HologramTrapSpecial(),
         InfernoSpecial(),

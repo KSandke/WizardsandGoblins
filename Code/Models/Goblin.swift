@@ -2,6 +2,7 @@ import Foundation
 import SpriteKit
 
 public class Goblin {
+    private var pathPoints: [CGPoint] = []
     public enum GoblinType {
         case normal
         case large
@@ -380,33 +381,162 @@ public class Goblin {
         return .normal
     }
     
+    private func setupPathPoints(screenWidth: CGFloat, screenHeight: CGFloat) {
+        let startY: CGFloat = screenHeight + 50
+        let endY: CGFloat = 200  // Height where path straightens
+        let segmentHeight: CGFloat = (startY - endY) / 2
+        
+        pathPoints = [
+            CGPoint(x: screenWidth * 0.2, y: startY),              // Start
+            CGPoint(x: screenWidth * 0.8, y: startY - segmentHeight), // First curve
+            CGPoint(x: screenWidth * 0.2, y: startY - segmentHeight * 1.3), // New middle curve
+            CGPoint(x: screenWidth * 0.8, y: endY + segmentHeight * 0.5),  // Last curve
+            CGPoint(x: screenWidth * 0.5, y: endY)                 // Straighten point
+        ]
+    }
+    
     private func moveGoblin(container: GoblinContainer, to targetPosition: CGPoint, in gameScene: GameScene) {
-        let distanceToTarget = container.sprite.position.distance(to: targetPosition)
-        let stopDistance: CGFloat = container.isRanged ? 400 : 0  // Ranged goblins stop at 400, melee at 0
-
-        if distanceToTarget > stopDistance {
-            // Calculate the actual stop position for ranged goblins
-            let finalPosition: CGPoint
-            if container.isRanged {
-                let direction = (targetPosition - container.sprite.position).normalized()
-                let stopPoint = targetPosition - (direction * stopDistance)
-                finalPosition = stopPoint
-            } else {
-                finalPosition = targetPosition
-            }
-
-            let moveDuration = TimeInterval((distanceToTarget - stopDistance) / goblinSpeed(for: container.type))
-            let moveAction = SKAction.move(to: finalPosition, duration: moveDuration)
-            
-            let startAttackAction = SKAction.run { [weak container] in
-                container?.startAttacking()
-            }
-            
-            let sequence = SKAction.sequence([moveAction, startAttackAction])
-            container.sprite.run(sequence)
-        } else {
-            container.startAttacking()
+        if pathPoints.isEmpty {
+            setupPathPoints(screenWidth: gameScene.size.width, screenHeight: gameScene.size.height)
         }
+
+        // Ensure sprite is visible
+        container.sprite.isHidden = false
+        container.sprite.zPosition = 1
+        
+        let stopDistance: CGFloat = container.isRanged ? 400 : 0
+        
+        // Calculate all the points along the path
+        var allPoints: [CGPoint] = []
+        allPoints.append(container.sprite.position) // Starting position
+        
+        // Add main path points with more interpolated points between them
+        for i in 0..<pathPoints.count {
+            if i == 0 {
+                // Initial curve from start to first path point
+                let start = container.sprite.position
+                let end = pathPoints[0]
+                let control = CGPoint(
+                    x: (start.x + end.x) / 2,
+                    y: start.y - 50 // Slight curve upward
+                )
+                let curvePoints = addCurvePoints(start: start, end: end, control: control, count: 30)
+                allPoints.append(contentsOf: curvePoints)
+            } else {
+                // Curved path between points
+                let start = pathPoints[i-1]
+                let end = pathPoints[i]
+                
+                // Calculate control point for curve
+                let midY = (start.y + end.y) / 2
+                let controlOffset: CGFloat = 100 // Increase curve intensity
+                let control = CGPoint(
+                    x: (start.x + end.x) / 2,
+                    y: midY - controlOffset
+                )
+                
+                let curvePoints = addCurvePoints(start: start, end: end, control: control, count: 30)
+                allPoints.append(contentsOf: curvePoints)
+            }
+        }
+        
+        // Calculate final position
+        let finalPosition: CGPoint
+        if container.isRanged {
+            let direction = (targetPosition - pathPoints.last!).normalized()
+            finalPosition = targetPosition - (direction * stopDistance)
+        } else {
+            finalPosition = targetPosition
+        }
+        
+        // Add curved points to final position
+        let finalStart = pathPoints.last!
+        let finalControl = CGPoint(
+            x: (finalStart.x + finalPosition.x) / 2,
+            y: (finalStart.y + finalPosition.y) / 2 - 50
+        )
+        let finalCurvePoints = addCurvePoints(
+            start: finalStart,
+            end: finalPosition,
+            control: finalControl,
+            count: 30
+        )
+        allPoints.append(contentsOf: finalCurvePoints)
+        
+        // Create move actions
+        var actions: [SKAction] = []
+        let speed = goblinSpeed(for: container.type)
+        
+        for i in 1..<allPoints.count {
+            let point = allPoints[i]
+            let previousPoint = allPoints[i-1]
+            let distance = point.distance(to: previousPoint)
+            let duration = TimeInterval(distance / speed)
+            
+            let moveAction = SKAction.move(to: point, duration: duration)
+            moveAction.timingMode = .linear // Ensure smooth movement
+            actions.append(moveAction)
+        }
+        
+        // Add the attack action at the end
+        let startAttack = SKAction.run { [weak container] in
+            container?.startAttacking()
+        }
+        actions.append(startAttack)
+        
+        // Run the sequence
+        let sequence = SKAction.sequence(actions)
+        container.sprite.run(sequence)
+    }
+    
+    // Enhanced quadratic bezier point calculation
+    private func quadraticBezierPoint(t: CGFloat, start: CGPoint, control: CGPoint, end: CGPoint) -> CGPoint {
+        let t1 = 1.0 - t
+        let x = t1 * t1 * start.x + 2.0 * t1 * t * control.x + t * t * end.x
+        let y = t1 * t1 * start.y + 2.0 * t1 * t * control.y + t * t * end.y
+        return CGPoint(x: x, y: y)
+    }
+
+    // Enhanced curve points generation
+    private func addCurvePoints(start: CGPoint, end: CGPoint, control: CGPoint, count: Int) -> [CGPoint] {
+        var points: [CGPoint] = []
+        for i in 1...count {
+            let t = CGFloat(i) / CGFloat(count)
+            let point = quadraticBezierPoint(t: t, start: start, control: control, end: end)
+            points.append(point)
+        }
+        return points
+    }
+
+    // Enhanced point interpolation
+    private func interpolatePoints(start: CGPoint, end: CGPoint, count: Int) -> [CGPoint] {
+        var points: [CGPoint] = []
+        for i in 1...count {
+            let progress = CGFloat(i) / CGFloat(count)
+            
+            // Add slight curve to interpolation
+            let midPoint = CGPoint(
+                x: (start.x + end.x) / 2,
+                y: ((start.y + end.y) / 2) - 20 // Slight curve upward
+            )
+            
+            let x = quadraticBezierPoint(
+                t: progress,
+                start: start,
+                control: midPoint,
+                end: end
+            ).x
+            
+            let y = quadraticBezierPoint(
+                t: progress,
+                start: start,
+                control: midPoint,
+                end: end
+            ).y
+            
+            points.append(CGPoint(x: x, y: y))
+        }
+        return points
     }
     
     func goblinSpeed(for type: GoblinType) -> CGFloat {
@@ -639,5 +769,36 @@ extension Goblin.GoblinContainer: Hashable {
     public func hash(into hasher: inout Hasher) {
         // Hash using object identity
         hasher.combine(ObjectIdentifier(self))
+    }
+}
+
+extension CGPath {
+    func length() -> CGFloat {
+        var length: CGFloat = 0
+        var previousPoint = CGPoint.zero
+        var isFirstPoint = true
+        
+        self.applyWithBlock { element in
+            let points = element.pointee.points
+            
+            switch element.pointee.type {
+            case .moveToPoint, .addLineToPoint:
+                if isFirstPoint {
+                    previousPoint = points[0]
+                    isFirstPoint = false
+                } else {
+                    length += previousPoint.distance(to: points[0])
+                    previousPoint = points[0]
+                }
+            case .addQuadCurveToPoint, .addCurveToPoint:
+                // Approximate curve length using end points
+                length += previousPoint.distance(to: points[0])
+                previousPoint = points[0]
+            default:
+                break
+            }
+        }
+        
+        return length
     }
 }
