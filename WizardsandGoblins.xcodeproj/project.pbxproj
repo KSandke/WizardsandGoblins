@@ -34,6 +34,7 @@
 		146503BB2D052A5400022691 /* Ice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B52D052A5400022691 /* Ice.swift */; };
 		146503BC2D052A5400022691 /* Lightning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B62D052A5400022691 /* Lightning.swift */; };
 		147606C32D0962000094BAC3 /* DivineHealing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147606C22D0962000094BAC3 /* DivineHealing.swift */; };
+		147606C52D09646E0094BAC3 /* BleedDart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147606C42D09646E0094BAC3 /* BleedDart.swift */; };
 		1488B8342CE46E40007F0D4C /* CGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1488B8322CE46E40007F0D4C /* CGExtensions.swift */; };
 		148974842CE49467001F7350 /* Goblin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148974832CE49467001F7350 /* Goblin.swift */; };
 		148FAAB72CE4B82A005CCBC3 /* WGShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148FAAB62CE4B82A005CCBC3 /* WGShopView.swift */; };
@@ -121,6 +122,7 @@
 		146503B62D052A5400022691 /* Lightning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lightning.swift; sourceTree = "<group>"; };
 		146503B72D052A5400022691 /* PoisonCloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoisonCloud.swift; sourceTree = "<group>"; };
 		147606C22D0962000094BAC3 /* DivineHealing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DivineHealing.swift; sourceTree = "<group>"; };
+		147606C42D09646E0094BAC3 /* BleedDart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BleedDart.swift; sourceTree = "<group>"; };
 		1488B8322CE46E40007F0D4C /* CGExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGExtensions.swift; sourceTree = "<group>"; };
 		148974832CE49467001F7350 /* Goblin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goblin.swift; sourceTree = "<group>"; };
 		148FAAB62CE4B82A005CCBC3 /* WGShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGShopView.swift; sourceTree = "<group>"; };
@@ -312,6 +314,7 @@
 		146503B82D052A5400022691 /* Spells */ = {
 			isa = PBXGroup;
 			children = (
+				147606C42D09646E0094BAC3 /* BleedDart.swift */,
 				146503B42D052A5400022691 /* Fireball.swift */,
 				146503B52D052A5400022691 /* Ice.swift */,
 				146503B62D052A5400022691 /* Lightning.swift */,
@@ -591,6 +594,7 @@
 				14101F092CCA214A00BD8C7D /* GameType.swift in Sources */,
 				14F528D52CF162AF0092C18F /* TimeBombEmitter.swift in Sources */,
 				14F528D12CF1629A0092C18F /* CyberneticOverloadEmitter.swift in Sources */,
+				147606C52D09646E0094BAC3 /* BleedDart.swift in Sources */,
 				14DDF4402CF1551100A0EBAB /* NanoSwarmMini.swift in Sources */,
 				14DDF4412CF1551100A0EBAB /* BloodDrip.swift in Sources */,
 				14DDF4422CF1551100A0EBAB /* NukeCloud.swift in Sources */,

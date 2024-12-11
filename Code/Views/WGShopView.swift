@@ -136,7 +136,8 @@ class ShopView: SKNode {
         FireballSpell(),
         IceSpell(),
         LightningSpell(),
-        BleedDartSpell()
+        BleedDartSpell(),
+        PoisonCloudSpell()
     ]
     
     init(size: CGSize, playerState: PlayerState, playerView: PlayerView, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
