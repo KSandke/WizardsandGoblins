@@ -91,7 +91,7 @@ class PlayerState: SpellCaster {
     var onComboChanged: ((Int) -> Void)?
     
     // New properties for specials
-    private var specialSlots: [Special?] = [nil, nil, nil]
+    private var specialSlots: [Special?] = [nil, nil, nil, nil]
     private var selectedSpecialIndex: Int = 0
     var currentSpecial: Special? {
         get { specialSlots[selectedSpecialIndex] }
@@ -125,7 +125,7 @@ class PlayerState: SpellCaster {
 
         ]
         
-        specialSlots = [MeteorShowerSpecial(), nil, nil]
+        specialSlots = [MeteorShowerSpecial(), nil, nil, nil]
     }
     
     // Callbacks for binding

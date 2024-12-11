@@ -52,6 +52,9 @@ class PlayerView: SKNode {
     
     private var lastSpecialTapTime: TimeInterval = 0
     
+    // Add property for health label
+    private var castleHealthLabel: SKLabelNode!
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -135,8 +138,25 @@ class PlayerView: SKNode {
         castleHealthFill.strokeColor = .clear
         castleHealthFill.position = castleHealthBar.position
         scene.addChild(castleHealthFill)
-
-
+        
+        // Add health label
+        castleHealthLabel = SKLabelNode(text: "\(Int(state.castleHealth))/\(Int(state.maxCastleHealth))")
+        castleHealthLabel.fontSize = 14
+        castleHealthLabel.fontColor = .black
+        castleHealthLabel.position = CGPoint(x: castleHealthBar.position.x, y: castleHealthBar.position.y - 5)
+        castleHealthLabel.fontName = "AvenirNext-Bold"
+        castleHealthLabel.horizontalAlignmentMode = .center
+        castleHealthLabel.zPosition = 500 
+        
+        let shadowLabel = SKLabelNode(text: castleHealthLabel.text)
+        shadowLabel.fontSize = castleHealthLabel.fontSize
+        shadowLabel.fontColor = .black
+        shadowLabel.position = CGPoint(x: 1, y: -1)
+        shadowLabel.fontName = castleHealthLabel.fontName
+        shadowLabel.horizontalAlignmentMode = .center
+        castleHealthLabel.addChild(shadowLabel)
+        
+        scene.addChild(castleHealthLabel)
         
         updateCastleHealthBar(health: state.castleHealth)
     }
@@ -347,6 +367,12 @@ class PlayerView: SKNode {
 
     private func updateCastleHealthBar(health: CGFloat) {
         castleHealthFill.xScale = health / state.maxCastleHealth
+        
+        // Update health label
+        castleHealthLabel.text = "\(Int(health))/\(Int(state.maxCastleHealth))"
+        if let shadowLabel = castleHealthLabel.children.first as? SKLabelNode {
+            shadowLabel.text = castleHealthLabel.text
+        }
     }
     
     private func updateScoreLabel(score: Int) {
@@ -663,17 +689,24 @@ class PlayerView: SKNode {
         let baseX = scene.frame.maxX - 60
         let baseY = scene.frame.minY + 70
         
-        // Create three special buttons
-        for i in 0..<3 {
-            // Create button with default "empty" state
-            let button = SKSpriteNode(imageNamed: "EmptySpecial")
-            button.size = buttonSize
-            button.position = CGPoint(x: baseX, y: baseY + CGFloat(i) * verticalSpacing)
+        // Create four special buttons
+        for i in 0..<4 {
+            // Create border first
+            let border = SKShapeNode(rectOf: CGSize(width: buttonSize.width + 4, height: buttonSize.height + 4),
+                                    cornerRadius: 8)
+            border.strokeColor = .black
+            border.lineWidth = 2
+            border.position = CGPoint(x: baseX, y: baseY + CGFloat(i) * verticalSpacing)
+            scene.addChild(border)
+            
+            // Create button with transparent background
+            let button = SKSpriteNode(color: .clear, size: buttonSize)
+            button.position = border.position
             button.name = "specialButton\(i)"
             scene.addChild(button)
             specialButtons.append(button)
             
-            // Create cooldown overlay for each button
+            // Create cooldown overlay
             let cooldownOverlay = SKShapeNode(circleOfRadius: 30)
             cooldownOverlay.fillColor = SKColor.black.withAlphaComponent(0.5)
             cooldownOverlay.strokeColor = .clear
@@ -682,7 +715,7 @@ class PlayerView: SKNode {
             scene.addChild(cooldownOverlay)
             specialCooldownOverlays.append(cooldownOverlay)
             
-            // Update button if there's an active special for this slot
+            // Only set texture if there's an active special
             let specialSlots = state.getSpecialSlots()
             if let currentSpecial = specialSlots[i] {
                 button.texture = SKTexture(imageNamed: currentSpecial.name)
