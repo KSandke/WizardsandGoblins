@@ -1,21 +1,21 @@
 import Foundation
 import SpriteKit
 
-class PoisonCloudSpell: Spell {
+class BleedDartSpell: Spell {
     init() {
         super.init(
-            name: "PoisonCloud",
-            aoeRadius: 80,
-            aoeColor: .green,
+            name: "BleedDart",
+            aoeRadius: 40,
+            aoeColor: .red,
             duration: 5.0,
             damage: 10,
-            effect: PoisonEffect(),
+            effect: BleedEffect(),
             rarity: .uncommon
         )
     }
 }
 
-class PoisonEffect: SpellEffect {
+class BleedEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
         // Skip if the target is not a goblin (safety check)
         guard goblin.sprite.name?.contains("goblin") == true else { return }
@@ -39,7 +39,7 @@ class PoisonEffect: SpellEffect {
         }
         
         // Visual effect - tint the goblin green
-        goblin.sprite.color = .green
+        goblin.sprite.color = .red
         goblin.sprite.colorBlendFactor = 0.5
         
         // Reset color after duration
