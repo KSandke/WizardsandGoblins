@@ -42,33 +42,40 @@ class MeteorShowerEffect: SpecialEffect {
     func apply(spell: Special, on goblin: Goblin.GoblinContainer) {
         guard let scene = goblin.sprite.scene else { return }
         
-        // Calculate the time between meteor spawns
-        let numberOfMeteors = Int(spell.duration)
+        // Increase number of meteors and spread
+        let numberOfMeteors = Int(spell.duration * 3) // Triple the number of meteors
         let timeBetweenMeteors = spell.duration / Double(numberOfMeteors)
         let damagePerMeteor = spell.damage / CGFloat(numberOfMeteors)
+        
+        // Calculate a wider area for meteor spawns
+        let spreadRadius: CGFloat = 300 // Increased spread radius
         
         // Create a sequence for spawning each meteor
         let spawnSequence = SKAction.sequence([
             SKAction.run { [weak scene] in
-                // Randomize position slightly around the target
-                let randomOffset = CGPoint(
-                    x: CGFloat.random(in: -50...50),
-                    y: CGFloat.random(in: -50...50)
-                )
-                let meteorPosition = goblin.sprite.position + randomOffset
-                
-                // Create new meteor emitter
-                let meteor = MeteorShowerEmitter(at: meteorPosition)
-                scene?.addChild(meteor)
-                
-                // Set completion handler for THIS specific meteor
-                meteor.completionHandler = { [weak scene] in
-                    guard let gameScene = scene as? GameScene else { return }
-                    // Apply damage only when THIS meteor hits
-                    for target in gameScene.goblinManager.goblinContainers {
-                        let distance = target.sprite.position.distance(to: meteorPosition)
-                        if distance <= spell.aoeRadius {
-                            target.applyDamage(damagePerMeteor)
+                // Create multiple meteors per spawn
+                for _ in 0...2 { // Spawn 3 meteors at once
+                    // Randomize position in a wider area around the target
+                    let angle = CGFloat.random(in: 0...(2 * .pi))
+                    let distance = CGFloat.random(in: 0...spreadRadius)
+                    let offset = CGPoint(
+                        x: cos(angle) * distance,
+                        y: sin(angle) * distance
+                    )
+                    let meteorPosition = goblin.sprite.position + offset
+                    
+                    // Create new meteor emitter
+                    let meteor = MeteorShowerEmitter(at: meteorPosition)
+                    scene?.addChild(meteor)
+                    
+                    // Apply damage when meteor lands
+                    meteor.completionHandler = { [weak scene] in
+                        guard let gameScene = scene as? GameScene else { return }
+                        for target in gameScene.goblinManager.goblinContainers {
+                            let distance = target.sprite.position.distance(to: meteorPosition)
+                            if distance <= spell.aoeRadius {
+                                target.applyDamage(damagePerMeteor)
+                            }
                         }
                     }
                 }
@@ -76,7 +83,7 @@ class MeteorShowerEffect: SpecialEffect {
             SKAction.wait(forDuration: timeBetweenMeteors)
         ])
         
-        // Repeat the spawn sequence for each meteor
+        // Repeat the spawn sequence for each meteor group
         let meteorShowerAction = SKAction.repeat(spawnSequence, count: numberOfMeteors)
         scene.run(meteorShowerAction)
     }
