@@ -109,6 +109,9 @@ class PlayerState: SpellCaster {
         return selectedSpecialIndex
     }
     
+    // Add the new callback
+    var onSpecialSlotsChanged: ((Int) -> Void)?
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
@@ -293,10 +296,12 @@ class PlayerState: SpellCaster {
             // Found an empty slot, add the special there
             specialSlots[emptyIndex] = special
             onSpecialChanged?(special, emptyIndex)
+            onSpecialSlotsChanged?(emptyIndex)
         } else {
             // replace this with the new special selection screen
             specialSlots[selectedSpecialIndex] = special
             onSpecialChanged?(special, selectedSpecialIndex)
+            onSpecialSlotsChanged?(selectedSpecialIndex)
         }
     }
     
@@ -304,12 +309,14 @@ class PlayerState: SpellCaster {
         guard index >= 0 && index < specialSlots.count else { return }
         specialSlots[index] = special
         onSpecialChanged?(special, index)
+        onSpecialSlotsChanged?(index)
     }
     
     func removeSpecial(at index: Int) {
         guard index >= 0 && index < specialSlots.count else { return }
         specialSlots[index] = nil
         onSpecialChanged?(nil, index)
+        onSpecialSlotsChanged?(index)
     }
     
     func getSpecialSlots() -> [Special?] {

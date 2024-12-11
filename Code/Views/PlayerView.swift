@@ -110,6 +110,11 @@ class PlayerView: SKNode {
         state.onComboChanged = { [weak self] combo in
             self?.updateComboLabel(combo: combo)
         }
+
+        // Add binding for special slots changes
+        state.onSpecialSlotsChanged = { [weak self] index in
+            self?.updateSpecialButton(at: index)
+        }
     }
     
     private func setupUI() {
@@ -715,11 +720,8 @@ class PlayerView: SKNode {
             scene.addChild(cooldownOverlay)
             specialCooldownOverlays.append(cooldownOverlay)
             
-            // Only set texture if there's an active special
-            let specialSlots = state.getSpecialSlots()
-            if let currentSpecial = specialSlots[i] {
-                button.texture = SKTexture(imageNamed: currentSpecial.name)
-            }
+            // Update the button texture immediately
+            updateSpecialButton(at: i)
         }
         
         let updateAction = SKAction.run { [weak self] in
@@ -800,9 +802,14 @@ class PlayerView: SKNode {
         if let currentSpecial = specialSlots[index] {
             print("🔄 Updating Special Button \(index): \(currentSpecial.name)")
             specialButtons[index].texture = SKTexture(imageNamed: currentSpecial.name)
+            
+            // Add a scale animation for feedback
+            let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
+            let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
+            specialButtons[index].run(SKAction.sequence([scaleUp, scaleDown]))
         } else {
             print("🔄 Updating Special Button \(index): Empty")
-            specialButtons[index].texture = SKTexture(imageNamed: "EmptySpecial")
+            specialButtons[index].texture = nil
         }
         updateSpecialCooldown(at: index)
     }
