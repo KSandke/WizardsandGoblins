@@ -122,7 +122,8 @@ class ShopView: SKNode {
         BlizzardSpecial(),
         //HologramTrapSpecial(),
         InfernoSpecial(),
-        MeteorShowerSpecial()
+        MeteorShowerSpecial(),
+        DivineHealingSpecial()
     ]
     
     // Add new properties
