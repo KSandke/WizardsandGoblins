@@ -17,7 +17,7 @@ class LightningSpell: Spell {
 
 class LightningEffect: SpellEffect {
     func apply(spell: Spell, on goblin: Goblin.GoblinContainer) {
-        let chainRange: CGFloat = 100.0
+        let chainRange: CGFloat = 150.0
         let chainDamage = spell.damage * 0.5
         let effectDuration: TimeInterval = 0.5
 
