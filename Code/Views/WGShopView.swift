@@ -140,7 +140,13 @@ class ShopView: SKNode {
         PoisonCloudSpell()
     ]
     
+    // Add new property for reset label
+    private let resetTimerLabel: SKLabelNode
+    
     init(size: CGSize, playerState: PlayerState, playerView: PlayerView, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
+        // Initialize the reset timer label
+        self.resetTimerLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        
         // Initialize all properties before super.init()
         self.playerState = playerState
         self.playerView = playerView
@@ -167,6 +173,9 @@ class ShopView: SKNode {
         closeButton.name = "closeShopButton"
         closeButton.fontSize = 24
         closeButton.fontColor = .white
+        
+        // Add reset timer label after other UI setup
+        setupResetTimerLabel(currentWave: currentWave)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -203,9 +212,9 @@ class ShopView: SKNode {
         let startX = (size.width - totalWidth) / 2 + buttonWidth / 2
         
         // Position buttons with consistent vertical spacing
-        let upperButtonY = size.height * 0.65  // Permanent upgrades
-        let specialButtonY = size.height * 0.45 // Special button
-        let spellButtonY = size.height * 0.25   // Spell button
+        let upperButtonY = size.height * 0.60  // Changed from 0.65
+        let specialButtonY = size.height * 0.40 // Changed from 0.45
+        let spellButtonY = size.height * 0.20   // Changed from 0.25
         
         // First, position the permanent upgrades
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
@@ -234,7 +243,7 @@ class ShopView: SKNode {
         }
         
         // Update close button position
-        closeButton.position = CGPoint(x: size.width/2, y: spellButtonY - buttonHeight - 40)
+        closeButton.position = CGPoint(x: size.width/2, y: spellButtonY - buttonHeight - 20) // Adjusted spacing
         addChild(closeButton)
     }
     
@@ -510,9 +519,9 @@ class ShopView: SKNode {
         let startX = (background.frame.width - totalWidth) / 2 + buttonWidth / 2
         
         // Use the same vertical positions as setupUI
-        let upperButtonY = background.frame.height * 0.65  // Permanent upgrades
-        let specialButtonY = background.frame.height * 0.45 // Special button
-        let spellButtonY = background.frame.height * 0.25   // Spell button
+        let upperButtonY = background.frame.height * 0.60  // Changed from 0.65
+        let specialButtonY = background.frame.height * 0.40 // Changed from 0.45
+        let spellButtonY = background.frame.height * 0.20   // Changed from 0.25
         
         // First, position the permanent upgrades
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
@@ -1017,5 +1026,35 @@ class ShopView: SKNode {
                 }
             }
         }
+    }
+    
+    private func setupResetTimerLabel(currentWave: Int) {
+        resetTimerLabel.fontSize = 16
+        resetTimerLabel.fontColor = .white
+        
+        // Calculate waves until reset
+        let wavesUntilSpecialReset = 2 - (currentWave % 2)
+        let wavesUntilSpellReset = 2 - (currentWave % 2)
+        
+        // Create reset message
+        var resetText = "Shop resets in:"
+        if wavesUntilSpecialReset == wavesUntilSpellReset {
+            resetText += "\n\(wavesUntilSpecialReset) wave\(wavesUntilSpecialReset != 1 ? "s" : "")"
+        } else {
+            resetText += "\nSpecial: \(wavesUntilSpecialReset) wave\(wavesUntilSpecialReset != 1 ? "s" : "")"
+            resetText += "\nSpell: \(wavesUntilSpellReset) wave\(wavesUntilSpellReset != 1 ? "s" : "")"
+        }
+        
+        resetTimerLabel.text = resetText
+        resetTimerLabel.numberOfLines = 0  // Allow multiple lines
+        resetTimerLabel.horizontalAlignmentMode = .center
+        
+        // Position between coins and first shop item
+        resetTimerLabel.position = CGPoint(
+            x: background.frame.width/2,
+            y: background.frame.height * 0.75
+        )
+        
+        addChild(resetTimerLabel)
     }
 } 

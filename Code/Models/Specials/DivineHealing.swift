@@ -24,19 +24,19 @@ class DivineHealingEffect: SpecialEffect {
         
         // Calculate healing amount (50% of max health)
         let healAmount = playerState.maxHealth * 0.5
+        let newHealth = playerState.castleHealth + healAmount
+        
+        // Set health to either max health or current health + 50% of max health
+        playerState.castleHealth = min(playerState.maxHealth, newHealth)
         
         // Create healing visual effect
         let healingEffect = SKEmitterNode()
-        healingEffect.particleTexture = SKTexture(imageNamed: "Sparkle")
         healingEffect.particleColor = .green
         healingEffect.particleColorBlendFactor = 1.0
         healingEffect.particleLifetime = 2.0
         healingEffect.particleBirthRate = 50
         healingEffect.position = scene.castlePosition
         scene.addChild(healingEffect)
-        
-        // Heal the castle
-        playerState.castleHealth = min(playerState.maxHealth, playerState.castleHealth + healAmount)
         
         // Remove effect after duration
         healingEffect.run(SKAction.sequence([
