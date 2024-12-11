@@ -207,43 +207,44 @@ class ShopView: SKNode {
         let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
-        // Calculate total width needed for both permanent upgrade buttons
-        let totalWidth = (buttonWidth * 2) + padding
-        let startX = (size.width - totalWidth) / 2 + buttonWidth / 2
+        // Calculate grid layout
+        let gridWidth = buttonWidth * 2 + padding
+        let startX = (size.width - gridWidth) / 2 + buttonWidth / 2
+        let startY = size.height * 0.5  // Adjust this value to position the grid vertically
         
-        // Position buttons with consistent vertical spacing
-        let upperButtonY = size.height * 0.60  // Changed from 0.65
-        let specialButtonY = size.height * 0.40 // Changed from 0.45
-        let spellButtonY = size.height * 0.20   // Changed from 0.25
+        // Create array of all available items
+        var allItems: [ShopItem] = []
         
-        // First, position the permanent upgrades
+        // Add permanent upgrades (first two slots)
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
-        for (index, item) in permanentUpgrades.enumerated() {
-            let x = startX + CGFloat(index) * (buttonWidth + padding)
-            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: x, y: upperButtonY)
-            addChild(button)
-            itemButtons.append(button)
-        }
+        allItems.append(contentsOf: permanentUpgrades.prefix(2))
         
-        // Then, position the special upgrade if available
+        // Add special upgrade if available (third slot)
         if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
-            let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: size.width/2, y: specialButtonY)
-            addChild(button)
-            itemButtons.append(button)
+            allItems.append(specialUpgrade)
         }
         
-        // Finally, position the spell upgrade if available
+        // Add spell upgrade if available (fourth slot)
         if let spellItem = createSpellShopItem() {
-            let button = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: size.width/2, y: spellButtonY)
+            allItems.append(spellItem)
+        }
+        
+        // Create 2x2 grid
+        for (index, item) in allItems.enumerated() {
+            let row = index / 2
+            let col = index % 2
+            
+            let x = startX + CGFloat(col) * (buttonWidth + padding)
+            let y = startY - CGFloat(row) * (buttonHeight + padding)
+            
+            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: x, y: y)
             addChild(button)
             itemButtons.append(button)
         }
         
-        // Update close button position
-        closeButton.position = CGPoint(x: size.width/2, y: spellButtonY - buttonHeight - 20) // Adjusted spacing
+        // Update close button position - move it further down
+        closeButton.position = CGPoint(x: size.width/2, y: startY - (buttonHeight * 2.0) - padding * 2.0 - 10)
         addChild(closeButton)
     }
     
@@ -347,7 +348,8 @@ class ShopView: SKNode {
         }
         
         // For spells, check if it's in the player's spell inventory
-        if let spell = ShopView.currentSpellOffer, spell.name == item.name {
+        if let spell = ShopView.currentSpellOffer,
+           item.name == spell.name {
             return playerState.hasSpell(named: spell.name)
         }
         
@@ -505,7 +507,6 @@ class ShopView: SKNode {
         updateStats()
     }
     
-    // Update refreshItemButtons to match the new layout
     private func refreshItemButtons() {
         itemButtons.forEach { $0.removeFromParent() }
         itemButtons.removeAll()
@@ -514,37 +515,38 @@ class ShopView: SKNode {
         let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
-        // Calculate total width needed for both permanent upgrade buttons
-        let totalWidth = (buttonWidth * 2) + padding
-        let startX = (background.frame.width - totalWidth) / 2 + buttonWidth / 2
+        // Calculate grid layout
+        let gridWidth = buttonWidth * 2 + padding
+        let startX = (background.frame.width - gridWidth) / 2 + buttonWidth / 2
+        let startY = background.frame.height * 0.5
         
-        // Use the same vertical positions as setupUI
-        let upperButtonY = background.frame.height * 0.60  // Changed from 0.65
-        let specialButtonY = background.frame.height * 0.40 // Changed from 0.45
-        let spellButtonY = background.frame.height * 0.20   // Changed from 0.25
+        // Create array of all available items
+        var allItems: [ShopItem] = []
         
-        // First, position the permanent upgrades
+        // Add permanent upgrades (first two slots)
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
-        for (index, item) in permanentUpgrades.enumerated() {
-            let x = startX + CGFloat(index) * (buttonWidth + padding)
-            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: x, y: upperButtonY)
-            addChild(button)
-            itemButtons.append(button)
-        }
+        allItems.append(contentsOf: permanentUpgrades.prefix(2))
         
-        // Then, position the special upgrade if available
+        // Add special upgrade if available (third slot)
         if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
-            let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: background.frame.width/2, y: specialButtonY)
-            addChild(button)
-            itemButtons.append(button)
+            allItems.append(specialUpgrade)
         }
         
-        // Finally, position the spell upgrade if available
+        // Add spell upgrade if available (fourth slot)
         if let spellItem = createSpellShopItem() {
-            let button = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: background.frame.width/2, y: spellButtonY)
+            allItems.append(spellItem)
+        }
+        
+        // Create 2x2 grid
+        for (index, item) in allItems.enumerated() {
+            let row = index / 2
+            let col = index % 2
+            
+            let x = startX + CGFloat(col) * (buttonWidth + padding)
+            let y = startY - CGFloat(row) * (buttonHeight + padding)
+            
+            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: x, y: y)
             addChild(button)
             itemButtons.append(button)
         }
@@ -657,8 +659,14 @@ class ShopView: SKNode {
             ShopView.lastSpellRefreshWave = currentWave
         }
         
-        // Create special shop item if available
+        // Create array of all available items
         var upgrades = [ShopItem]()
+        
+        // Add permanent upgrades (first two slots)
+        let regularUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
+        upgrades.append(contentsOf: regularUpgrades)
+        
+        // Add special upgrade if available (third slot)
         if let special = ShopView.currentSpecialOffer {
             upgrades.append(ShopItem(
                 name: special.name,
@@ -673,17 +681,24 @@ class ShopView: SKNode {
             ))
         }
         
-        // Create spell shop item if available
+        // Add spell upgrade if available (fourth slot)
         if let spell = ShopView.currentSpellOffer {
-            let spellItem = createSpellShopItem()
-            if let item = spellItem {
-                upgrades.append(item)
-            }
+            upgrades.append(ShopItem(
+                name: spell.name,
+                description: "New Spell",
+                basePrice: calculateSpellPrice(spell),
+                icon: spell.name,
+                effect: { [weak self] state, showMessage in
+                    if state.getAvailableSpells().count >= GameConfig.maxSpellSlots {
+                        self?.showSpellSlotSelector(for: spell)
+                    } else {
+                        state.addSpell(spell)
+                        showMessage("New spell acquired!")
+                    }
+                },
+                rarity: spell.rarity
+            ))
         }
-        
-        // Add regular upgrades
-        let regularUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
-        upgrades.append(contentsOf: regularUpgrades)
         
         availableUpgrades = upgrades
     }
@@ -758,8 +773,7 @@ class ShopView: SKNode {
     }
     
     private func createSpellShopItem() -> ShopItem? {
-        guard let spell = ShopView.currentSpellOffer,
-              !playerState.hasSpell(named: spell.name) else {
+        guard let spell = ShopView.currentSpellOffer else {
             return nil
         }
 
@@ -1029,14 +1043,15 @@ class ShopView: SKNode {
     }
     
     private func setupResetTimerLabel(currentWave: Int) {
-        resetTimerLabel.fontSize = 16
+        resetTimerLabel.fontSize = 20
         resetTimerLabel.fontColor = .white
-        
+        resetTimerLabel.horizontalAlignmentMode = .center
+
         // Calculate waves until reset
         let wavesUntilReset = if currentWave % 2 == 0 {
-            2  // Just reset, show 2 waves until next reset
+            1  // Just reset, show 2 waves until next reset
         } else {
-            1  // One wave has passed, show 1 wave until next reset
+            2  // One wave has passed, show 1 wave until next reset
         }
         
         // Create reset message
@@ -1046,12 +1061,26 @@ class ShopView: SKNode {
         resetTimerLabel.numberOfLines = 0  // Allow multiple lines
         resetTimerLabel.horizontalAlignmentMode = .center
         
-        // Position between coins and first shop item
+        // Position it below the close button
         resetTimerLabel.position = CGPoint(
-            x: background.frame.width/2,
-            y: background.frame.height * 0.75
+            x: closeButton.position.x,
+            y: closeButton.position.y + 35  // Increase this value to move it lower
         )
         
         addChild(resetTimerLabel)
+        updateResetTimer(currentWave: currentWave)
+    }
+    
+    private func updateResetTimer(currentWave: Int) {
+        // Calculate waves until reset
+        let wavesUntilReset = if currentWave % 2 == 0 {
+            1  // Just reset, show 2 waves until next reset
+        } else {
+            2  // One wave has passed, show 1 wave until next reset
+        }
+        
+        // Update reset message
+        let resetText = "Shop resets in:\n\(wavesUntilReset) wave\(wavesUntilReset != 1 ? "s" : "")"
+        resetTimerLabel.text = resetText
     }
 } 
