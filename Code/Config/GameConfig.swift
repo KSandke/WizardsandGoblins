@@ -30,4 +30,14 @@ struct GameConfig {
     // Spell
     static let defaultSpellSpeed: CGFloat = 400
     static let maxSpellSlots: Int = 3
+
+    // Physics categories
+    static let potionCategory: UInt32 = 0x1 << 5
+    static let spellCategory: UInt32 = 0x1 << 2
+
+    // Potion configurations
+    static let potionSpawnInterval: TimeInterval = 15.0 // Potion appears every 15 seconds
+    static let manaPotionDuration: TimeInterval = 5.0   // Infinite mana lasts for 5 seconds
+    static let smallHealthPotionAmount: CGFloat = 20.0
+    static let largeHealthPotionAmount: CGFloat = 50.0
 }

@@ -55,6 +55,10 @@ class PlayerView: SKNode {
     // Add property for health label
     private var castleHealthLabel: SKLabelNode!
     
+    // Reference to the potion effect bar elements
+    private var potionEffectBar: SKShapeNode?
+    private var potionEffectLabel: SKLabelNode?
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -71,6 +75,18 @@ class PlayerView: SKNode {
         setupBindings()
         setupUI()
         setupSpecialButton()
+        
+        // Initialize the potion effect bar
+        setupPotionEffectBar(in: scene)
+        
+        // Observe the infinite mana status
+        state.onInfiniteManaStatusChanged = { [weak self] isActive in
+            self?.updatePotionEffectBar(isActive: isActive)
+        }
+
+        state.onHealthRestored = { [weak self] amount in
+            self?.displayHealthRestoration(in: scene, amount: amount)
+        }
     }
     
     // Add required initializer
@@ -812,5 +828,59 @@ class PlayerView: SKNode {
             specialButtons[index].texture = nil
         }
         updateSpecialCooldown(at: index)
+    }
+
+    // Add methods to setup and update the potion effect bar
+    func setupPotionEffectBar(in scene: SKScene) {
+        let barWidth: CGFloat = 100
+        let barHeight: CGFloat = 10
+        potionEffectBar = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight), cornerRadius: 5)
+        potionEffectBar?.fillColor = .blue
+        potionEffectBar?.strokeColor = .white
+        potionEffectBar?.position = CGPoint(x: scene.size.width / 2, y: 80) // Adjust position as needed
+        potionEffectBar?.isHidden = true
+        scene.addChild(potionEffectBar!)
+
+        // Potion Effect Label
+        potionEffectLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        potionEffectLabel?.fontSize = 12
+        potionEffectLabel?.fontColor = .white
+        potionEffectLabel?.position = CGPoint(x: 0, y: -barHeight / 2 - 10)
+        potionEffectLabel?.verticalAlignmentMode = .center
+        potionEffectBar?.addChild(potionEffectLabel!)
+    }
+
+    func updatePotionEffectBar(isActive: Bool) {
+        guard let potionEffectBar = potionEffectBar else { return }
+        
+        potionEffectBar.isHidden = !isActive
+        
+        if isActive {
+            potionEffectLabel?.text = "Infinite Mana"
+            // Start countdown animation
+            let duration = GameConfig.manaPotionDuration
+            let scaleAction = SKAction.scaleX(to: 0, duration: duration)
+            potionEffectBar.xScale = 1.0
+            potionEffectBar.run(scaleAction)
+        } else {
+            potionEffectBar.removeAllActions()
+            potionEffectBar.xScale = 1.0
+        }
+    }
+
+    func displayHealthRestoration(in scene: SKScene, amount: CGFloat) {
+        let healingLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        healingLabel.text = "+\(Int(amount))"
+        healingLabel.fontSize = 24
+        healingLabel.fontColor = .red
+        healingLabel.position = CGPoint(x: playerPosition.x, y: playerPosition.y + 50)
+        healingLabel.zPosition = 10
+        scene.addChild(healingLabel)
+
+        let moveUp = SKAction.moveBy(x: 0, y: 30, duration: 1.0)
+        let fadeOut = SKAction.fadeOut(withDuration: 1.0)
+        let group = SKAction.group([moveUp, fadeOut])
+        let remove = SKAction.removeFromParent()
+        healingLabel.run(SKAction.sequence([group, remove]))
     }
 }

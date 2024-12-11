@@ -48,6 +48,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private let swipeThreshold: CGFloat = GameConfig.swipeThreshold
     private let swipeTimeThreshold: TimeInterval = GameConfig.swipeTimeThreshold
     
+    // MARK: - Potion Spawning
+    private let potionTypes: [Potion.PotionType] = [.mana, .smallHealth, .largeHealth]
+    
     var castlePosition: CGPoint {
         return CGPoint(x: size.width / 2, y: GameConfig.defaultCastlePosition.y)
     }
@@ -125,6 +128,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Add this line with other reset operations
         currentWaveDamageTaken = 0
+        
+        // Start potion spawning at random intervals
+        startPotionSpawning()
     }
     
     func getWaveConfig(forWave wave: Int) -> WaveConfig {
@@ -155,6 +161,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Reset combo at end of wave
         playerState.currentCombo = 0
+        
+        // Stop potion spawning
+        stopPotionSpawning()
     }
     
     func setupBackground() {
@@ -339,6 +348,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         mainMenuButton.position = CGPoint(x: size.width / 2, y: size.height / 2 - 100)
         mainMenuButton.name = "mainMenuButton"
         addChild(mainMenuButton)
+        
+        // Remove all potions from the scene
+        self.enumerateChildNodes(withName: "potion") { node, _ in
+            node.removeFromParent()
+        }
+        
+        // Invalidate player's infinite mana timer
+        playerState.reset()
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -446,8 +463,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func applySpell(_ spell: Spell, at position: CGPoint) {
-        // Apply spell effects to goblins only
+        // Apply effect to goblins
         goblinManager.applySpell(spell, at: position, in: self)
+
+        // Apply effect to potions
+        applySpellToPotions(spell, at: position)
+    }
+
+    private func applySpellToPotions(_ spell: Spell, at position: CGPoint) {
+        // Get all potions in the scene
+        let potions = children.compactMap { $0 as? Potion }
+
+        for potion in potions {
+            let distance = position.distance(to: potion.position)
+            if distance <= spell.aoeRadius {
+                // Apply the potion's effect and remove it from the scene
+                potion.applyEffect(to: playerState, in: self)
+            }
+        }
     }
 
     func createSpellChargeRestoreEffect(at position: CGPoint) {
@@ -505,12 +538,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let baseCoins = container.goldValue
             let multipliedCoins = Int(floor(Double(baseCoins) * comboMultiplier))
             playerState.addCoins(multipliedCoins)
-
-            // Add logic for potion drop
-            let dropChance = 0.1 // 10% chance to drop a potion
-            if Double.random(in: 0...1) < dropChance {
-                dropManaPotion(at: container.sprite.position)
-            }
         }
         
         // Only decrease if counter is greater than 0
@@ -972,5 +999,56 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // If no configs found, create a new default config
         return WaveConfig.createDefaultConfig(forWave: nextWaveNumber)
+    }
+    
+    func startPotionSpawning() {
+        scheduleNextPotionSpawn()
+    }
+    
+    func stopPotionSpawning() {
+        self.removeAction(forKey: "potionSpawn")
+    }
+    
+    func scheduleNextPotionSpawn() {
+        let minInterval: TimeInterval = 5.0
+        let maxInterval: TimeInterval = 15.0
+        let randomInterval = Double.random(in: minInterval...maxInterval)
+        
+        let wait = SKAction.wait(forDuration: randomInterval)
+        let spawn = SKAction.run { [weak self] in
+            self?.spawnPotion()
+            self?.scheduleNextPotionSpawn()
+        }
+        let sequence = SKAction.sequence([wait, spawn])
+        self.run(sequence, withKey: "potionSpawn")
+    }
+    
+    func spawnPotion() {
+        let randomX = CGFloat.random(in: 50...(size.width - 50))
+        let randomY = CGFloat.random(in: (size.height * 0.3)...(size.height - 50))
+        let position = CGPoint(x: randomX, y: randomY)
+        
+        // Randomly select a potion type
+        let randomIndex = Int.random(in: 0..<potionTypes.count)
+        let potionType = potionTypes[randomIndex]
+        
+        let potion = Potion(type: potionType, position: position)
+        addChild(potion)
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        let firstBody: SKPhysicsBody
+        let secondBody: SKPhysicsBody
+
+        // Ensure consistent body ordering
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        } else {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
+
+        // Existing collision handling...
     }
 }

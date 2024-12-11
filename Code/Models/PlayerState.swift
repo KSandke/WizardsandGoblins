@@ -112,6 +112,14 @@ class PlayerState: SpellCaster {
     // Add the new callback
     var onSpecialSlotsChanged: ((Int) -> Void)?
     
+    // Infinite mana properties
+    private var infiniteManaActive = false
+    private var infiniteManaTimer: Timer?
+
+    // Callbacks
+    var onInfiniteManaStatusChanged: ((Bool) -> Void)?
+    var onHealthRestored: ((CGFloat) -> Void)?
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
@@ -184,11 +192,20 @@ class PlayerState: SpellCaster {
         highestCombo = 0
         comboTimer?.invalidate()
         comboTimer = nil
+        
+        // Reset infinite mana
+        deactivateInfiniteMana()
+        
+        // Additional resets if needed
     }
     
     // Simplify spell usage to single wizard
     func useSpell(cost: Int) -> Bool {
-        // Use the provided cost (which should be the spell's manaCost)
+        if infiniteManaActive {
+            // Spell cost is waived during infinite mana
+            return true
+        }
+        
         if spellCharges >= cost {
             spellCharges -= cost
             return true
@@ -372,4 +389,28 @@ class PlayerState: SpellCaster {
         return availableSpells[previousIndex]
     }
 
+    // Add methods to activate and deactivate infinite mana
+    func activateInfiniteMana(duration: TimeInterval) {
+        infiniteManaActive = true
+        onInfiniteManaStatusChanged?(true)
+        infiniteManaTimer?.invalidate()
+        infiniteManaTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
+            self?.deactivateInfiniteMana()
+        }
+    }
+
+    private func deactivateInfiniteMana() {
+        infiniteManaActive = false
+        onInfiniteManaStatusChanged?(false)
+        infiniteManaTimer?.invalidate()
+        infiniteManaTimer = nil
+    }
+
+    func isInfiniteManaActive() -> Bool {
+        return infiniteManaActive
+    }
+    
+    func restoreHealth(amount: CGFloat) {
+        castleHealth = min(maxCastleHealth, castleHealth + amount)
+    }
 }

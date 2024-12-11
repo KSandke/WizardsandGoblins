@@ -70,6 +70,7 @@
 		925D72F62CF1668D00E11E34 /* DivineWrathEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */; };
 		925D72F72CF1668D00E11E34 /* BlizzardEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */; };
 		92A076C42D050797004A79DE /* GameConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A076C22D050797004A79DE /* GameConfig.swift */; };
+		92FB88162D09724200C2CAA5 /* Potion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92FB88152D09724200C2CAA5 /* Potion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -160,6 +161,7 @@
 		925D72F02CF1668D00E11E34 /* MeteorShowerEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeteorShowerEmitter.swift; sourceTree = "<group>"; };
 		925D72F12CF1668D00E11E34 /* NecromancersGripEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NecromancersGripEmitter.swift; sourceTree = "<group>"; };
 		92A076C22D050797004A79DE /* GameConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfig.swift; sourceTree = "<group>"; };
+		92FB88152D09724200C2CAA5 /* Potion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Potion.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -392,6 +394,7 @@
 		14ECCEF12CE47BA8005A9627 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				92FB88152D09724200C2CAA5 /* Potion.swift */,
 				146503B82D052A5400022691 /* Spells */,
 				146503AC2D052A2100022691 /* Specials */,
 				146503A32D052A1A00022691 /* Special.swift */,
@@ -606,6 +609,7 @@
 				145E596D2CF576FB009A6A09 /* WaveConfig.swift in Sources */,
 				146503B92D052A5400022691 /* Fireball.swift in Sources */,
 				146503BA2D052A5400022691 /* PoisonCloud.swift in Sources */,
+				92FB88162D09724200C2CAA5 /* Potion.swift in Sources */,
 				146503BB2D052A5400022691 /* Ice.swift in Sources */,
 				146503BC2D052A5400022691 /* Lightning.swift in Sources */,
 				14DDF4472CF1551100A0EBAB /* TracerEffect.swift in Sources */,

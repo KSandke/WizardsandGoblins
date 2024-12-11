@@ -9,6 +9,9 @@ class ScoreScreen: SKNode {
     private let damageTaken: CGFloat
     private let perfectWaveBonus: Bool
     
+    private var potionEffectBar: SKShapeNode?
+    private var potionEffectLabel: SKLabelNode?
+    
     init(size: CGSize, playerState: PlayerState, waveNumber: Int, damageTaken: CGFloat, perfectWaveBonus: Bool, onContinue: @escaping () -> Void) {
         self.size = size
         self.playerState = playerState
@@ -112,6 +115,24 @@ class ScoreScreen: SKNode {
             bonusDetailsLabel.position = CGPoint(x: size.width/2, y: size.height * 0.65)
             addChild(bonusDetailsLabel)
         }
+        
+        // Potion Effect Bar
+        let barWidth: CGFloat = 200
+        let barHeight: CGFloat = 20
+        potionEffectBar = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight), cornerRadius: 5)
+        potionEffectBar?.fillColor = .blue
+        potionEffectBar?.strokeColor = .white
+        potionEffectBar?.position = CGPoint(x: size.width - barWidth / 2 - 20, y: size.height * 0.6)
+        potionEffectBar?.isHidden = true
+        addChild(potionEffectBar!)
+
+        // Potion Effect Label
+        potionEffectLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        potionEffectLabel?.fontSize = 14
+        potionEffectLabel?.fontColor = .white
+        potionEffectLabel?.position = CGPoint(x: 0, y: -barHeight / 2 - 10)
+        potionEffectLabel?.verticalAlignmentMode = .center
+        potionEffectBar?.addChild(potionEffectLabel!)
         
         // Add animations
         animateUI()
