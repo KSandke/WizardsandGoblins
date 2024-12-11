@@ -1033,17 +1033,14 @@ class ShopView: SKNode {
         resetTimerLabel.fontColor = .white
         
         // Calculate waves until reset
-        let wavesUntilSpecialReset = 2 - (currentWave % 2)
-        let wavesUntilSpellReset = 2 - (currentWave % 2)
+        let wavesUntilReset = if currentWave % 2 == 0 {
+            2  // Just reset, show 2 waves until next reset
+        } else {
+            1  // One wave has passed, show 1 wave until next reset
+        }
         
         // Create reset message
-        var resetText = "Shop resets in:"
-        if wavesUntilSpecialReset == wavesUntilSpellReset {
-            resetText += "\n\(wavesUntilSpecialReset) wave\(wavesUntilSpecialReset != 1 ? "s" : "")"
-        } else {
-            resetText += "\nSpecial: \(wavesUntilSpecialReset) wave\(wavesUntilSpecialReset != 1 ? "s" : "")"
-            resetText += "\nSpell: \(wavesUntilSpellReset) wave\(wavesUntilSpellReset != 1 ? "s" : "")"
-        }
+        let resetText = "Shop resets in:\n\(wavesUntilReset) wave\(wavesUntilReset != 1 ? "s" : "")"
         
         resetTimerLabel.text = resetText
         resetTimerLabel.numberOfLines = 0  // Allow multiple lines

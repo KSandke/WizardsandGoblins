@@ -10,7 +10,10 @@ class MeteorShowerEmitter: SKNode {
         // Create falling meteor
         let meteor = SKSpriteNode(imageNamed: "meteor")
         meteor.size = CGSize(width: 20, height: 20)
-        meteor.position = CGPoint(x: 0, y: 600) // Start high above
+        
+        // Calculate starting position relative to scene height
+        let startingHeight = (scene?.size.height ?? 1200) + 100 // Add extra padding above screen
+        meteor.position = CGPoint(x: 0, y: startingHeight / 2) // Position relative to node's center
         addChild(meteor)
         
         // Add trail effect to meteor
