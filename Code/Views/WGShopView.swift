@@ -348,7 +348,8 @@ class ShopView: SKNode {
         }
         
         // For spells, check if it's in the player's spell inventory
-        if let spell = ShopView.currentSpellOffer, item.name == spell.name {
+        if let spell = ShopView.currentSpellOffer,
+           item.name == spell.name {
             return playerState.hasSpell(named: spell.name)
         }
         
@@ -506,7 +507,6 @@ class ShopView: SKNode {
         updateStats()
     }
     
-    // Update refreshItemButtons to match the new layout
     private func refreshItemButtons() {
         itemButtons.forEach { $0.removeFromParent() }
         itemButtons.removeAll()
@@ -659,8 +659,14 @@ class ShopView: SKNode {
             ShopView.lastSpellRefreshWave = currentWave
         }
         
-        // Create special shop item if available
+        // Create array of all available items
         var upgrades = [ShopItem]()
+        
+        // Add permanent upgrades (first two slots)
+        let regularUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
+        upgrades.append(contentsOf: regularUpgrades)
+        
+        // Add special upgrade if available (third slot)
         if let special = ShopView.currentSpecialOffer {
             upgrades.append(ShopItem(
                 name: special.name,
@@ -675,17 +681,24 @@ class ShopView: SKNode {
             ))
         }
         
-        // Create spell shop item if available
+        // Add spell upgrade if available (fourth slot)
         if let spell = ShopView.currentSpellOffer {
-            let spellItem = createSpellShopItem()
-            if let item = spellItem {
-                upgrades.append(item)
-            }
+            upgrades.append(ShopItem(
+                name: spell.name,
+                description: "New Spell",
+                basePrice: calculateSpellPrice(spell),
+                icon: spell.name,
+                effect: { [weak self] state, showMessage in
+                    if state.getAvailableSpells().count >= GameConfig.maxSpellSlots {
+                        self?.showSpellSlotSelector(for: spell)
+                    } else {
+                        state.addSpell(spell)
+                        showMessage("New spell acquired!")
+                    }
+                },
+                rarity: spell.rarity
+            ))
         }
-        
-        // Add regular upgrades
-        let regularUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
-        upgrades.append(contentsOf: regularUpgrades)
         
         availableUpgrades = upgrades
     }
@@ -760,8 +773,7 @@ class ShopView: SKNode {
     }
     
     private func createSpellShopItem() -> ShopItem? {
-        guard let spell = ShopView.currentSpellOffer,
-              !playerState.hasSpell(named: spell.name) else {
+        guard let spell = ShopView.currentSpellOffer else {
             return nil
         }
 
