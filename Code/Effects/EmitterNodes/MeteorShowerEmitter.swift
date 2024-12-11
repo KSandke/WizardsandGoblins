@@ -1,6 +1,8 @@
 import SpriteKit
 
 class MeteorShowerEmitter: SKNode {
+    var completionHandler: (() -> Void)?
+    
     init(at position: CGPoint) {
         super.init()
         self.position = position
@@ -16,7 +18,7 @@ class MeteorShowerEmitter: SKNode {
         starfield.particleScaleRange = 0.3
         starfield.particleColor = .white
         starfield.particlePositionRange = CGVector(dx: 800, dy: 600)
-        starfield.particleTexture = SKTexture(imageNamed: "star")
+        starfield.particleTexture = SKTexture(imageNamed: "meteor")
         addChild(starfield)
 
         // Meteors
@@ -36,9 +38,12 @@ class MeteorShowerEmitter: SKNode {
         meteorEmitter.particleBlendMode = .add
         addChild(meteorEmitter)
 
-        // Remove after duration
+        // Remove after duration and call completion handler
         run(SKAction.sequence([
             SKAction.wait(forDuration: 5.0),
+            SKAction.run { [weak self] in
+                self?.completionHandler?()
+            },
             SKAction.fadeOut(withDuration: 1.0),
             SKAction.removeFromParent()
         ]))

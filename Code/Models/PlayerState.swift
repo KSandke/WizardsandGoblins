@@ -125,7 +125,7 @@ class PlayerState: SpellCaster {
 
         ]
         
-        specialSlots = [nil, nil, nil]
+        specialSlots = [MeteorShowerSpecial(), nil, nil]
     }
     
     // Callbacks for binding
