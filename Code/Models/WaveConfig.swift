@@ -80,15 +80,15 @@ public struct WaveConfig {
                     SpawnPatternConfig(pattern: .line(count: 3), probability: 30.0)
                 ]
             ),
-            1: WaveConfig(
-                goblinTypeProbabilities: [.normal: 100.0],
+            1: WaveConfig( //use this config for testing
+                goblinTypeProbabilities: [.ranged: 100.0],
                 maxGoblins: 3,
                 baseSpawnInterval: 3.0,
                 spawnPatterns: [
                     SpawnPatternConfig(pattern: .single, probability: 100.0)
                 ]
             ),
-            2: WaveConfig( //use this config for testing
+            2: WaveConfig(
                 goblinTypeProbabilities: [.normal: 100.0],
                 maxGoblins: 10,
                 baseSpawnInterval: 2.0,

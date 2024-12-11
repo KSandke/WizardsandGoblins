@@ -147,36 +147,20 @@ public class Goblin {
         }
         
         private func startRangedAttack(scene: GameScene) {
-            let targetPosition = CGPoint(x: scene.size.width / 2, y: 130) // Match the target Y position
+            let targetPosition = CGPoint(x: scene.size.width / 2, y: 130) // Castle position
             let distanceToTarget = sprite.position.distance(to: targetPosition)
             
-            if distanceToTarget <= 401 { // Matches the stopDistance in moveGoblin
-                print("Ranged goblin is within range and starts shooting.")
+            if distanceToTarget <= 450 { // Increased shooting range to 450
+                // Create arrow shooting sequence
                 let spawnArrow = SKAction.run { [weak self] in
                     guard let self = self else { return }
-                    if self.sprite.position.distance(to: targetPosition) <= 401 {  // Double-check distance before each shot
-                        scene.goblinManager.spawnArrow(from: self.sprite.position, 
-                                                     to: targetPosition)
-                    }
+                    scene.goblinManager.spawnArrow(from: self.sprite.position, 
+                                                 to: targetPosition)
                 }
                 let waitAction = SKAction.wait(forDuration: 1.5)
                 let attackSequence = SKAction.sequence([spawnArrow, waitAction])
                 let repeatAttack = SKAction.repeatForever(attackSequence)
                 sprite.run(repeatAttack, withKey: "rangedAttack")
-            } else {
-                print("Ranged goblin is not within range. Current distance: \(distanceToTarget)")
-                
-                // Add a check action that continuously monitors distance
-                let checkRangeAction = SKAction.run { [weak self] in
-                    guard let self = self else { return }
-                    let currentDistance = self.sprite.position.distance(to: targetPosition)
-                    if currentDistance <= 400 && !self.sprite.hasActions() {
-                        self.startRangedAttack(scene: scene)
-                    }
-                }
-                let waitAction = SKAction.wait(forDuration: 0.5)  // Check every half second
-                let checkSequence = SKAction.sequence([checkRangeAction, waitAction])
-                sprite.run(SKAction.repeatForever(checkSequence), withKey: "checkRange")
             }
         }
         
@@ -440,11 +424,13 @@ public class Goblin {
             }
         }
         
-        // Calculate final position
+        // Calculate final position for ranged goblins
         let finalPosition: CGPoint
         if container.isRanged {
+            // Calculate direction vector from last path point to target
             let direction = (targetPosition - pathPoints.last!).normalized()
-            finalPosition = targetPosition - (direction * stopDistance)
+            // Position ranged goblin 400 units away from target
+            finalPosition = targetPosition - (direction * 400)
         } else {
             finalPosition = targetPosition
         }
@@ -469,21 +455,51 @@ public class Goblin {
         
         for i in 1..<allPoints.count {
             let point = allPoints[i]
+            
+            // For ranged goblins, check if this point would be too close to target
+            if container.isRanged {
+                let distanceToTarget = point.distance(to: targetPosition)
+                if distanceToTarget <= 400 {
+                    // Stop at current point and start attacking
+                    let lastSafePoint = allPoints[i-1]
+                    
+                    // Create move action with completion handler
+                    let moveAction = SKAction.sequence([
+                        SKAction.move(to: lastSafePoint, duration: TimeInterval(lastSafePoint.distance(to: container.sprite.position) / speed)),
+                        SKAction.run { [weak self] in
+                            // Immediate shot after movement completes
+                            guard let self = self else { return }
+                            self.spawnArrow(from: container.sprite.position, 
+                                          to: targetPosition)
+                        },
+                        SKAction.run { [weak container] in
+                            // Start regular attack pattern
+                            container?.startAttacking()
+                        }
+                    ])
+                    
+                    actions.append(moveAction)
+                    break
+                }
+            }
+            
             let previousPoint = allPoints[i-1]
             let distance = point.distance(to: previousPoint)
             let duration = TimeInterval(distance / speed)
             
             let moveAction = SKAction.move(to: point, duration: duration)
-            moveAction.timingMode = .linear // Ensure smooth movement
+            moveAction.timingMode = .linear
             actions.append(moveAction)
         }
-        
-        // Add the attack action at the end
-        let startAttack = SKAction.run { [weak container] in
-            container?.startAttacking()
+
+        // Only start melee attacks when reaching final position
+        if !container.isRanged {
+            let startAttack = SKAction.run { [weak container] in
+                container?.startAttacking()
+            }
+            actions.append(startAttack)
         }
-        actions.append(startAttack)
-        
+
         // Run the sequence
         let sequence = SKAction.sequence(actions)
         container.sprite.run(sequence)
@@ -662,20 +678,30 @@ public class Goblin {
 
     private func spawnArrow(from startPosition: CGPoint, to targetPosition: CGPoint) {
         guard let gameScene = scene as? GameScene else { return }
-
-        // Create the arrow sprite
+        
+        // Create arrow sprite
         let arrowSprite = SKSpriteNode(imageNamed: "Arrow")
         arrowSprite.size = CGSize(width: 25, height: 25)
         arrowSprite.position = startPosition
         arrowSprite.zPosition = 1
-
+        
+        // Calculate the angle between start position and target
+        let dx = targetPosition.x - startPosition.x
+        let dy = targetPosition.y - startPosition.y
+        let angle = atan2(dy, dx) + .pi / 2 // Add 90 degrees because arrow sprite points up
+        
+        // Set the arrow's rotation
+        arrowSprite.zRotation = angle
+        
         // Create arrow container
         let arrowContainer = ArrowContainer(sprite: arrowSprite, damage: 5)
         arrowContainers.append(arrowContainer)
-
+        
         // Calculate movement duration based on distance and speed
-        let moveDuration = TimeInterval(startPosition.distance(to: targetPosition) / arrowSpeed())
-
+        let distance = startPosition.distance(to: targetPosition)
+        let speed: CGFloat = 300 // Adjust arrow speed as needed
+        let moveDuration = TimeInterval(distance / speed)
+        
         // Define the movement action
         let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
         let damageAction = SKAction.run { [weak self] in
@@ -683,7 +709,7 @@ public class Goblin {
             self?.removeArrow(container: arrowContainer)
         }
         let sequence = SKAction.sequence([moveAction, damageAction])
-
+        
         arrowSprite.run(sequence)
         gameScene.addChild(arrowSprite)
     }
