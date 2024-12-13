@@ -49,7 +49,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private let swipeTimeThreshold: TimeInterval = GameConfig.swipeTimeThreshold
     
     // MARK: - Potion Spawning
-    private let potionTypes: [Potion.PotionType] = [.mana, .smallHealth, .largeHealth]
+    //private let potionTypes: [Potion.PotionType] = [.mana, .smallHealth, .largeHealth]
     
     var castlePosition: CGPoint {
         return CGPoint(x: size.width / 2, y: GameConfig.defaultCastlePosition.y)
@@ -178,73 +178,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     private func createGoblinPath() {
-        // Calculate path points using same logic as Goblin.swift
-        let startY = size.height + 50
-        let endY: CGFloat = 200
-        let segmentHeight = (startY - endY) / 2
+        let pathNode = SKShapeNode()
+        let path = CGMutablePath()
         
-        let pathPoints = [
-            CGPoint(x: size.width * 0.2, y: startY),
-            CGPoint(x: size.width * 0.8, y: startY - segmentHeight),
-            CGPoint(x: size.width * 0.2, y: startY - segmentHeight * 1.3),
-            CGPoint(x: size.width * 0.8, y: endY + segmentHeight * 0.5),
-            CGPoint(x: size.width * 0.5, y: endY)
-        ]
-        
-        // Create bezier path
-        let path = UIBezierPath()
-        path.move(to: pathPoints[0])
-        
-        // Create curved path through points
-        for i in 1..<pathPoints.count {
-            let point = pathPoints[i]
-            if i <= 4 {  // Handle first 4 points with curves
-                let cp1: CGPoint
-                let cp2: CGPoint
-                
-                // Calculate control points based on position in sequence
-                switch i {
-                    case 1:  // First curve
-                        cp1 = CGPoint(x: pathPoints[0].x, y: pathPoints[0].y - segmentHeight * 0.5)
-                        cp2 = CGPoint(x: point.x, y: point.y + segmentHeight * 0.5)
-                    case 2:  // Second curve
-                        cp1 = CGPoint(x: pathPoints[1].x, y: pathPoints[1].y - segmentHeight * 0.4)
-                        cp2 = CGPoint(x: point.x, y: point.y + segmentHeight * 0.4)
-                    case 3:  // Third curve
-                        cp1 = CGPoint(x: pathPoints[2].x, y: pathPoints[2].y - segmentHeight * 0.3)
-                        cp2 = CGPoint(x: point.x, y: point.y + segmentHeight * 0.3)
-                    case 4:  // Fourth curve
-                        cp1 = CGPoint(x: pathPoints[3].x, y: pathPoints[3].y - segmentHeight * 0.2)
-                        cp2 = CGPoint(x: point.x, y: point.y + segmentHeight * 0.2)
-                    default:
-                        cp1 = point
-                        cp2 = point
-                }
-                
-                path.addCurve(to: point, controlPoint1: cp1, controlPoint2: cp2)
-            } else {
-                // Use quad curve for final point
-                path.addQuadCurve(to: point, controlPoint: CGPoint(
-                    x: (pathPoints[i-1].x + point.x) / 2,
-                    y: (pathPoints[i-1].y + point.y) / 2
-                ))
-            }
+        // Convert relative points to absolute positions
+        let absolutePoints = GameConfig.goblinPathPoints.map { point in
+            CGPoint(x: point.x * size.width, y: point.y * size.height)
         }
         
-        // Create shape node from path
-        let pathNode = SKShapeNode(path: path.cgPath)
-        pathNode.strokeColor = .white
-        pathNode.lineWidth = 2
-        pathNode.alpha = 0.3
-        pathNode.zPosition = -0.5  // Between background and game elements
+        // Create path
+        path.move(to: absolutePoints[0])
+        for i in 1..<absolutePoints.count {
+            path.addLine(to: absolutePoints[i])
+        }
+        
+        // Setup path node with new color and width
+        pathNode.path = path
+        pathNode.strokeColor = SKColor(red: 0.76, green: 0.60, blue: 0.42, alpha: 1.0) // Light brown color
+        pathNode.lineWidth = 20 // Wider path
+        pathNode.alpha = 0.7 // Slightly more visible than before
+        pathNode.zPosition = -0.5
         pathNode.name = "goblinPath"
         
-        // Add dots at path points for visual reference
-        for point in pathPoints {
-            let dot = SKShapeNode(circleOfRadius: 3)
-            dot.fillColor = .white
+        // Add dots at corners with matching color
+        for point in absolutePoints {
+            let dot = SKShapeNode(circleOfRadius: 5) // Slightly larger dots
+            dot.fillColor = SKColor(red: 0.76, green: 0.60, blue: 0.42, alpha: 1.0) // Same light brown
             dot.strokeColor = .clear
-            dot.alpha = 0.3
+            dot.alpha = 0.7
             dot.position = point
             dot.zPosition = -0.5
             addChild(dot)
@@ -463,9 +424,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func applySpell(_ spell: Spell, at position: CGPoint) {
-        // Apply effect to goblins
+        // Apply spell effects to goblins
         goblinManager.applySpell(spell, at: position, in: self)
-
+        
         // Apply effect to potions
         applySpellToPotions(spell, at: position)
     }
@@ -482,6 +443,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
     }
+
 
     func createSpellChargeRestoreEffect(at position: CGPoint) {
     let effect = SKEmitterNode()
@@ -1010,8 +972,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func scheduleNextPotionSpawn() {
-        let minInterval: TimeInterval = 5.0
-        let maxInterval: TimeInterval = 15.0
+        let minInterval: TimeInterval = 10.0
+        let maxInterval: TimeInterval = 25.0
         let randomInterval = Double.random(in: minInterval...maxInterval)
         
         let wait = SKAction.wait(forDuration: randomInterval)
@@ -1029,8 +991,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let position = CGPoint(x: randomX, y: randomY)
         
         // Randomly select a potion type
-        let randomIndex = Int.random(in: 0..<potionTypes.count)
-        let potionType = potionTypes[randomIndex]
+        // let randomIndex = Int.random(in: 0..<potionTypes.count)
+        // let potionType = potionTypes[randomIndex]
+
+        let potionType = Potion.PotionType.mana
         
         let potion = Potion(type: potionType, position: position)
         addChild(potion)
@@ -1048,7 +1012,5 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             firstBody = contact.bodyB
             secondBody = contact.bodyA
         }
-
-        // Existing collision handling...
     }
 }

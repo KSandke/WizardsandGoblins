@@ -832,36 +832,56 @@ class PlayerView: SKNode {
 
     // Add methods to setup and update the potion effect bar
     func setupPotionEffectBar(in scene: SKScene) {
-        let barWidth: CGFloat = 100
-        let barHeight: CGFloat = 10
-        potionEffectBar = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight), cornerRadius: 5)
+        // Match combo timer bar dimensions
+        let barWidth: CGFloat = 80
+        let barHeight: CGFloat = 4
+        
+        potionEffectBar = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight))
         potionEffectBar?.fillColor = .blue
-        potionEffectBar?.strokeColor = .white
-        potionEffectBar?.position = CGPoint(x: scene.size.width / 2, y: 80) // Adjust position as needed
+        potionEffectBar?.strokeColor = .clear
+        // Position below combo timer
+        potionEffectBar?.position = CGPoint(x: comboTimerBar.position.x, y: comboTimerBar.position.y - 24)
         potionEffectBar?.isHidden = true
         scene.addChild(potionEffectBar!)
 
-        // Potion Effect Label
-        potionEffectLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        // Create label as separate node
+        potionEffectLabel = SKLabelNode(text: "Infinite Mana")
         potionEffectLabel?.fontSize = 12
-        potionEffectLabel?.fontColor = .white
-        potionEffectLabel?.position = CGPoint(x: 0, y: -barHeight / 2 - 10)
-        potionEffectLabel?.verticalAlignmentMode = .center
-        potionEffectBar?.addChild(potionEffectLabel!)
+        potionEffectLabel?.fontColor = .blue
+        potionEffectLabel?.position = CGPoint(x: comboTimerBar.position.x - 40, y: potionEffectBar!.position.y - 16)
+        potionEffectLabel?.fontName = "AvenirNext-Bold"
+        potionEffectLabel?.horizontalAlignmentMode = .left
+        potionEffectLabel?.isHidden = true
+        
+        // Add shadow effect
+        let shadowLabel = SKLabelNode(text: potionEffectLabel?.text)
+        shadowLabel.fontSize = potionEffectLabel?.fontSize ?? 12
+        shadowLabel.fontColor = .black
+        shadowLabel.position = CGPoint(x: 2, y: -2)
+        shadowLabel.fontName = potionEffectLabel?.fontName
+        shadowLabel.horizontalAlignmentMode = .left
+        potionEffectLabel?.addChild(shadowLabel)
+        
+        scene.addChild(potionEffectLabel!)
     }
 
     func updatePotionEffectBar(isActive: Bool) {
-        guard let potionEffectBar = potionEffectBar else { return }
+        guard let potionEffectBar = potionEffectBar,
+              let potionEffectLabel = potionEffectLabel else { return }
         
         potionEffectBar.isHidden = !isActive
+        potionEffectLabel.isHidden = !isActive
         
         if isActive {
-            potionEffectLabel?.text = "Infinite Mana"
-            // Start countdown animation
+            // Start countdown animation for bar only
             let duration = GameConfig.manaPotionDuration
             let scaleAction = SKAction.scaleX(to: 0, duration: duration)
+            let hideAction = SKAction.run { [weak self] in
+                self?.potionEffectBar?.isHidden = true
+                self?.potionEffectLabel?.isHidden = true
+            }
             potionEffectBar.xScale = 1.0
-            potionEffectBar.run(scaleAction)
+            potionEffectBar.run(SKAction.sequence([scaleAction, hideAction]))
         } else {
             potionEffectBar.removeAllActions()
             potionEffectBar.xScale = 1.0

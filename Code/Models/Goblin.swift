@@ -150,7 +150,7 @@ public class Goblin {
             let targetPosition = CGPoint(x: scene.size.width / 2, y: 130) // Castle position
             let distanceToTarget = sprite.position.distance(to: targetPosition)
             
-            if distanceToTarget <= 450 { // Increased shooting range to 450
+            if distanceToTarget <= 800 { // Increased shooting range to 450
                 // Create arrow shooting sequence
                 let spawnArrow = SKAction.run { [weak self] in
                     guard let self = self else { return }
@@ -379,130 +379,102 @@ public class Goblin {
         ]
     }
     
+    private struct RangedGoblinConfig {
+        static let minPathDistance: CGFloat = 0.5 // 50% along the path
+        static let maxPathDistance: CGFloat = 0.7 // 70% along the path
+    }
+    
     private func moveGoblin(container: GoblinContainer, to targetPosition: CGPoint, in gameScene: GameScene) {
-        if pathPoints.isEmpty {
-            setupPathPoints(screenWidth: gameScene.size.width, screenHeight: gameScene.size.height)
+        // Convert relative path points to absolute positions
+        let absolutePoints = GameConfig.goblinPathPoints.map { point in
+            CGPoint(x: point.x * gameScene.size.width, y: point.y * gameScene.size.height)
         }
-
-        // Ensure sprite is visible
-        container.sprite.isHidden = false
-        container.sprite.zPosition = 1
-        
-        let stopDistance: CGFloat = container.isRanged ? 400 : 0
-        
-        // Calculate all the points along the path
-        var allPoints: [CGPoint] = []
-        allPoints.append(container.sprite.position) // Starting position
-        
-        // Add main path points with more interpolated points between them
-        for i in 0..<pathPoints.count {
-            if i == 0 {
-                // Initial curve from start to first path point
-                let start = container.sprite.position
-                let end = pathPoints[0]
-                let control = CGPoint(
-                    x: (start.x + end.x) / 2,
-                    y: start.y - 50 // Slight curve upward
-                )
-                let curvePoints = addCurvePoints(start: start, end: end, control: control, count: 30)
-                allPoints.append(contentsOf: curvePoints)
-            } else {
-                // Curved path between points
-                let start = pathPoints[i-1]
-                let end = pathPoints[i]
-                
-                // Calculate control point for curve
-                let midY = (start.y + end.y) / 2
-                let controlOffset: CGFloat = 100 // Increase curve intensity
-                let control = CGPoint(
-                    x: (start.x + end.x) / 2,
-                    y: midY - controlOffset
-                )
-                
-                let curvePoints = addCurvePoints(start: start, end: end, control: control, count: 30)
-                allPoints.append(contentsOf: curvePoints)
-            }
-        }
-        
-        // Calculate final position for ranged goblins
-        let finalPosition: CGPoint
-        if container.isRanged {
-            // Calculate direction vector from last path point to target
-            let direction = (targetPosition - pathPoints.last!).normalized()
-            // Position ranged goblin 400 units away from target
-            finalPosition = targetPosition - (direction * 400)
-        } else {
-            finalPosition = targetPosition
-        }
-        
-        // Add curved points to final position
-        let finalStart = pathPoints.last!
-        let finalControl = CGPoint(
-            x: (finalStart.x + finalPosition.x) / 2,
-            y: (finalStart.y + finalPosition.y) / 2 - 50
-        )
-        let finalCurvePoints = addCurvePoints(
-            start: finalStart,
-            end: finalPosition,
-            control: finalControl,
-            count: 30
-        )
-        allPoints.append(contentsOf: finalCurvePoints)
         
         // Create move actions
         var actions: [SKAction] = []
         let speed = goblinSpeed(for: container.type)
         
-        for i in 1..<allPoints.count {
-            let point = allPoints[i]
+        // Calculate total path length and segment lengths
+        var totalLength: CGFloat = 0
+        var segmentLengths: [CGFloat] = []
+        var currentPoint = container.sprite.position
+        
+        for point in absolutePoints {
+            let segmentLength = currentPoint.distance(to: point)
+            segmentLengths.append(segmentLength)
+            totalLength += segmentLength
+            currentPoint = point
+        }
+        
+        // For ranged goblins, calculate stop point
+        var stopAtSegment = -1
+        var stopAtDistance: CGFloat = 0
+        
+        if container.isRanged {
+            let minDistance = totalLength * RangedGoblinConfig.minPathDistance
+            let maxDistance = totalLength * RangedGoblinConfig.maxPathDistance
+            let randomStopDistance = CGFloat.random(in: minDistance...maxDistance)
             
-            // For ranged goblins, check if this point would be too close to target
-            if container.isRanged {
-                let distanceToTarget = point.distance(to: targetPosition)
-                if distanceToTarget <= 400 {
-                    // Stop at current point and start attacking
-                    let lastSafePoint = allPoints[i-1]
-                    
-                    // Create move action with completion handler
-                    let moveAction = SKAction.sequence([
-                        SKAction.move(to: lastSafePoint, duration: TimeInterval(lastSafePoint.distance(to: container.sprite.position) / speed)),
-                        SKAction.run { [weak self] in
-                            // Immediate shot after movement completes
-                            guard let self = self else { return }
-                            self.spawnArrow(from: container.sprite.position, 
-                                          to: targetPosition)
-                        },
-                        SKAction.run { [weak container] in
-                            // Start regular attack pattern
-                            container?.startAttacking()
-                        }
-                    ])
-                    
-                    actions.append(moveAction)
+            // Find which segment to stop at
+            var accumulatedDistance: CGFloat = 0
+            for (index, length) in segmentLengths.enumerated() {
+                if accumulatedDistance + length >= randomStopDistance {
+                    stopAtSegment = index
+                    stopAtDistance = randomStopDistance - accumulatedDistance
                     break
                 }
+                accumulatedDistance += length
             }
-            
-            let previousPoint = allPoints[i-1]
-            let distance = point.distance(to: previousPoint)
-            let duration = TimeInterval(distance / speed)
-            
-            let moveAction = SKAction.move(to: point, duration: duration)
-            moveAction.timingMode = .linear
-            actions.append(moveAction)
         }
-
-        // Only start melee attacks when reaching final position
+        
+        // Start from current position
+        currentPoint = container.sprite.position
+        
+        // Create movement actions for each path segment
+        for (index, point) in absolutePoints.enumerated() {
+            if container.isRanged && index == stopAtSegment {
+                // Calculate partial movement for ranged goblin stop point
+                let direction = (point - currentPoint).normalized()
+                let stopPoint = currentPoint + direction * stopAtDistance
+                
+                let partialDistance = currentPoint.distance(to: stopPoint)
+                let partialDuration = TimeInterval(partialDistance / speed)
+                
+                let moveAction = SKAction.move(to: stopPoint, duration: partialDuration)
+                actions.append(moveAction)
+                
+                let startAttack = SKAction.run { [weak container] in
+                    container?.startAttacking()    // Changed to use startAttacking()
+                }
+                actions.append(startAttack)
+                break
+            } else {
+                let distance = currentPoint.distance(to: point)
+                let duration = TimeInterval(distance / speed)
+                
+                let moveAction = SKAction.move(to: point, duration: duration)
+                actions.append(moveAction)
+                
+                currentPoint = point
+            }
+        }
+        
+        // Modified attack action for melee goblins
         if !container.isRanged {
+            let finalDistance = currentPoint.distance(to: targetPosition)
+            let finalDuration = TimeInterval(finalDistance / speed)
+            let finalMove = SKAction.move(to: targetPosition, duration: finalDuration)
+            actions.append(finalMove)
+            
             let startAttack = SKAction.run { [weak container] in
-                container?.startAttacking()
+                container?.startAttacking()    // Changed to use startAttacking()
             }
             actions.append(startAttack)
         }
-
-        // Run the sequence
+        
+        // Run the sequence with completion handler
         let sequence = SKAction.sequence(actions)
-        container.sprite.run(sequence)
+        container.sprite.run(sequence, withKey: "movementSequence")
     }
     
     // Enhanced quadratic bezier point calculation
