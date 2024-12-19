@@ -9,6 +9,7 @@ struct ShopItem {
     let icon: String  // Name of image asset
     let effect: (PlayerState, @escaping (String) -> Void) -> Void
     let rarity: ItemRarity?  // Add optional rarity property
+    let maxLevel: Int  // Add maximum level property
     
     // Add current price tracking
     private static var purchaseCounts: [String: Int] = [:]
@@ -22,6 +23,10 @@ struct ShopItem {
         return (ShopItem.purchaseCounts[name] ?? 0) + 1
     }
     
+    var isMaxLevel: Bool {  // Add helper property
+        return level > maxLevel
+    }
+    
     // Predefined shop items
     static let permanentUpgrades: [ShopItem] = [
         ShopItem(
@@ -32,7 +37,8 @@ struct ShopItem {
             effect: { state, showMessage in
                 state.maxSpellCharges += 1
                 state.spellCharges += 1
-            }
+            },
+            maxLevel: 3  // Cap at 3 additional charges
         ),
         ShopItem(
             name: "Spell AOE +10%",
@@ -41,7 +47,8 @@ struct ShopItem {
             icon: "aoe_upgrade",
             effect: { state, showMessage in
                 state.spellAOEMultiplier *= 1.1
-            }
+            },
+            maxLevel: 5  // Cap at 50% total increase
         ),
         ShopItem(
             name: "Spell Speed +15%",
@@ -50,7 +57,8 @@ struct ShopItem {
             icon: "speed_upgrade",
             effect: { state, showMessage in
                 state.spellSpeedMultiplier *= 1.15
-            }
+            },
+            maxLevel: 5  // Cap at 75% total increase
         ),
         ShopItem(
             name: "Mana Regen +20%",
@@ -59,7 +67,8 @@ struct ShopItem {
             icon: "regen_upgrade",
             effect: { state, showMessage in
                 state.manaRegenRate *= 1.2
-            }
+            },
+            maxLevel: 5  // Cap at 100% total increase
         ),
         ShopItem(
             name: "Spell Power +10%",
@@ -68,7 +77,8 @@ struct ShopItem {
             icon: "power_upgrade",
             effect: { state, showMessage in
                 state.spellPowerMultiplier *= 1.1
-            }
+            },
+            maxLevel: 10  // Cap at 100% total increase
         )
     ]
     
@@ -77,13 +87,14 @@ struct ShopItem {
     }
     
     // Update initializer to include rarity
-    init(name: String, description: String, basePrice: Int, icon: String, effect: @escaping (PlayerState, @escaping (String) -> Void) -> Void, rarity: ItemRarity? = nil) {
+    init(name: String, description: String, basePrice: Int, icon: String, effect: @escaping (PlayerState, @escaping (String) -> Void) -> Void, rarity: ItemRarity? = nil, maxLevel: Int = 1) {
         self.name = name
         self.description = description
         self.basePrice = basePrice
         self.icon = icon
         self.effect = effect
         self.rarity = rarity
+        self.maxLevel = maxLevel
     }
 }
 
@@ -252,14 +263,10 @@ class ShopView: SKNode {
         let container = SKNode()
         container.name = "itemButton_\(item.name)"
         
-        // Create background with rarity color if applicable
         let background = SKShapeNode(rectOf: size, cornerRadius: 10)
         
-        // Check if item is already purchased (for specials/spells)
-        let isAlreadyPurchased = isItemPurchased(item)
-        
-        if isAlreadyPurchased {
-            // Use a darker, disabled appearance
+        // Check if item is at max level
+        if item.isMaxLevel {
             background.fillColor = .gray.withAlphaComponent(0.1)
             background.strokeColor = .gray
         } else if let rarity = item.rarity {
@@ -312,8 +319,8 @@ class ShopView: SKNode {
         
         // Price or "Already Purchased" text
         let priceLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        if isAlreadyPurchased {
-            priceLabel.text = "Already Purchased"
+        if item.isMaxLevel {
+            priceLabel.text = "Max Level"
             priceLabel.fontColor = .gray
         } else {
             priceLabel.text = "\(item.currentPrice) coins"
@@ -437,6 +444,12 @@ class ShopView: SKNode {
     }
     
     private func purchaseItem(_ item: ShopItem) {
+        // Check for max level first
+        if item.isMaxLevel {
+            showMessage("Maximum level reached!")
+            return
+        }
+        
         // First check if item is already purchased
         if isItemPurchased(item) {
             showMessage("Already purchased!")
