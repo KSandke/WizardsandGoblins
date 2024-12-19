@@ -20,6 +20,7 @@
 		1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454028B2CCB67B300624AF9 /* WGGameView.swift */; };
 		145E596D2CF576FB009A6A09 /* WaveConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FB8F672CF55EDD00281ACF /* WaveConfig.swift */; };
 		145E59A52CFEEC66009A6A09 /* WGScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145E59A42CFEEC66009A6A09 /* WGScoreView.swift */; };
+		145E74E82D13FA0F00AB46BD /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145E74E62D13FA0F00AB46BD /* HapticManager.swift */; };
 		146503A22D052A0800022691 /* ItemRarity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A12D052A0800022691 /* ItemRarity.swift */; };
 		146503A42D052A1A00022691 /* Special.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A32D052A1A00022691 /* Special.swift */; };
 		146503AD2D052A2100022691 /* AC130.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A52D052A2100022691 /* AC130.swift */; };
@@ -109,6 +110,7 @@
 		1454028B2CCB67B300624AF9 /* WGGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGGameView.swift; sourceTree = "<group>"; };
 		1454028D2CCB7DFF00624AF9 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
 		145E59A42CFEEC66009A6A09 /* WGScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGScoreView.swift; sourceTree = "<group>"; };
+		145E74E62D13FA0F00AB46BD /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		146503A12D052A0800022691 /* ItemRarity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRarity.swift; sourceTree = "<group>"; };
 		146503A32D052A1A00022691 /* Special.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Special.swift; sourceTree = "<group>"; };
 		146503A52D052A2100022691 /* AC130.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AC130.swift; sourceTree = "<group>"; };
@@ -234,6 +236,7 @@
 		14101F0C2CCA215B00BD8C7D /* Code */ = {
 			isa = PBXGroup;
 			children = (
+				145E74E72D13FA0F00AB46BD /* Utilities */,
 				92A076C32D050797004A79DE /* Config */,
 				14DDF43F2CF1551100A0EBAB /* Effects */,
 				14DDF42D2CF14C5D00A0EBAB /* Particles */,
@@ -296,6 +299,14 @@
 				145402882CCB675200624AF9 /* WGMainMenuView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		145E74E72D13FA0F00AB46BD /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				145E74E62D13FA0F00AB46BD /* HapticManager.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 		146503AC2D052A2100022691 /* Specials */ = {
@@ -630,6 +641,7 @@
 				14F528E12CF163FA0092C18F /* MysticBarrierEmitter.swift in Sources */,
 				1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */,
 				14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */,
+				145E74E82D13FA0F00AB46BD /* HapticManager.swift in Sources */,
 				148FAAB72CE4B82A005CCBC3 /* WGShopView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
