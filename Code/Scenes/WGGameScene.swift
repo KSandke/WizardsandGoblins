@@ -49,7 +49,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private let swipeTimeThreshold: TimeInterval = GameConfig.swipeTimeThreshold
     
     // MARK: - Potion Spawning
-    private let potionTypes: [Potion.PotionType] = [.mana, .smallHealth, .largeHealth]
+    private let potionTypes: [Potion.PotionType] = [.mana]
     
     var castlePosition: CGPoint {
         return CGPoint(x: size.width / 2, y: GameConfig.defaultCastlePosition.y)

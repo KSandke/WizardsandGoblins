@@ -10,13 +10,16 @@ class Potion: SKSpriteNode {
     let potionType: PotionType
     var isActive: Bool = true
     
+    // Update potionTypes array to only include mana potions
+    private let potionTypes: [Potion.PotionType] = [.mana]
+    
     init(type: PotionType, position: CGPoint) {
         self.potionType = type
         let texture: SKTexture
         
         switch type {
         case .mana:
-            texture = SKTexture(imageNamed: "mana_potion")
+            texture = SKTexture(imageNamed: "ManaPot1")
         case .smallHealth:
             texture = SKTexture(imageNamed: "small_health_potion")
         case .largeHealth:
@@ -47,7 +50,7 @@ class Potion: SKSpriteNode {
         // Play break animation before removing the potion
         if let gameScene = scene as? GameScene {
             gameScene.createFrameAnimation(at: self.position,
-                                           framePrefix: "PotionBreak",
+                                           framePrefix: "ManaPot",
                                            frameCount: 4,
                                            duration: 0.6,
                                            size: self.size)
