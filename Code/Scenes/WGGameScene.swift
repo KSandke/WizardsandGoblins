@@ -32,6 +32,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var maxGoblinsPerWave = GameConfig.defaultMaxGoblinsPerWave
     private var goblinSpawnInterval: TimeInterval = GameConfig.defaultGoblinSpawnInterval
     private var currentWaveDamageTaken: CGFloat = 0
+    private var lastKillTime: TimeInterval = 0
+    private var noKillTimer: Timer?
     
     // MARK: - UI Elements
     private var background: SKSpriteNode!
@@ -131,6 +133,59 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Start potion spawning at random intervals
         startPotionSpawning()
+        
+        // Reset and start the no-kill timer
+        lastKillTime = Date().timeIntervalSince1970
+        startNoKillTimer()
+    }
+    
+    private func startNoKillTimer() {
+        // Cancel existing timer if any
+        noKillTimer?.invalidate()
+        
+        // Create new timer that checks every second
+        noKillTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            let currentTime = Date().timeIntervalSince1970
+            if currentTime - self.lastKillTime >= 30.0 {
+                // More than 30 seconds have passed since last kill
+                self.noKillTimer?.invalidate()
+                self.noKillTimer = nil
+                
+                // End the wave due to timeout
+                DispatchQueue.main.async {
+                    self.endWaveTimeout()
+                }
+            }
+        }
+    }
+    
+    private func endWaveTimeout() {
+        // Add haptic feedback for wave failure
+        HapticManager.shared.playWaveFailed()
+        
+        // Remove all goblins
+        goblinManager.removeAllGoblins(in: self)
+        
+        // End the wave
+        endWave()
+        
+        // Show timeout message
+        let timeoutLabel = SKLabelNode(text: "Wave Failed - No kills in 30 seconds!")
+        timeoutLabel.fontSize = 30
+        timeoutLabel.fontColor = .red
+        timeoutLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        timeoutLabel.zPosition = 1000
+        addChild(timeoutLabel)
+        
+        // Remove the message after 2 seconds and continue
+        let wait = SKAction.wait(forDuration: 2.0)
+        let remove = SKAction.run { [weak self] in
+            timeoutLabel.removeFromParent()
+            self?.waveCompleted()
+        }
+        run(SKAction.sequence([wait, remove]))
     }
     
     func getWaveConfig(forWave wave: Int) -> WaveConfig {
@@ -164,6 +219,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Stop potion spawning
         stopPotionSpawning()
+        
+        // Cancel the no-kill timer
+        noKillTimer?.invalidate()
+        noKillTimer = nil
     }
     
     func setupBackground() {
@@ -523,6 +582,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func goblinDied(container: Goblin.GoblinContainer, goblinKilled: Bool) {
         if goblinKilled {
+            // Add haptic feedback for kill
+            HapticManager.shared.playKillImpact()
+            
+            lastKillTime = Date().timeIntervalSince1970
+            
             // Increment combo when goblin is killed by player
             playerState.incrementCombo()
             
@@ -570,6 +634,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard !isGameOver else { return }
         
         endWave()
+        
+        // Add haptic feedback for wave completion
+        HapticManager.shared.playWaveComplete()
         
         // Pause special cooldowns when showing score screen
         if let special = playerState.getCurrentSpecial() {
