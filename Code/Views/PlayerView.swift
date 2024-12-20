@@ -147,7 +147,14 @@ class PlayerView: SKNode {
     private func setupCastle() {
         guard let scene = parentScene else { return }
         
-        castle.position = CGPoint(x: scene.size.width/2, y: 60)
+        // Add castle sprite overlay
+        let castleOverlay = SKSpriteNode(imageNamed: "castle")
+        castleOverlay.size = CGSize(width: castle.size.width, height: 900)
+        castleOverlay.position = CGPoint(x: scene.size.width/2, y: 60 + (900 - 150)/2)
+        castleOverlay.zPosition = 450  // Place above base castle but below health elements
+        scene.addChild(castleOverlay)
+        
+        castle.position = CGPoint(x: scene.size.width/2, y: 50)
         scene.addChild(castle)
         
         castleHealthBar.fillColor = .gray
@@ -189,7 +196,8 @@ class PlayerView: SKNode {
         loadCastingAnimation()
         
         wizard.size = CGSize(width: 125, height: 125)
-        wizard.position = CGPoint(x: 80, y: 100)
+        wizard.position = CGPoint(x: 55, y: 160)
+        wizard.zPosition = 500
         scene.addChild(wizard)
     }
     
@@ -253,11 +261,13 @@ class PlayerView: SKNode {
         let totalWidth = scaledSegmentWidth + scaledSpacingWidth
         
         let startX = 20
+        let chargeY = pos.y - 110
         
         for i in 0..<state.maxSpellCharges {
             let segment = SKShapeNode(rectOf: CGSize(width: segmentWidth, height: segmentHeight))
             segment.fillColor = .blue
             segment.strokeColor = .black
+            segment.zPosition = 500
             
             // Calculate x position in steps
             let offset = CGFloat(i) * (segmentWidth + spacing)
@@ -266,7 +276,7 @@ class PlayerView: SKNode {
             
             segment.position = CGPoint(
                 x: xPosition,
-                y: pos.y - 50
+                y: chargeY
             )
             scene.addChild(segment)
             segments.append(segment)
@@ -442,7 +452,8 @@ class PlayerView: SKNode {
         // Active spell icon setup
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
         spellIcon.size = CGSize(width: 45, height: 45)
-        spellIcon.position = CGPoint(x: wizard.position.x + 130, y: wizard.position.y - 10)
+        // Move down and to the left under wizard
+        spellIcon.position = CGPoint(x: wizard.position.x, y: wizard.position.y - 70)
         spellIcon.name = "cycleSpell"
         
         let spellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
@@ -464,11 +475,11 @@ class PlayerView: SKNode {
         let spacing: CGFloat = 40
         let baseX = spellIcon.position.x
         
-        // Setup left inactive spell
+        // Setup left inactive spell with adjusted y position
         inactiveSpellIconLeft = SKSpriteNode(imageNamed: "EmptySpell")
         inactiveSpellIconLeft.size = inactiveSize
         inactiveSpellIconLeft.alpha = 0.6
-        inactiveSpellIconLeft.position = CGPoint(x: baseX - spacing, y: wizard.position.y)
+        inactiveSpellIconLeft.position = CGPoint(x: baseX - spacing, y: wizard.position.y - 60)
         inactiveSpellIconLeft.name = "inactiveSpell_left"
         
         let leftBorder = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
@@ -478,11 +489,11 @@ class PlayerView: SKNode {
         leftBorder.name = "inactiveSpellBorder_left"
         leftBorder.alpha = 0.6
         
-        // Setup right inactive spell
+        // Setup right inactive spell with adjusted y position
         inactiveSpellIconRight = SKSpriteNode(imageNamed: "EmptySpell")
         inactiveSpellIconRight.size = inactiveSize
         inactiveSpellIconRight.alpha = 0.6
-        inactiveSpellIconRight.position = CGPoint(x: baseX + spacing, y: wizard.position.y)
+        inactiveSpellIconRight.position = CGPoint(x: baseX + spacing, y: wizard.position.y - 60)
         inactiveSpellIconRight.name = "inactiveSpell_right"
         
         let rightBorder = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
@@ -499,6 +510,13 @@ class PlayerView: SKNode {
         scene.addChild(spellIcon)
         
         updateSpellIcon() // Initial update of all spell icons
+        
+        spellIcon.zPosition = 500
+        borderBox.zPosition = 500
+        inactiveSpellIconLeft.zPosition = 500
+        inactiveSpellIconRight.zPosition = 500
+        leftBorder.zPosition = 500
+        rightBorder.zPosition = 500
     }
 
     func handleSpellCycleTouch(_ touchedNode: SKNode) {
@@ -707,7 +725,7 @@ class PlayerView: SKNode {
         // Constants for button layout
         let buttonSize = CGSize(width: 60, height: 60)
         let verticalSpacing: CGFloat = 70
-        let baseX = scene.frame.maxX - 60
+        let baseX = scene.frame.maxX - 43
         let baseY = scene.frame.minY + 70
         
         // Create four special buttons
@@ -738,6 +756,10 @@ class PlayerView: SKNode {
             
             // Update the button texture immediately
             updateSpecialButton(at: i)
+            
+            border.zPosition = 500
+            button.zPosition = 500
+            cooldownOverlay.zPosition = 501  // Slightly above the button
         }
         
         let updateAction = SKAction.run { [weak self] in
