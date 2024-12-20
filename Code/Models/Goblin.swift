@@ -530,11 +530,11 @@ public class Goblin {
     func goblinSpeed(for type: GoblinType) -> CGFloat {
         switch type {
         case .normal, .ranged:
-            return 50
-        case .large:
-            return 25
-        case .small:
             return 100
+        case .large:
+            return 50
+        case .small:
+            return 200
         // case .arrow:
         //     return 300
         }
