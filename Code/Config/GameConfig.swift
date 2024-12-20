@@ -22,7 +22,7 @@ struct GameConfig {
 
     // Wave Management
     static let defaultGoblinSpawnInterval: TimeInterval = 2.0
-    static let defaultMaxGoblinsPerWave: Int = 10
+    static let defaultMaxGoblinsPerWave: Int = 50
 
     // Castle
     static let defaultCastlePosition: CGPoint = CGPoint(x: 0, y: 100) // x will be adjusted by screen width

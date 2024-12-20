@@ -592,7 +592,7 @@ class ShopView: SKNode {
         // Assuming statsLabel is your coins display
         message.position = CGPoint(
             x: background.frame.width/2,
-            y: statsLabel.position.y - 60
+            y: statsLabel.position.y - 90
               // Adjust this value as needed
         )
         addChild(message)

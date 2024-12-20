@@ -863,7 +863,7 @@ class PlayerView: SKNode {
         potionEffectBar?.fillColor = .blue
         potionEffectBar?.strokeColor = .clear
         // Position below combo timer
-        potionEffectBar?.position = CGPoint(x: comboTimerBar.position.x, y: comboTimerBar.position.y - 24)
+        potionEffectBar?.position = CGPoint(x: comboTimerBar.position.x, y: comboTimerBar.position.y - 30)
         potionEffectBar?.isHidden = true
         scene.addChild(potionEffectBar!)
 

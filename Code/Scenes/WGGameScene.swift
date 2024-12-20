@@ -288,16 +288,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     func spawnGoblin(at position: CGPoint) {
-        // Check if spawning is enabled and if the game is not over
         if !isSpawningEnabled || totalGoblinsSpawned >= maxGoblinsPerWave || isGameOver {
             return
         }
-
-        // Increment the total goblins spawned
+        
         totalGoblinsSpawned += 1
-
-        // Use goblinManager to spawn a goblin at the position
         goblinManager.spawnGoblin(at: position)
+        
+        // Check wave completion after spawn
+        checkWaveCompletion()
     }
 
     func castleTakeDamage(damage: CGFloat) {
@@ -745,20 +744,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func selectSpawnPattern(from config: WaveConfig) -> SpawnPattern? {
         // Check remaining goblin capacity
         let remainingGoblins = maxGoblinsPerWave - totalGoblinsSpawned
-
+        
+        // If only a few goblins remain, default to single spawns
+        if remainingGoblins <= 3 {
+            return .single
+        }
+        
         // Filter patterns that would exceed remaining goblin count
         let validPatterns = config.spawnPatterns.filter {
             $0.pattern.goblinCount <= remainingGoblins
         }
-
-        guard !validPatterns.isEmpty else { return nil }
-
+        
+        // If no valid patterns exist, fall back to single spawn
+        guard !validPatterns.isEmpty else {
+            return .single
+        }
+        
         // Calculate total probability of valid patterns
         let totalProbability = validPatterns.reduce(0.0) { $0 + $1.probability }
-
+        
         // Generate random value
         var random = Double.random(in: 0..<totalProbability)
-
+        
         // Select pattern based on probability
         for patternConfig in validPatterns {
             random -= patternConfig.probability
@@ -766,23 +773,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 return patternConfig.pattern
             }
         }
-
-        return validPatterns.first?.pattern
+        
+        // Fallback to single spawn if no pattern was selected
+        return .single
     }
 
     func startSpawnPatterns(with config: WaveConfig) {
         let spawnAction = SKAction.run { [weak self] in
             guard let self = self else { return }
-
+            
+            // Add debug prints
+            print("Current spawn status:")
+            print("Total spawned: \(self.totalGoblinsSpawned)")
+            print("Max goblins: \(self.maxGoblinsPerWave)")
+            print("Remaining capacity: \(self.maxGoblinsPerWave - self.totalGoblinsSpawned)")
+            
             if self.totalGoblinsSpawned >= self.maxGoblinsPerWave {
+                print("Max goblins reached, stopping spawns")
+                self.removeAction(forKey: "spawnPattern")
+                self.checkWaveCompletion()
                 return
             }
-
+            
             if let pattern = self.selectSpawnPattern(from: config) {
-                self.executeSpawnPattern(pattern)
+                print("Selected pattern: \(pattern)")
+                // Check if it's a single spawn using pattern matching
+                if case .single = pattern {
+                    self.spawnSingleGoblin()
+                } else {
+                    self.executeSpawnPattern(pattern)
+                }
             }
         }
-
+        
         let wait = SKAction.wait(forDuration: config.baseSpawnInterval)
         let sequence = SKAction.sequence([wait, spawnAction])
         run(SKAction.repeatForever(sequence), withKey: "spawnPattern")
@@ -1077,6 +1100,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         } else {
             firstBody = contact.bodyB
             secondBody = contact.bodyA
+        }
+    }
+
+    func checkWaveCompletion() {
+        // Add debug prints
+        print("Checking wave completion:")
+        print("Total goblins spawned: \(totalGoblinsSpawned)")
+        print("Max goblins for wave: \(maxGoblinsPerWave)")
+        print("Remaining goblins: \(goblinManager.goblinContainers.count)")
+        
+        // Check if we've spawned all goblins and none are left alive
+        if totalGoblinsSpawned >= maxGoblinsPerWave && goblinManager.goblinContainers.isEmpty {
+            print("Wave complete! Starting next wave...")
+            waveCompleted()
         }
     }
 }

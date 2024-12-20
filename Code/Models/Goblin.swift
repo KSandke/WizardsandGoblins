@@ -586,7 +586,7 @@ public class Goblin {
         case .normal:
             return "normalGoblin"
         case .large:
-            return "Goblin1"
+            return "largeGoblin"
         case .ranged:
             return "rangedGoblin" // You'll need to add this asset
         // case .arrow:
