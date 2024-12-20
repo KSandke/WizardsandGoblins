@@ -23,7 +23,7 @@ class Potion: SKSpriteNode {
         //     texture = SKTexture(imageNamed: "large_health_potion")
         //}
 
-        texture = SKTexture(imageNamed: "mana_potion")
+        texture = SKTexture(imageNamed: "ManaPot1")
 
         super.init(texture: texture, color: .clear, size: CGSize(width: 80, height: 80))
         self.position = position
@@ -49,7 +49,7 @@ class Potion: SKSpriteNode {
         // Play break animation before removing the potion
         if let gameScene = scene as? GameScene {
             gameScene.createFrameAnimation(at: self.position,
-                                           framePrefix: "PotionBreak",
+                                           framePrefix: "ManaPot",
                                            frameCount: 4,
                                            duration: 0.6,
                                            size: self.size)

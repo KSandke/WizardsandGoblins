@@ -728,10 +728,10 @@ class ShopView: SKNode {
     
     private func calculateSpecialPrice(_ special: Special) -> Int {
         // Debug: All specials cost 0
-        return 0
+        //return 0
         
         // Original code commented out for reference
-        /*
+        
         let basePrice = 15
         let rarityMultiplier: Int
         
@@ -744,7 +744,7 @@ class ShopView: SKNode {
         }
         
         return basePrice * rarityMultiplier
-        */
+        
     }
     
     private func generateRandomSpecial() -> Special {
@@ -819,10 +819,10 @@ class ShopView: SKNode {
     
     private func calculateSpellPrice(_ spell: Spell) -> Int {
         // Debug: All spells cost 0
-        return 0
+        //return 0
         
         // Uncomment for real pricing
-        /*
+        
         let basePrice = 20
         let rarityMultiplier: Int
         
@@ -835,7 +835,7 @@ class ShopView: SKNode {
         }
         
         return basePrice * rarityMultiplier
-        */
+        
     }
     
     private func showSpecialSlotSelector(for special: Special) {
