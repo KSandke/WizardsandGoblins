@@ -864,24 +864,31 @@ class ShopView: SKNode {
         titleLabel.position = CGPoint(x: 0, y: containerHeight/4)
         selector.addChild(titleLabel)
         
-        // Setup slot buttons
-        let buttonWidth: CGFloat = min(100, containerWidth / 4)
-        let buttonHeight: CGFloat = min(100, containerHeight / 3)
-        let padding: CGFloat = 15
+        // Setup slot buttons in a 2x2 grid
+        let buttonWidth: CGFloat = min(180, containerWidth / 2.5)
+        let buttonHeight: CGFloat = 120
+        let padding: CGFloat = 20
         
-        let totalWidth = (buttonWidth * 3) + (padding * 2)
-        let startX = -totalWidth/2 + buttonWidth/2
-        let buttonY: CGFloat = 0  // Center Y
+        // Calculate grid layout
+        let gridWidth = buttonWidth * 2 + padding
+        let startX = -gridWidth/2 + buttonWidth/2
+        let startY = buttonHeight/2 + padding/2  // Adjust this to position the grid vertically
         
         let slots = playerState.getSpecialSlots()
         for i in 0..<slots.count {
+            let row = i / 2
+            let col = i % 2
+            
+            let x = startX + CGFloat(col) * (buttonWidth + padding)
+            let y = startY - CGFloat(row) * (buttonHeight + padding)
+            
             let button = createSpecialSlotButton(
                 slots[i],
                 at: i,
                 size: CGSize(width: buttonWidth, height: buttonHeight)
             )
-            button.position = CGPoint(x: startX + CGFloat(i) * (buttonWidth + padding), y: buttonY)
-            button.name = "specialSlotButton_\(i)"  // Ensure correct naming
+            button.position = CGPoint(x: x, y: y)
+            button.name = "specialSlotButton_\(i)"
             selector.addChild(button)
         }
         
