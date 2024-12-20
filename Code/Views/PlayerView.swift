@@ -24,6 +24,7 @@ class PlayerView: SKNode {
     var tutorialCoinLabel: SKLabelNode { coinLabel }
     var tutorialChargeSegments: [SKShapeNode] { chargeSegments }
     var tutorialComboLabel: SKLabelNode { comboLabel }
+    var tutorialSpecialButtons: [SKSpriteNode] { specialButtons }
 
     var playerPosition: CGPoint { wizard.position }
     
