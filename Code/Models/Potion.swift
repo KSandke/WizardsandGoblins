@@ -54,6 +54,10 @@ class Potion: SKSpriteNode {
                                            duration: 0.6,
                                            size: self.size)
         }
+
+
+        // Play potion collection sound
+        SoundManager.shared.playSound("mana_potion_collection")
         if let gameScene = scene as? GameScene {
             gameScene.createFrameAnimation(at: self.position,
                             framePrefix: "ManaPot",

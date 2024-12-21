@@ -505,6 +505,8 @@ class ShopView: SKNode {
             // Replace the special in the specific slot
             playerState.replaceSpecial(special, at: slotIndex)
             playerView.updateSpecialButton(at: slotIndex)
+            // Play purchase special sound
+            SoundManager.shared.playSound("purchase_special")
         } 
         // If this is a spell
         else if let spell = ShopView.currentSpellOffer,
@@ -516,12 +518,16 @@ class ShopView: SKNode {
                 // Add new spell
                 playerState.addSpell(spell)
             }
+            // Play purchase spell sound
+            SoundManager.shared.playSound("purchase_spell")
         }
         // Normal purchase flow for other items
         else {
             item.effect(playerState) { [weak self] message in
                 self?.showMessage(message)
             }
+            // Play upgrade purchase sound
+            SoundManager.shared.playSound("buy_upgrade")
         }
         
         ShopItem.recordPurchase(of: item.name)

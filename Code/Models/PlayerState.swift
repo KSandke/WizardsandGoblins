@@ -391,6 +391,8 @@ class PlayerState: SpellCaster {
 
     // Add methods to activate and deactivate infinite mana
     func activateInfiniteMana(duration: TimeInterval) {
+        // Play infinite mana activation sound
+        SoundManager.shared.playSound("infinite_mana_effect")
         infiniteManaActive = true
         onInfiniteManaStatusChanged?(true)
         infiniteManaTimer?.invalidate()

@@ -115,6 +115,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Start wave actions
         isSpawningEnabled = true
 
+        // Play round music (alternate for variety)
+        if currentWave % 2 == 0 {
+            SoundManager.shared.playSound("round_music_2")
+        } else {
+            SoundManager.shared.playSound("round_music_1")
+        }
+
         // Start spell charge regeneration
         let regenerateCharges = SKAction.run { [weak self] in
             self?.playerState.regenerateSpellCharges()
@@ -212,6 +219,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.removeAction(forKey: "regenerateCharges")
         self.removeAction(forKey: "spawnPattern")
 
+        // Stop the round music
+        SoundManager.shared.stopSound("round_music_1")
+        SoundManager.shared.stopSound("round_music_2")
+
         isSpawningEnabled = false
 
         // Reset combo at end of wave
@@ -279,6 +290,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         coinSprite.position = position
         addChild(coinSprite)
 
+        // Coin drop sound
+        SoundManager.shared.playSound("coin_drop")
+
         let moveUp = SKAction.moveBy(x: 0, y: 50, duration: 0.5)
         let fade = SKAction.fadeOut(withDuration: 0.3)
         let remove = SKAction.removeFromParent()
@@ -301,6 +315,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     func castleTakeDamage(damage: CGFloat) {
         currentWaveDamageTaken += damage
+
+        // Goblin/castle hit sound
+        SoundManager.shared.playSound("goblin_normal_attack")
 
         // Create damage number at castle position with isCastleDamage set to true
         self.playerView.createDamageNumber(
@@ -325,6 +342,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         endWave()
         removeAllActions()
         isGameOver = true
+
+        // Stop the round music
+        SoundManager.shared.stopSound("round_music_1")
+        SoundManager.shared.stopSound("round_music_2")
+
+        // Play game over sound
+        SoundManager.shared.playSound("game_over")
 
         // Remove any remaining goblins
         goblinManager.removeAllGoblins(in: self)
@@ -476,12 +500,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let casterPosition = playerView.playerPosition
         let spell = playerState.getCurrentSpell()
 
+        // Play a default or typed cast sound as soon as the spell is cast
+        // If you have distinct types, you could switch on spell.type to play something else
+        // For demonstration, we'll use a default sound:
+        //SoundManager.shared.playSound("spell_impact_default")
+        // If you have specific hits for each element, you might do something like:
+        switch spell.name {
+            case "Fireball":
+                SoundManager.shared.playSound("fire_spell_cast")
+            case "PoisonCloud":
+                SoundManager.shared.playSound("poison_spell_cast")
+            default:
+                SoundManager.shared.playSound("fire_spell_cast")
+        }
+
         if(spell.cast(from: casterPosition, to: location, by: playerState, in: self)) {
             playerView.animateSpellCast()
         }
     }
 
     func applySpell(_ spell: Spell, at position: CGPoint) {
+        // If you have specific hits for each element, you might do something like:
+         switch spell.name {
+         case "Fireball":
+             SoundManager.shared.playSound("spell_impact_default")
+         case "IceSpell":
+             SoundManager.shared.playSound("ice_spell_hit")
+         case "LightningSpell":
+             SoundManager.shared.playSound("lightning_spell_hit")
+         case "PoisonCloud":
+             SoundManager.shared.playSound("poison_spell_hit")
+         default:
+             SoundManager.shared.playSound("spell_impact_default")
+         }
+        // For now, we'll just do a default hit sound upon effect application:
+        //SoundManager.shared.playSound("spell_impact_default.mp3")
+
         // Apply effect to goblins
         goblinManager.applySpell(spell, at: position, in: self)
 
@@ -503,26 +557,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     func createSpellChargeRestoreEffect(at position: CGPoint) {
-    let effect = SKEmitterNode()
-    effect.particleTexture = SKTexture(imageNamed: "spark") // Add spark image to assets
-    effect.position = position
-    effect.particleBirthRate = 100
-    effect.numParticlesToEmit = 50
-    effect.particleLifetime = 0.5
-    effect.particleColor = .blue
-    effect.particleColorBlendFactor = 1.0
-    effect.particleScale = 0.5
-    effect.particleScaleSpeed = -1.0
-    effect.emissionAngle = 0.0
-    effect.emissionAngleRange = .pi * 2
-    effect.particleSpeed = 100
-    effect.xAcceleration = 0
-    effect.yAcceleration = 0
-    addChild(effect)
+        let effect = SKEmitterNode()
+        effect.particleTexture = SKTexture(imageNamed: "spark") // Add spark image to assets
+        effect.position = position
+        effect.particleBirthRate = 100
+        effect.numParticlesToEmit = 50
+        effect.particleLifetime = 0.5
+        effect.particleColor = .blue
+        effect.particleColorBlendFactor = 1.0
+        effect.particleScale = 0.5
+        effect.particleScaleSpeed = -1.0
+        effect.emissionAngle = 0.0
+        effect.emissionAngleRange = .pi * 2
+        effect.particleSpeed = 100
+        effect.xAcceleration = 0
+        effect.yAcceleration = 0
+        addChild(effect)
 
-    let wait = SKAction.wait(forDuration: 0.5)
-    let remove = SKAction.removeFromParent()
-    effect.run(SKAction.sequence([wait, remove]))
+        let wait = SKAction.wait(forDuration: 0.5)
+        let remove = SKAction.removeFromParent()
+        effect.run(SKAction.sequence([wait, remove]))
     }
 
     func handlePotionCollection(at position: CGPoint) {
@@ -531,6 +585,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             playerState.maxSpellCharges,
             playerState.spellCharges + spellChargeRestoreAmount
         )
+
 
         // Create collection effect
         createFrameAnimation(at: position,
@@ -544,6 +599,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if goblinKilled {
             // Add haptic feedback for kill
             HapticManager.shared.playKillImpact()
+
+            // Goblin death sound - randomly choose between two sounds
+            let deathSound = Bool.random() ? "goblin_death_1" : "goblin_death_2"
+            SoundManager.shared.playSound(deathSound)
 
             lastKillTime = Date().timeIntervalSince1970
 
@@ -582,6 +641,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             playerState.spellCharges + spellChargeRestoreAmount
         )
 
+        // Play potion collection sound
+        SoundManager.shared.playSound("mana_potion_collection")
+
         // Create collection effect
         createFrameAnimation(at: position,
                             framePrefix: "ManaPot",
@@ -597,6 +659,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         // Add haptic feedback for wave completion
         HapticManager.shared.playWaveComplete()
+
+        // Play round win sound
+        SoundManager.shared.playSound("round_win")
 
         // Pause special cooldowns when showing score screen
         if let special = playerState.getCurrentSpecial() {
@@ -729,7 +794,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let startWaveAction = SKAction.run { [weak self] in
             guard let self = self else { return }
             self.currentWave += 1
-            //self.playerView.updateWaveLabel(wave: self.currentWave) // Update wave label
             self.startWave()
         }
 
@@ -1021,6 +1085,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
 
         print("🎯 Using special \(special.name) at position: \(location)")
+
+        // Example special sound (e.g., Blizzard). If you have multiple, you might check special.name or type
+        if(special.name == "Blizzard") {
+            SoundManager.shared.playSound("blizzard_special_effect")
+        }
+
         let casterPosition = playerView.playerPosition
 
         if special.use(from: casterPosition, to: location, by: playerState, in: self) {

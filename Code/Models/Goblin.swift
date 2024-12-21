@@ -51,6 +51,15 @@ public class Goblin {
                     isCritical: damage >= 50,
                     isCastleDamage: false
                 )
+                
+                // Play hit sound based on goblin type
+                if type == .large {
+                    SoundManager.shared.playSound("large_goblin_hit_1")
+                } else {
+                    // Randomly choose between two hit sounds for normal goblins
+                    let hitSound = Bool.random() ? "goblin_hit_1" : "goblin_hit_2"
+                    SoundManager.shared.playSound(hitSound)
+                }
             }
             
             // Check if goblin should die
@@ -673,10 +682,14 @@ public class Goblin {
         let distance = startPosition.distance(to: targetPosition)
         let speed: CGFloat = 300 // Adjust arrow speed as needed
         let moveDuration = TimeInterval(distance / speed)
+
+        SoundManager.shared.playSound("goblin_ranged_attack")
         
         // Define the movement action
         let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
         let damageAction = SKAction.run { [weak self] in
+            // Play arrow hit sound when it hits the castle
+            SoundManager.shared.playSound("goblin_ranged_hit")
             gameScene.castleTakeDamage(damage: arrowContainer.damage)
             self?.removeArrow(container: arrowContainer)
         }
