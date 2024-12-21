@@ -1,15 +1,15 @@
 import SpriteKit
 import Foundation
 
-struct ShopItem {
-    // MARK: - Properties
 
+struct ShopItem {
     let name: String
     let description: String
     var basePrice: Int
-    let icon: String
+    let icon: String  // Name of image asset
     let effect: (PlayerState, @escaping (String) -> Void) -> Void
     let rarity: ItemRarity?  // Add optional rarity property
+    let maxLevel: Int  // Add maximum level property
     
     // Add current price tracking
     private static var purchaseCounts: [String: Int] = [:]
@@ -22,280 +22,10 @@ struct ShopItem {
     var level: Int {
         return (ShopItem.purchaseCounts[name] ?? 0) + 1
     }
-    init(
-        name: String,
-        description: String,
-        basePrice: Int,
-        icon: String,
-        effect: @escaping (PlayerState, @escaping (String) -> Void) -> Void,
-        rarity: SpellRarity,
-        spell: Spell? = nil
-    ) {
-        self.name = name
-        self.description = description
-        self.basePrice = basePrice
-        self.icon = icon
-        self.effect = effect
-        self.rarity = rarity
-        self.spell = spell
-    }
     
-    // Add spellShopItems array
-    static let spellShopItems: [ShopItem] = [
-        // Legendary Spells
-        ShopItem(
-            name: AC130Spell().name,
-            description: "Rain death from above",
-            basePrice: 45,
-            icon: "AC130",
-            effect: { state, showMessage in
-                let spell = AC130Spell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .legendary,
-            spell: AC130Spell()
-        ),
-        ShopItem(
-            name: TacticalNukeSpell().name,
-            description: "Ultimate destruction",
-            basePrice: 50,
-            icon: "TacticalNuke",
-            effect: { state, showMessage in
-                let spell = TacticalNukeSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .legendary,
-            spell: TacticalNukeSpell()
-        ),
-        ShopItem(
-            name: DivineWrathSpell().name,
-            description: "Call down divine punishment",
-            basePrice: 45,
-            icon: "DivineWrath",
-            effect: { state, showMessage in
-                let spell = DivineWrathSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .legendary,
-            spell: DivineWrathSpell()
-        ),
-        ShopItem(
-            name: ArcaneStormSpell().name,
-            description: "Unleash arcane devastation",
-            basePrice: 50,
-            icon: "ArcaneStorm",
-            effect: { state, showMessage in
-                let spell = ArcaneStormSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .legendary,
-            spell: ArcaneStormSpell()
-        ),
-        ShopItem(
-            name: MeteorShowerSpell().name,
-            description: "Rain meteors from the sky",
-            basePrice: 40,
-            icon: "MeteorShower",
-            effect: { state, showMessage in
-                let spell = MeteorShowerSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .legendary,
-            spell: MeteorShowerSpell()
-        ),
-        
-        // Rare Spells
-        ShopItem(
-            name: PredatorMissileSpell().name,
-            description: "Call in a deadly missile strike",
-            basePrice: 35,
-            icon: "PredatorMissile",
-            effect: { state, showMessage in
-                let spell = PredatorMissileSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: PredatorMissileSpell()
-        ),
-        ShopItem(
-            name: CrowSwarmSpell().name,
-            description: "Summon a swarm of crows",
-            basePrice: 30,
-            icon: "CrowSwarm",
-            effect: { state, showMessage in
-                let spell = CrowSwarmSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: CrowSwarmSpell()
-        ),
-        ShopItem(
-            name: SwarmQueenSpell().name,
-            description: "Command a swarm of minions",
-            basePrice: 35,
-            icon: "SwarmQueen",
-            effect: { state, showMessage in
-                let spell = SwarmQueenSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: SwarmQueenSpell()
-        ),
-        ShopItem(
-            name: NanoSwarmSpell().name,
-            description: "Release destructive nanobots",
-            basePrice: 35,
-            icon: "NanoSwarm",
-            effect: { state, showMessage in
-                let spell = NanoSwarmSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: NanoSwarmSpell()
-        ),
-        ShopItem(
-            name: SteampunkTimeBombSpell().name,
-            description: "Deploy a time-warping explosive",
-            basePrice: 35,
-            icon: "SteampunkTimeBomb",
-            effect: { state, showMessage in
-                let spell = SteampunkTimeBombSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: SteampunkTimeBombSpell()
-        ),
-        ShopItem(
-            name: ShadowPuppetSpell().name,
-            description: "Control enemies from the shadows",
-            basePrice: 35,
-            icon: "ShadowPuppet",
-            effect: { state, showMessage in
-                let spell = ShadowPuppetSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: ShadowPuppetSpell()
-        ),
-        ShopItem(
-            name: TemporalDistortionSpell().name,
-            description: "Manipulate time itself",
-            basePrice: 35,
-            icon: "TemporalDistortion",
-            effect: { state, showMessage in
-                let spell = TemporalDistortionSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: TemporalDistortionSpell()
-        ),
-        ShopItem(
-            name: MysticBarrierSpell().name,
-            description: "Raise a protective shield",
-            basePrice: 35,
-            icon: "MysticBarrier",
-            effect: { state, showMessage in
-                let spell = MysticBarrierSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: MysticBarrierSpell()
-        ),
-        ShopItem(
-            name: BlizzardSpell().name,
-            description: "Unleash icy winds to slow enemies",
-            basePrice: 30,
-            icon: "Blizzard",
-            effect: { state, showMessage in
-                let spell = BlizzardSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: BlizzardSpell()
-        ),
-        ShopItem(
-            name: InfernoSpell().name,
-            description: "Engulf enemies in flames",
-            basePrice: 35,
-            icon: "Inferno",
-            effect: { state, showMessage in
-                let spell = InfernoSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .rare,
-            spell: InfernoSpell()
-        ),
-        
-        // Uncommon Spells
-        ShopItem(
-            name: HologramTrapSpell().name,
-            description: "Deploy a holographic trap",
-            basePrice: 25,
-            icon: "HologramTrap",
-            effect: { state, showMessage in
-                let spell = HologramTrapSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .uncommon,
-            spell: HologramTrapSpell()
-        ),
-        ShopItem(
-            name: SystemOverrideSpell().name,
-            description: "Override enemy systems",
-            basePrice: 25,
-            icon: "SystemOverride",
-            effect: { state, showMessage in
-                let spell = SystemOverrideSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .uncommon,
-            spell: SystemOverrideSpell()
-        ),
-        ShopItem(
-            name: CyberneticOverloadSpell().name,
-            description: "Overload enemy systems",
-            basePrice: 25,
-            icon: "CyberneticOverload",
-            effect: { state, showMessage in
-                let spell = CyberneticOverloadSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .uncommon,
-            spell: CyberneticOverloadSpell()
-        ),
-        ShopItem(
-            name: EarthShatterSpell().name,
-            description: "Shatter the ground beneath",
-            basePrice: 25,
-            icon: "EarthShatter",
-            effect: { state, showMessage in
-                let spell = EarthShatterSpell()
-                state.addSpellToInventory(spell)
-                showMessage("\(spell.name) added to inventory!")
-            },
-            rarity: .uncommon,
-            spell: EarthShatterSpell()
-        ),
-        // Add any additional uncommon spells here
-    ]
+    var isMaxLevel: Bool {  // Add helper property
+        return level > maxLevel
+    }
     
     // Predefined shop items
     static let permanentUpgrades: [ShopItem] = [
@@ -307,9 +37,8 @@ struct ShopItem {
             effect: { state, showMessage in
                 state.maxSpellCharges += 1
                 state.spellCharges += 1
-                showMessage("Max Spell Charges increased to \(state.maxSpellCharges)!")
             },
-            rarity: .basic
+            maxLevel: 3  // Cap at 3 additional charges
         ),
         ShopItem(
             name: "Spell AOE +10%",
@@ -318,9 +47,8 @@ struct ShopItem {
             icon: "aoe_upgrade",
             effect: { state, showMessage in
                 state.spellAOEMultiplier *= 1.1
-                showMessage("Spell AOE increased by 10%!")
             },
-            rarity: .basic
+            maxLevel: 5  // Cap at 50% total increase
         ),
         ShopItem(
             name: "Spell Speed +15%",
@@ -329,9 +57,8 @@ struct ShopItem {
             icon: "speed_upgrade",
             effect: { state, showMessage in
                 state.spellSpeedMultiplier *= 1.15
-                showMessage("Spell Speed increased by 15%!")
             },
-            rarity: .basic
+            maxLevel: 5  // Cap at 75% total increase
         ),
         ShopItem(
             name: "Mana Regen +20%",
@@ -340,9 +67,8 @@ struct ShopItem {
             icon: "regen_upgrade",
             effect: { state, showMessage in
                 state.manaRegenRate *= 1.2
-                showMessage("Mana Regen increased by 20%!")
             },
-            rarity: .basic
+            maxLevel: 5  // Cap at 100% total increase
         ),
         ShopItem(
             name: "Spell Power +10%",
@@ -351,9 +77,8 @@ struct ShopItem {
             icon: "power_upgrade",
             effect: { state, showMessage in
                 state.spellPowerMultiplier *= 1.1
-                showMessage("Spell Power increased by 10%!")
             },
-            rarity: .basic
+            maxLevel: 10  // Cap at 100% total increase
         )
     ]
     
@@ -362,13 +87,18 @@ struct ShopItem {
     }
     
     // Update initializer to include rarity
-    init(name: String, description: String, basePrice: Int, icon: String, effect: @escaping (PlayerState, @escaping (String) -> Void) -> Void, rarity: ItemRarity? = nil) {
+    init(name: String, description: String, basePrice: Int, icon: String, effect: @escaping (PlayerState, @escaping (String) -> Void) -> Void, rarity: ItemRarity? = nil, maxLevel: Int = 1) {
         self.name = name
         self.description = description
         self.basePrice = basePrice
         self.icon = icon
         self.effect = effect
         self.rarity = rarity
+        self.maxLevel = maxLevel
+    }
+    
+    static func resetPurchaseCounts() {
+        purchaseCounts.removeAll()
     }
 }
 
@@ -376,7 +106,6 @@ class ShopView: SKNode {
     private let playerState: PlayerState
     private let playerView: PlayerView
     private var onClose: () -> Void
-    private weak var playerView: PlayerView?
     
     // UI Elements
     private let background: SKSpriteNode
@@ -400,17 +129,16 @@ class ShopView: SKNode {
     
     // Add this property to store all available specials
     private let allSpecials: [Special] = [
-        // Special(name: "FireStorm", aoeRadius: 100, aoeColor: .red, duration: 0.5, damage: 20, effect: nil, cooldown: 10, targetingMode: .global, rarity: .common),
-        // Special(name: "IceBlast", aoeRadius: 80, aoeColor: .cyan, duration: 0.5, damage: 30, effect: nil, cooldown: 8, targetingMode: .random, rarity: .uncommon),
-        // Special(name: "LightningStrike", aoeRadius: 60, aoeColor: .yellow, duration: 0.5, damage: 45, effect: nil, cooldown: 6, targetingMode: .maxHealth, rarity: .rare),
-        // Special(name: "VoidBlast", aoeRadius: 120, aoeColor: .purple, duration: 0.5, damage: 60, effect: nil, cooldown: 5, targetingMode: .global, rarity: .epic),
-        // Special(name: "DragonBreath", aoeRadius: 150, aoeColor: .orange, duration: 0.5, damage: 100, effect: nil, cooldown: 4, targetingMode: .global, rarity: .legendary),
-        AC130Special(),
+//        Special(name: "FireStorm", aoeRadius: 100, aoeColor: .red, duration: 0.5, damage: 20, effect: nil, cooldown: 10, targetingMode: .global, rarity: .common),
+//        Special(name: "IceBlast", aoeRadius: 80, aoeColor: .cyan, duration: 0.5, damage: 30, effect: nil, cooldown: 8, targetingMode: .random, rarity: .uncommon),
+        Special(name: "LightningStrike", aoeRadius: 60, aoeColor: .yellow, duration: 0.5, damage: 45, effect: nil, cooldown: 6, targetingMode: .maxHealth, rarity: .rare),
+        Special(name: "VoidBlast", aoeRadius: 120, aoeColor: .purple, duration: 0.5, damage: 60, effect: nil, cooldown: 5, targetingMode: .global, rarity: .epic),
+        Special(name: "DragonBreath", aoeRadius: 150, aoeColor: .orange, duration: 0.5, damage: 100, effect: nil, cooldown: 4, targetingMode: .global, rarity: .legendary),
         BlizzardSpecial(),
-        PredatorMissileSpecial(),
+        //HologramTrapSpecial(),
         InfernoSpecial(),
-        HologramTrapSpecial(),
-        MeteorShowerSpecial()
+        MeteorShowerSpecial(),
+        DivineHealingSpecial()
     ]
     
     // Add new properties
@@ -423,15 +151,21 @@ class ShopView: SKNode {
         FireballSpell(),
         IceSpell(),
         LightningSpell(),
+        BleedDartSpell(),
         PoisonCloudSpell()
     ]
     
+    // Add new property for reset label
+    private let resetTimerLabel: SKLabelNode
+    
     init(size: CGSize, playerState: PlayerState, playerView: PlayerView, config: WaveConfig, currentWave: Int, onClose: @escaping () -> Void) {
+        // Initialize the reset timer label
+        self.resetTimerLabel = SKLabelNode(fontNamed: "HelveticaNeue")
+        
         // Initialize all properties before super.init()
         self.playerState = playerState
         self.playerView = playerView
         self.onClose = onClose
-        self.playerView = playerView
         self.background = SKSpriteNode(color: .black.withAlphaComponent(0.8), size: size)
         self.statsLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         self.closeButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
@@ -454,6 +188,9 @@ class ShopView: SKNode {
         closeButton.name = "closeShopButton"
         closeButton.fontSize = 24
         closeButton.fontColor = .white
+        
+        // Add reset timer label after other UI setup
+        setupResetTimerLabel(currentWave: currentWave)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -485,43 +222,44 @@ class ShopView: SKNode {
         let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
-        // Calculate total width needed for both permanent upgrade buttons
-        let totalWidth = (buttonWidth * 2) + padding
-        let startX = (size.width - totalWidth) / 2 + buttonWidth / 2
+        // Calculate grid layout
+        let gridWidth = buttonWidth * 2 + padding
+        let startX = (size.width - gridWidth) / 2 + buttonWidth / 2
+        let startY = size.height * 0.5  // Adjust this value to position the grid vertically
         
-        // Position buttons with consistent vertical spacing
-        let upperButtonY = size.height * 0.65  // Permanent upgrades
-        let specialButtonY = size.height * 0.45 // Special button
-        let spellButtonY = size.height * 0.25   // Spell button
+        // Create array of all available items
+        var allItems: [ShopItem] = []
         
-        // First, position the permanent upgrades
+        // Add permanent upgrades (first two slots)
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
-        for (index, item) in permanentUpgrades.enumerated() {
-            let x = startX + CGFloat(index) * (buttonWidth + padding)
-            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: x, y: upperButtonY)
-            addChild(button)
-            itemButtons.append(button)
-        }
+        allItems.append(contentsOf: permanentUpgrades.prefix(2))
         
-        // Then, position the special upgrade if available
+        // Add special upgrade if available (third slot)
         if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
-            let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: size.width/2, y: specialButtonY)
-            addChild(button)
-            itemButtons.append(button)
+            allItems.append(specialUpgrade)
         }
         
-        // Finally, position the spell upgrade if available
+        // Add spell upgrade if available (fourth slot)
         if let spellItem = createSpellShopItem() {
-            let button = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: size.width/2, y: spellButtonY)
+            allItems.append(spellItem)
+        }
+        
+        // Create 2x2 grid
+        for (index, item) in allItems.enumerated() {
+            let row = index / 2
+            let col = index % 2
+            
+            let x = startX + CGFloat(col) * (buttonWidth + padding)
+            let y = startY - CGFloat(row) * (buttonHeight + padding)
+            
+            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: x, y: y)
             addChild(button)
             itemButtons.append(button)
         }
         
-        // Update close button position
-        closeButton.position = CGPoint(x: size.width/2, y: spellButtonY - buttonHeight - 40)
+        // Update close button position - move it further down
+        closeButton.position = CGPoint(x: size.width/2, y: startY - (buttonHeight * 2.0) - padding * 2.0 - 10)
         addChild(closeButton)
     }
     
@@ -529,14 +267,16 @@ class ShopView: SKNode {
         let container = SKNode()
         container.name = "itemButton_\(item.name)"
         
-        // Create background with rarity color if applicable
         let background = SKShapeNode(rectOf: size, cornerRadius: 10)
         
         // Check if item is already purchased (for specials/spells)
         let isAlreadyPurchased = isItemPurchased(item)
         
-        if isAlreadyPurchased {
-            // Use a darker, disabled appearance
+        // For permanent upgrades, check max level. For others, check if already purchased
+        if (item.rarity == nil && item.isMaxLevel) {
+            background.fillColor = .gray.withAlphaComponent(0.1)
+            background.strokeColor = .gray
+        } else if isAlreadyPurchased {
             background.fillColor = .gray.withAlphaComponent(0.1)
             background.strokeColor = .gray
         } else if let rarity = item.rarity {
@@ -548,18 +288,20 @@ class ShopView: SKNode {
         }
         container.addChild(background)
         
-        // Create icon
-        let icon = SKSpriteNode(imageNamed: item.icon)
-        icon.size = CGSize(width: size.width * 0.6, height: size.width * 0.6)
-        icon.position = CGPoint(x: 0, y: size.height * 0.1)
-        container.addChild(icon)
+        let padding: CGFloat = 10  // Padding from button edges
+        let maxWidth = size.width - (padding * 2)  // Maximum width for text
         
-        // Create name label
+        // Item name - potentially wrap text if too long
         let nameLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
         nameLabel.text = item.name
-        nameLabel.fontSize = 16
-        nameLabel.fontColor = item.rarity.color  // Match the outline color
-        nameLabel.position = CGPoint(x: 0, y: -size.height * 0.25)
+        nameLabel.fontSize = 14  // Reduced font size
+        nameLabel.position = CGPoint(x: 0, y: 30)
+        nameLabel.horizontalAlignmentMode = .center
+        nameLabel.verticalAlignmentMode = .center
+        // Adjust text if too wide
+        while nameLabel.frame.width > maxWidth && nameLabel.fontSize > 10 {
+            nameLabel.fontSize -= 1
+        }
         container.addChild(nameLabel)
         
         // Level display
@@ -585,9 +327,12 @@ class ShopView: SKNode {
         }
         container.addChild(descLabel)
         
-        // Price or "Already Purchased" text
+        // Price label logic
         let priceLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-        if isAlreadyPurchased {
+        if item.rarity == nil && item.isMaxLevel {
+            priceLabel.text = "Max Level"
+            priceLabel.fontColor = .gray
+        } else if isAlreadyPurchased {
             priceLabel.text = "Already Purchased"
             priceLabel.fontColor = .gray
         } else {
@@ -623,7 +368,8 @@ class ShopView: SKNode {
         }
         
         // For spells, check if it's in the player's spell inventory
-        if let spell = ShopView.currentSpellOffer, spell.name == item.name {
+        if let spell = ShopView.currentSpellOffer,
+           item.name == spell.name {
             return playerState.hasSpell(named: spell.name)
         }
         
@@ -711,12 +457,19 @@ class ShopView: SKNode {
     }
     
     private func purchaseItem(_ item: ShopItem) {
-        // First check if item is already purchased
+        // For permanent upgrades, check max level
+        if item.rarity == nil && item.isMaxLevel {
+            showMessage("Maximum level reached!")
+            return
+        }
+        
+        // For specials/spells, check if already purchased
         if isItemPurchased(item) {
             showMessage("Already purchased!")
             return
         }
         
+        // Rest of the existing purchase logic
         guard playerState.coins >= item.currentPrice else {
             showMessage("Not enough coins!")
             return
@@ -756,6 +509,8 @@ class ShopView: SKNode {
             // Replace the special in the specific slot
             playerState.replaceSpecial(special, at: slotIndex)
             playerView.updateSpecialButton(at: slotIndex)
+            // Play purchase special sound
+            SoundManager.shared.playSound("purchase_special")
         } 
         // If this is a spell
         else if let spell = ShopView.currentSpellOffer,
@@ -767,12 +522,16 @@ class ShopView: SKNode {
                 // Add new spell
                 playerState.addSpell(spell)
             }
+            // Play purchase spell sound
+            SoundManager.shared.playSound("purchase_spell")
         }
         // Normal purchase flow for other items
         else {
             item.effect(playerState) { [weak self] message in
                 self?.showMessage(message)
             }
+            // Play upgrade purchase sound
+            SoundManager.shared.playSound("buy_upgrade")
         }
         
         ShopItem.recordPurchase(of: item.name)
@@ -781,7 +540,6 @@ class ShopView: SKNode {
         updateStats()
     }
     
-    // Update refreshItemButtons to match the new layout
     private func refreshItemButtons() {
         itemButtons.forEach { $0.removeFromParent() }
         itemButtons.removeAll()
@@ -790,48 +548,40 @@ class ShopView: SKNode {
         let buttonHeight: CGFloat = 120
         let padding: CGFloat = 20
         
-        // Calculate total width needed for both permanent upgrade buttons
-        let totalWidth = (buttonWidth * 2) + padding
-        let startX = (background.frame.width - totalWidth) / 2 + buttonWidth / 2
+        // Calculate grid layout
+        let gridWidth = buttonWidth * 2 + padding
+        let startX = (background.frame.width - gridWidth) / 2 + buttonWidth / 2
+        let startY = background.frame.height * 0.5
         
-        // Use the same vertical positions as setupUI
-        let upperButtonY = background.frame.height * 0.65  // Permanent upgrades
-        let specialButtonY = background.frame.height * 0.45 // Special button
-        let spellButtonY = background.frame.height * 0.25   // Spell button
+        // Create array of all available items
+        var allItems: [ShopItem] = []
         
-        // First, position the permanent upgrades
+        // Add permanent upgrades (first two slots)
         let permanentUpgrades = availableUpgrades.filter { $0.rarity == nil }
-        for (index, item) in permanentUpgrades.enumerated() {
-            let x = startX + CGFloat(index) * (buttonWidth + padding)
-            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: x, y: upperButtonY)
-            addChild(button)
-            itemButtons.append(button)
-        }
+        allItems.append(contentsOf: permanentUpgrades.prefix(2))
         
-        // Then, position the special upgrade if available
+        // Add special upgrade if available (third slot)
         if let specialUpgrade = availableUpgrades.first(where: { $0.rarity != nil }) {
-            let button = createItemButton(item: specialUpgrade, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: background.frame.width/2, y: specialButtonY)
-            addChild(button)
-            itemButtons.append(button)
+            allItems.append(specialUpgrade)
         }
         
-        // Finally, position the spell upgrade if available
+        // Add spell upgrade if available (fourth slot)
         if let spellItem = createSpellShopItem() {
-            let button = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
-            button.position = CGPoint(x: background.frame.width/2, y: spellButtonY)
-            addChild(button)
-            itemButtons.append(button)
+            allItems.append(spellItem)
         }
         
-        // Position the spell button below the permanent upgrades
-        if let spellItem = availableUpgrades.last {
-            let spellButtonY = buttonY - buttonHeight - 40  // Position below the upgrade buttons
-            let spellButton = createItemButton(item: spellItem, size: CGSize(width: buttonWidth, height: buttonHeight))
-            spellButton.position = CGPoint(x: background.frame.width / 2, y: spellButtonY)
-            addChild(spellButton)
-            itemButtons.append(spellButton)
+        // Create 2x2 grid
+        for (index, item) in allItems.enumerated() {
+            let row = index / 2
+            let col = index % 2
+            
+            let x = startX + CGFloat(col) * (buttonWidth + padding)
+            let y = startY - CGFloat(row) * (buttonHeight + padding)
+            
+            let button = createItemButton(item: item, size: CGSize(width: buttonWidth, height: buttonHeight))
+            button.position = CGPoint(x: x, y: y)
+            addChild(button)
+            itemButtons.append(button)
         }
     }
     
@@ -852,7 +602,7 @@ class ShopView: SKNode {
         // Assuming statsLabel is your coins display
         message.position = CGPoint(
             x: background.frame.width/2,
-            y: statsLabel.position.y - 60
+            y: statsLabel.position.y - 90
               // Adjust this value as needed
         )
         addChild(message)
@@ -942,8 +692,14 @@ class ShopView: SKNode {
             ShopView.lastSpellRefreshWave = currentWave
         }
         
-        // Create special shop item if available
+        // Create array of all available items
         var upgrades = [ShopItem]()
+        
+        // Add permanent upgrades (first two slots)
+        let regularUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
+        upgrades.append(contentsOf: regularUpgrades)
+        
+        // Add special upgrade if available (third slot)
         if let special = ShopView.currentSpecialOffer {
             upgrades.append(ShopItem(
                 name: special.name,
@@ -958,27 +714,34 @@ class ShopView: SKNode {
             ))
         }
         
-        // Create spell shop item if available
+        // Add spell upgrade if available (fourth slot)
         if let spell = ShopView.currentSpellOffer {
-            let spellItem = createSpellShopItem()
-            if let item = spellItem {
-                upgrades.append(item)
-            }
+            upgrades.append(ShopItem(
+                name: spell.name,
+                description: "New Spell",
+                basePrice: calculateSpellPrice(spell),
+                icon: spell.name,
+                effect: { [weak self] state, showMessage in
+                    if state.getAvailableSpells().count >= GameConfig.maxSpellSlots {
+                        self?.showSpellSlotSelector(for: spell)
+                    } else {
+                        state.addSpell(spell)
+                        showMessage("New spell acquired!")
+                    }
+                },
+                rarity: spell.rarity
+            ))
         }
-        
-        // Add regular upgrades
-        let regularUpgrades = Array(ShopItem.permanentUpgrades.shuffled().prefix(2))
-        upgrades.append(contentsOf: regularUpgrades)
         
         availableUpgrades = upgrades
     }
     
     private func calculateSpecialPrice(_ special: Special) -> Int {
         // Debug: All specials cost 0
-        return 0
+        //return 0
         
         // Original code commented out for reference
-        /*
+        
         let basePrice = 15
         let rarityMultiplier: Int
         
@@ -991,7 +754,7 @@ class ShopView: SKNode {
         }
         
         return basePrice * rarityMultiplier
-        */
+        
     }
     
     private func generateRandomSpecial() -> Special {
@@ -1043,8 +806,7 @@ class ShopView: SKNode {
     }
     
     private func createSpellShopItem() -> ShopItem? {
-        guard let spell = ShopView.currentSpellOffer,
-              !playerState.hasSpell(named: spell.name) else {
+        guard let spell = ShopView.currentSpellOffer else {
             return nil
         }
 
@@ -1067,10 +829,10 @@ class ShopView: SKNode {
     
     private func calculateSpellPrice(_ spell: Spell) -> Int {
         // Debug: All spells cost 0
-        return 0
+        //return 0
         
         // Uncomment for real pricing
-        /*
+        
         let basePrice = 20
         let rarityMultiplier: Int
         
@@ -1083,7 +845,7 @@ class ShopView: SKNode {
         }
         
         return basePrice * rarityMultiplier
-        */
+        
     }
     
     private func showSpecialSlotSelector(for special: Special) {
@@ -1112,24 +874,31 @@ class ShopView: SKNode {
         titleLabel.position = CGPoint(x: 0, y: containerHeight/4)
         selector.addChild(titleLabel)
         
-        // Setup slot buttons
-        let buttonWidth: CGFloat = min(100, containerWidth / 4)
-        let buttonHeight: CGFloat = min(100, containerHeight / 3)
-        let padding: CGFloat = 15
+        // Setup slot buttons in a 2x2 grid
+        let buttonWidth: CGFloat = min(180, containerWidth / 2.5)
+        let buttonHeight: CGFloat = 120
+        let padding: CGFloat = 20
         
-        let totalWidth = (buttonWidth * 3) + (padding * 2)
-        let startX = -totalWidth/2 + buttonWidth/2
-        let buttonY: CGFloat = 0  // Center Y
+        // Calculate grid layout
+        let gridWidth = buttonWidth * 2 + padding
+        let startX = -gridWidth/2 + buttonWidth/2
+        let startY = buttonHeight/2 + padding/2  // Adjust this to position the grid vertically
         
         let slots = playerState.getSpecialSlots()
         for i in 0..<slots.count {
+            let row = i / 2
+            let col = i % 2
+            
+            let x = startX + CGFloat(col) * (buttonWidth + padding)
+            let y = startY - CGFloat(row) * (buttonHeight + padding)
+            
             let button = createSpecialSlotButton(
                 slots[i],
                 at: i,
                 size: CGSize(width: buttonWidth, height: buttonHeight)
             )
-            button.position = CGPoint(x: startX + CGFloat(i) * (buttonWidth + padding), y: buttonY)
-            button.name = "specialSlotButton_\(i)"  // Ensure correct naming
+            button.position = CGPoint(x: x, y: y)
+            button.name = "specialSlotButton_\(i)"
             selector.addChild(button)
         }
         
@@ -1311,5 +1080,56 @@ class ShopView: SKNode {
                 }
             }
         }
+    }
+    
+    private func setupResetTimerLabel(currentWave: Int) {
+        resetTimerLabel.fontSize = 20
+        resetTimerLabel.fontColor = .white
+        resetTimerLabel.horizontalAlignmentMode = .center
+
+        // Calculate waves until reset
+        let wavesUntilReset = if currentWave % 2 == 0 {
+            1  // Just reset, show 2 waves until next reset
+        } else {
+            2  // One wave has passed, show 1 wave until next reset
+        }
+        
+        // Create reset message
+        let resetText = "Shop resets in:\n\(wavesUntilReset) wave\(wavesUntilReset != 1 ? "s" : "")"
+        
+        resetTimerLabel.text = resetText
+        resetTimerLabel.numberOfLines = 0  // Allow multiple lines
+        resetTimerLabel.horizontalAlignmentMode = .center
+        
+        // Position it below the close button
+        resetTimerLabel.position = CGPoint(
+            x: closeButton.position.x,
+            y: closeButton.position.y + 35  // Increase this value to move it lower
+        )
+        
+        addChild(resetTimerLabel)
+        updateResetTimer(currentWave: currentWave)
+    }
+    
+    private func updateResetTimer(currentWave: Int) {
+        // Calculate waves until reset
+        let wavesUntilReset = if currentWave % 2 == 0 {
+            1  // Just reset, show 2 waves until next reset
+        } else {
+            2  // One wave has passed, show 1 wave until next reset
+        }
+        
+        // Update reset message
+        let resetText = "Shop resets in:\n\(wavesUntilReset) wave\(wavesUntilReset != 1 ? "s" : "")"
+        resetTimerLabel.text = resetText
+    }
+    
+    static func resetShopState() {
+        // Reset special offer tracking
+        lastSpecialRefreshWave = 0
+        currentSpecialOffer = nil
+        
+        // Reset shop item purchase counts
+        ShopItem.resetPurchaseCounts()
     }
 } 

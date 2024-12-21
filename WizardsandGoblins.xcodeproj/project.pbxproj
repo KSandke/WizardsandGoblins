@@ -20,6 +20,7 @@
 		1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1454028B2CCB67B300624AF9 /* WGGameView.swift */; };
 		145E596D2CF576FB009A6A09 /* WaveConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FB8F672CF55EDD00281ACF /* WaveConfig.swift */; };
 		145E59A52CFEEC66009A6A09 /* WGScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145E59A42CFEEC66009A6A09 /* WGScoreView.swift */; };
+		145E74E82D13FA0F00AB46BD /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145E74E62D13FA0F00AB46BD /* HapticManager.swift */; };
 		146503A22D052A0800022691 /* ItemRarity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A12D052A0800022691 /* ItemRarity.swift */; };
 		146503A42D052A1A00022691 /* Special.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A32D052A1A00022691 /* Special.swift */; };
 		146503AD2D052A2100022691 /* AC130.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503A52D052A2100022691 /* AC130.swift */; };
@@ -33,6 +34,8 @@
 		146503BA2D052A5400022691 /* PoisonCloud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B72D052A5400022691 /* PoisonCloud.swift */; };
 		146503BB2D052A5400022691 /* Ice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B52D052A5400022691 /* Ice.swift */; };
 		146503BC2D052A5400022691 /* Lightning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 146503B62D052A5400022691 /* Lightning.swift */; };
+		147606C32D0962000094BAC3 /* DivineHealing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147606C22D0962000094BAC3 /* DivineHealing.swift */; };
+		147606C52D09646E0094BAC3 /* BleedDart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147606C42D09646E0094BAC3 /* BleedDart.swift */; };
 		1488B8342CE46E40007F0D4C /* CGExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1488B8322CE46E40007F0D4C /* CGExtensions.swift */; };
 		148974842CE49467001F7350 /* Goblin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148974832CE49467001F7350 /* Goblin.swift */; };
 		148FAAB72CE4B82A005CCBC3 /* WGShopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 148FAAB62CE4B82A005CCBC3 /* WGShopView.swift */; };
@@ -61,6 +64,32 @@
 		14F528DF2CF163FA0092C18F /* EarthShatterEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */; };
 		14F528E02CF163FA0092C18F /* BloodMoonEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DC2CF163FA0092C18F /* BloodMoonEmitter.swift */; };
 		14F528E12CF163FA0092C18F /* MysticBarrierEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */; };
+		920A9C082D16B33D000DA518 /* round_win.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9C062D16B33D000DA518 /* round_win.mp3 */; };
+		920A9C092D16B33D000DA518 /* goblin_death_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF52D16B33D000DA518 /* goblin_death_2.mp3 */; };
+		920A9C0A2D16B33D000DA518 /* round_music_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9C052D16B33D000DA518 /* round_music_2.mp3 */; };
+		920A9C0B2D16B33D000DA518 /* infinite_mana_effect.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BFC2D16B33D000DA518 /* infinite_mana_effect.mp3 */; };
+		920A9C0C2D16B33D000DA518 /* goblin_ranged_attack.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF92D16B33D000DA518 /* goblin_ranged_attack.mp3 */; };
+		920A9C0D2D16B33D000DA518 /* goblin_ranged_hit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BFA2D16B33D000DA518 /* goblin_ranged_hit.mp3 */; };
+		920A9C0E2D16B33D000DA518 /* goblin_normal_attack.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF82D16B33D000DA518 /* goblin_normal_attack.mp3 */; };
+		920A9C0F2D16B33D000DA518 /* goblin_hit_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF62D16B33D000DA518 /* goblin_hit_1.mp3 */; };
+		920A9C102D16B33D000DA518 /* purchase_spell.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9C032D16B33D000DA518 /* purchase_spell.mp3 */; };
+		920A9C112D16B33D000DA518 /* lightning_spell_hit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BFE2D16B33D000DA518 /* lightning_spell_hit.mp3 */; };
+		920A9C122D16B33D000DA518 /* blizzard_special_effect.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BEF2D16B33D000DA518 /* blizzard_special_effect.mp3 */; };
+		920A9C132D16B33D000DA518 /* poison_spell_hit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9C012D16B33D000DA518 /* poison_spell_hit.mp3 */; };
+		920A9C142D16B33D000DA518 /* round_music_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9C042D16B33D000DA518 /* round_music_1.mp3 */; };
+		920A9C152D16B33D000DA518 /* poison_spell_cast.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9C002D16B33D000DA518 /* poison_spell_cast.mp3 */; };
+		920A9C162D16B33D000DA518 /* fire_spell_cast.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF22D16B33D000DA518 /* fire_spell_cast.mp3 */; };
+		920A9C172D16B33D000DA518 /* buy_upgrade.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF02D16B33D000DA518 /* buy_upgrade.mp3 */; };
+		920A9C182D16B33D000DA518 /* coin_drop.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF12D16B33D000DA518 /* coin_drop.mp3 */; };
+		920A9C192D16B33D000DA518 /* large_goblin_hit_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BFD2D16B33D000DA518 /* large_goblin_hit_1.mp3 */; };
+		920A9C1A2D16B33D000DA518 /* ice_spell_hit.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BFB2D16B33D000DA518 /* ice_spell_hit.mp3 */; };
+		920A9C1B2D16B33D000DA518 /* mana_potion_collection.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BFF2D16B33D000DA518 /* mana_potion_collection.mp3 */; };
+		920A9C1C2D16B33D000DA518 /* game_over.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF32D16B33D000DA518 /* game_over.mp3 */; };
+		920A9C1D2D16B33D000DA518 /* goblin_death_1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF42D16B33D000DA518 /* goblin_death_1.mp3 */; };
+		920A9C1E2D16B33D000DA518 /* goblin_hit_2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9BF72D16B33D000DA518 /* goblin_hit_2.mp3 */; };
+		920A9C1F2D16B33D000DA518 /* purchase_special.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9C022D16B33D000DA518 /* purchase_special.mp3 */; };
+		920A9C202D16B33D000DA518 /* spell_impact_default.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 920A9C072D16B33D000DA518 /* spell_impact_default.mp3 */; };
+		920A9C232D16B34E000DA518 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920A9C212D16B34E000DA518 /* SoundManager.swift */; };
 		925D72F22CF1668D00E11E34 /* InfernoEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EF2CF1668D00E11E34 /* InfernoEmitter.swift */; };
 		925D72F32CF1668D00E11E34 /* MeteorShowerEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72F02CF1668D00E11E34 /* MeteorShowerEmitter.swift */; };
 		925D72F42CF1668D00E11E34 /* NecromancersGripEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72F12CF1668D00E11E34 /* NecromancersGripEmitter.swift */; };
@@ -68,6 +97,7 @@
 		925D72F62CF1668D00E11E34 /* DivineWrathEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */; };
 		925D72F72CF1668D00E11E34 /* BlizzardEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */; };
 		92A076C42D050797004A79DE /* GameConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A076C22D050797004A79DE /* GameConfig.swift */; };
+		92FB88162D09724200C2CAA5 /* Potion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92FB88152D09724200C2CAA5 /* Potion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +136,7 @@
 		1454028B2CCB67B300624AF9 /* WGGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGGameView.swift; sourceTree = "<group>"; };
 		1454028D2CCB7DFF00624AF9 /* Vector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vector.swift; sourceTree = "<group>"; };
 		145E59A42CFEEC66009A6A09 /* WGScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGScoreView.swift; sourceTree = "<group>"; };
+		145E74E62D13FA0F00AB46BD /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		146503A12D052A0800022691 /* ItemRarity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemRarity.swift; sourceTree = "<group>"; };
 		146503A32D052A1A00022691 /* Special.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Special.swift; sourceTree = "<group>"; };
 		146503A52D052A2100022691 /* AC130.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AC130.swift; sourceTree = "<group>"; };
@@ -119,6 +150,8 @@
 		146503B52D052A5400022691 /* Ice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ice.swift; sourceTree = "<group>"; };
 		146503B62D052A5400022691 /* Lightning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lightning.swift; sourceTree = "<group>"; };
 		146503B72D052A5400022691 /* PoisonCloud.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoisonCloud.swift; sourceTree = "<group>"; };
+		147606C22D0962000094BAC3 /* DivineHealing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DivineHealing.swift; sourceTree = "<group>"; };
+		147606C42D09646E0094BAC3 /* BleedDart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BleedDart.swift; sourceTree = "<group>"; };
 		1488B8322CE46E40007F0D4C /* CGExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGExtensions.swift; sourceTree = "<group>"; };
 		148974832CE49467001F7350 /* Goblin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goblin.swift; sourceTree = "<group>"; };
 		148FAAB62CE4B82A005CCBC3 /* WGShopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WGShopView.swift; sourceTree = "<group>"; };
@@ -149,6 +182,32 @@
 		14F528DD2CF163FA0092C18F /* EarthShatterEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarthShatterEmitter.swift; sourceTree = "<group>"; };
 		14F528DE2CF163FA0092C18F /* MysticBarrierEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MysticBarrierEmitter.swift; sourceTree = "<group>"; };
 		14FB8F672CF55EDD00281ACF /* WaveConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaveConfig.swift; sourceTree = "<group>"; };
+		920A9BEF2D16B33D000DA518 /* blizzard_special_effect.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = blizzard_special_effect.mp3; sourceTree = "<group>"; };
+		920A9BF02D16B33D000DA518 /* buy_upgrade.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = buy_upgrade.mp3; sourceTree = "<group>"; };
+		920A9BF12D16B33D000DA518 /* coin_drop.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = coin_drop.mp3; sourceTree = "<group>"; };
+		920A9BF22D16B33D000DA518 /* fire_spell_cast.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = fire_spell_cast.mp3; sourceTree = "<group>"; };
+		920A9BF32D16B33D000DA518 /* game_over.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = game_over.mp3; sourceTree = "<group>"; };
+		920A9BF42D16B33D000DA518 /* goblin_death_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = goblin_death_1.mp3; sourceTree = "<group>"; };
+		920A9BF52D16B33D000DA518 /* goblin_death_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = goblin_death_2.mp3; sourceTree = "<group>"; };
+		920A9BF62D16B33D000DA518 /* goblin_hit_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = goblin_hit_1.mp3; sourceTree = "<group>"; };
+		920A9BF72D16B33D000DA518 /* goblin_hit_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = goblin_hit_2.mp3; sourceTree = "<group>"; };
+		920A9BF82D16B33D000DA518 /* goblin_normal_attack.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = goblin_normal_attack.mp3; sourceTree = "<group>"; };
+		920A9BF92D16B33D000DA518 /* goblin_ranged_attack.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = goblin_ranged_attack.mp3; sourceTree = "<group>"; };
+		920A9BFA2D16B33D000DA518 /* goblin_ranged_hit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = goblin_ranged_hit.mp3; sourceTree = "<group>"; };
+		920A9BFB2D16B33D000DA518 /* ice_spell_hit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ice_spell_hit.mp3; sourceTree = "<group>"; };
+		920A9BFC2D16B33D000DA518 /* infinite_mana_effect.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = infinite_mana_effect.mp3; sourceTree = "<group>"; };
+		920A9BFD2D16B33D000DA518 /* large_goblin_hit_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = large_goblin_hit_1.mp3; sourceTree = "<group>"; };
+		920A9BFE2D16B33D000DA518 /* lightning_spell_hit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = lightning_spell_hit.mp3; sourceTree = "<group>"; };
+		920A9BFF2D16B33D000DA518 /* mana_potion_collection.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = mana_potion_collection.mp3; sourceTree = "<group>"; };
+		920A9C002D16B33D000DA518 /* poison_spell_cast.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = poison_spell_cast.mp3; sourceTree = "<group>"; };
+		920A9C012D16B33D000DA518 /* poison_spell_hit.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = poison_spell_hit.mp3; sourceTree = "<group>"; };
+		920A9C022D16B33D000DA518 /* purchase_special.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = purchase_special.mp3; sourceTree = "<group>"; };
+		920A9C032D16B33D000DA518 /* purchase_spell.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = purchase_spell.mp3; sourceTree = "<group>"; };
+		920A9C042D16B33D000DA518 /* round_music_1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = round_music_1.mp3; sourceTree = "<group>"; };
+		920A9C052D16B33D000DA518 /* round_music_2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = round_music_2.mp3; sourceTree = "<group>"; };
+		920A9C062D16B33D000DA518 /* round_win.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = round_win.mp3; sourceTree = "<group>"; };
+		920A9C072D16B33D000DA518 /* spell_impact_default.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = spell_impact_default.mp3; sourceTree = "<group>"; };
+		920A9C212D16B34E000DA518 /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
 		925D72EC2CF1668D00E11E34 /* ArcaneStormEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArcaneStormEmitter.swift; sourceTree = "<group>"; };
 		925D72ED2CF1668D00E11E34 /* BlizzardEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlizzardEmitter.swift; sourceTree = "<group>"; };
 		925D72EE2CF1668D00E11E34 /* DivineWrathEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DivineWrathEmitter.swift; sourceTree = "<group>"; };
@@ -156,6 +215,7 @@
 		925D72F02CF1668D00E11E34 /* MeteorShowerEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeteorShowerEmitter.swift; sourceTree = "<group>"; };
 		925D72F12CF1668D00E11E34 /* NecromancersGripEmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NecromancersGripEmitter.swift; sourceTree = "<group>"; };
 		92A076C22D050797004A79DE /* GameConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameConfig.swift; sourceTree = "<group>"; };
+		92FB88152D09724200C2CAA5 /* Potion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Potion.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -228,6 +288,8 @@
 		14101F0C2CCA215B00BD8C7D /* Code */ = {
 			isa = PBXGroup;
 			children = (
+				920A9C222D16B34E000DA518 /* Managers */,
+				145E74E72D13FA0F00AB46BD /* Utilities */,
 				92A076C32D050797004A79DE /* Config */,
 				14DDF43F2CF1551100A0EBAB /* Effects */,
 				14DDF42D2CF14C5D00A0EBAB /* Particles */,
@@ -292,9 +354,18 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		145E74E72D13FA0F00AB46BD /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				145E74E62D13FA0F00AB46BD /* HapticManager.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
 		146503AC2D052A2100022691 /* Specials */ = {
 			isa = PBXGroup;
 			children = (
+				147606C22D0962000094BAC3 /* DivineHealing.swift */,
 				146503A52D052A2100022691 /* AC130.swift */,
 				146503A62D052A2100022691 /* Blizzard.swift */,
 				146503A72D052A2100022691 /* HologramTrap.swift */,
@@ -309,6 +380,7 @@
 		146503B82D052A5400022691 /* Spells */ = {
 			isa = PBXGroup;
 			children = (
+				147606C42D09646E0094BAC3 /* BleedDart.swift */,
 				146503B42D052A5400022691 /* Fireball.swift */,
 				146503B52D052A5400022691 /* Ice.swift */,
 				146503B62D052A5400022691 /* Lightning.swift */,
@@ -338,6 +410,31 @@
 		14DDF4312CF1525300A0EBAB /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				920A9BEF2D16B33D000DA518 /* blizzard_special_effect.mp3 */,
+				920A9BF02D16B33D000DA518 /* buy_upgrade.mp3 */,
+				920A9BF12D16B33D000DA518 /* coin_drop.mp3 */,
+				920A9BF22D16B33D000DA518 /* fire_spell_cast.mp3 */,
+				920A9BF32D16B33D000DA518 /* game_over.mp3 */,
+				920A9BF42D16B33D000DA518 /* goblin_death_1.mp3 */,
+				920A9BF52D16B33D000DA518 /* goblin_death_2.mp3 */,
+				920A9BF62D16B33D000DA518 /* goblin_hit_1.mp3 */,
+				920A9BF72D16B33D000DA518 /* goblin_hit_2.mp3 */,
+				920A9BF82D16B33D000DA518 /* goblin_normal_attack.mp3 */,
+				920A9BF92D16B33D000DA518 /* goblin_ranged_attack.mp3 */,
+				920A9BFA2D16B33D000DA518 /* goblin_ranged_hit.mp3 */,
+				920A9BFB2D16B33D000DA518 /* ice_spell_hit.mp3 */,
+				920A9BFC2D16B33D000DA518 /* infinite_mana_effect.mp3 */,
+				920A9BFD2D16B33D000DA518 /* large_goblin_hit_1.mp3 */,
+				920A9BFE2D16B33D000DA518 /* lightning_spell_hit.mp3 */,
+				920A9BFF2D16B33D000DA518 /* mana_potion_collection.mp3 */,
+				920A9C002D16B33D000DA518 /* poison_spell_cast.mp3 */,
+				920A9C012D16B33D000DA518 /* poison_spell_hit.mp3 */,
+				920A9C022D16B33D000DA518 /* purchase_special.mp3 */,
+				920A9C032D16B33D000DA518 /* purchase_spell.mp3 */,
+				920A9C042D16B33D000DA518 /* round_music_1.mp3 */,
+				920A9C052D16B33D000DA518 /* round_music_2.mp3 */,
+				920A9C062D16B33D000DA518 /* round_win.mp3 */,
+				920A9C072D16B33D000DA518 /* spell_impact_default.mp3 */,
 				14DDF4332CF1529500A0EBAB /* nuclear_siren.mp3 */,
 			);
 			path = Sounds;
@@ -386,6 +483,7 @@
 		14ECCEF12CE47BA8005A9627 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				92FB88152D09724200C2CAA5 /* Potion.swift */,
 				146503B82D052A5400022691 /* Spells */,
 				146503AC2D052A2100022691 /* Specials */,
 				146503A32D052A1A00022691 /* Special.swift */,
@@ -404,6 +502,14 @@
 				14EDC1712CE96559002EFCF1 /* WGTutorialManager.swift */,
 			);
 			path = Tutorial;
+			sourceTree = "<group>";
+		};
+		920A9C222D16B34E000DA518 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				920A9C212D16B34E000DA518 /* SoundManager.swift */,
+			);
+			path = Managers;
 			sourceTree = "<group>";
 		};
 		92A076C32D050797004A79DE /* Config */ = {
@@ -536,6 +642,31 @@
 			files = (
 				14101EDD2CCA066000BD8C7D /* Assets.xcassets in Resources */,
 				14101F032CCA068300BD8C7D /* .gitignore in Resources */,
+				920A9C082D16B33D000DA518 /* round_win.mp3 in Resources */,
+				920A9C092D16B33D000DA518 /* goblin_death_2.mp3 in Resources */,
+				920A9C0A2D16B33D000DA518 /* round_music_2.mp3 in Resources */,
+				920A9C0B2D16B33D000DA518 /* infinite_mana_effect.mp3 in Resources */,
+				920A9C0C2D16B33D000DA518 /* goblin_ranged_attack.mp3 in Resources */,
+				920A9C0D2D16B33D000DA518 /* goblin_ranged_hit.mp3 in Resources */,
+				920A9C0E2D16B33D000DA518 /* goblin_normal_attack.mp3 in Resources */,
+				920A9C0F2D16B33D000DA518 /* goblin_hit_1.mp3 in Resources */,
+				920A9C102D16B33D000DA518 /* purchase_spell.mp3 in Resources */,
+				920A9C112D16B33D000DA518 /* lightning_spell_hit.mp3 in Resources */,
+				920A9C122D16B33D000DA518 /* blizzard_special_effect.mp3 in Resources */,
+				920A9C132D16B33D000DA518 /* poison_spell_hit.mp3 in Resources */,
+				920A9C142D16B33D000DA518 /* round_music_1.mp3 in Resources */,
+				920A9C152D16B33D000DA518 /* poison_spell_cast.mp3 in Resources */,
+				920A9C162D16B33D000DA518 /* fire_spell_cast.mp3 in Resources */,
+				920A9C172D16B33D000DA518 /* buy_upgrade.mp3 in Resources */,
+				920A9C182D16B33D000DA518 /* coin_drop.mp3 in Resources */,
+				920A9C192D16B33D000DA518 /* large_goblin_hit_1.mp3 in Resources */,
+				920A9C1A2D16B33D000DA518 /* ice_spell_hit.mp3 in Resources */,
+				920A9C1B2D16B33D000DA518 /* mana_potion_collection.mp3 in Resources */,
+				920A9C1C2D16B33D000DA518 /* game_over.mp3 in Resources */,
+				920A9C1D2D16B33D000DA518 /* goblin_death_1.mp3 in Resources */,
+				920A9C1E2D16B33D000DA518 /* goblin_hit_2.mp3 in Resources */,
+				920A9C1F2D16B33D000DA518 /* purchase_special.mp3 in Resources */,
+				920A9C202D16B33D000DA518 /* spell_impact_default.mp3 in Resources */,
 				14DDF42E2CF14C5D00A0EBAB /* LightningStrike.sks in Resources */,
 				14DDF42F2CF14C5D00A0EBAB /* LightningBolt.sks in Resources */,
 				14DDF4302CF14C5D00A0EBAB /* Assets.xcassets in Resources */,
@@ -588,6 +719,8 @@
 				14101F092CCA214A00BD8C7D /* GameType.swift in Sources */,
 				14F528D52CF162AF0092C18F /* TimeBombEmitter.swift in Sources */,
 				14F528D12CF1629A0092C18F /* CyberneticOverloadEmitter.swift in Sources */,
+				147606C52D09646E0094BAC3 /* BleedDart.swift in Sources */,
+				920A9C232D16B34E000DA518 /* SoundManager.swift in Sources */,
 				14DDF4402CF1551100A0EBAB /* NanoSwarmMini.swift in Sources */,
 				14DDF4412CF1551100A0EBAB /* BloodDrip.swift in Sources */,
 				14DDF4422CF1551100A0EBAB /* NukeCloud.swift in Sources */,
@@ -599,6 +732,7 @@
 				145E596D2CF576FB009A6A09 /* WaveConfig.swift in Sources */,
 				146503B92D052A5400022691 /* Fireball.swift in Sources */,
 				146503BA2D052A5400022691 /* PoisonCloud.swift in Sources */,
+				92FB88162D09724200C2CAA5 /* Potion.swift in Sources */,
 				146503BB2D052A5400022691 /* Ice.swift in Sources */,
 				146503BC2D052A5400022691 /* Lightning.swift in Sources */,
 				14DDF4472CF1551100A0EBAB /* TracerEffect.swift in Sources */,
@@ -615,9 +749,11 @@
 				14F528D32CF162A70092C18F /* IronMaidenEmitter.swift in Sources */,
 				14F528DF2CF163FA0092C18F /* EarthShatterEmitter.swift in Sources */,
 				14F528E02CF163FA0092C18F /* BloodMoonEmitter.swift in Sources */,
+				147606C32D0962000094BAC3 /* DivineHealing.swift in Sources */,
 				14F528E12CF163FA0092C18F /* MysticBarrierEmitter.swift in Sources */,
 				1454028C2CCB67BB00624AF9 /* WGGameView.swift in Sources */,
 				14101F0B2CCA214A00BD8C7D /* Dependencies.swift in Sources */,
+				145E74E82D13FA0F00AB46BD /* HapticManager.swift in Sources */,
 				148FAAB72CE4B82A005CCBC3 /* WGShopView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

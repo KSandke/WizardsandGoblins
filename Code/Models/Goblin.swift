@@ -2,6 +2,7 @@ import Foundation
 import SpriteKit
 
 public class Goblin {
+    private var pathPoints: [CGPoint] = []
     public enum GoblinType {
         case normal
         case large
@@ -50,6 +51,15 @@ public class Goblin {
                     isCritical: damage >= 50,
                     isCastleDamage: false
                 )
+                
+                // Play hit sound based on goblin type
+                if type == .large {
+                    SoundManager.shared.playSound("large_goblin_hit_1")
+                } else {
+                    // Randomly choose between two hit sounds for normal goblins
+                    let hitSound = Bool.random() ? "goblin_hit_1" : "goblin_hit_2"
+                    SoundManager.shared.playSound(hitSound)
+                }
             }
             
             // Check if goblin should die
@@ -146,36 +156,20 @@ public class Goblin {
         }
         
         private func startRangedAttack(scene: GameScene) {
-            let targetPosition = CGPoint(x: scene.size.width / 2, y: 130) // Match the target Y position
+            let targetPosition = CGPoint(x: scene.size.width / 2, y: 130) // Castle position
             let distanceToTarget = sprite.position.distance(to: targetPosition)
             
-            if distanceToTarget <= 401 { // Matches the stopDistance in moveGoblin
-                print("Ranged goblin is within range and starts shooting.")
+            if distanceToTarget <= 800 { // Increased shooting range to 450
+                // Create arrow shooting sequence
                 let spawnArrow = SKAction.run { [weak self] in
                     guard let self = self else { return }
-                    if self.sprite.position.distance(to: targetPosition) <= 401 {  // Double-check distance before each shot
-                        scene.goblinManager.spawnArrow(from: self.sprite.position, 
-                                                     to: targetPosition)
-                    }
+                    scene.goblinManager.spawnArrow(from: self.sprite.position, 
+                                                 to: targetPosition)
                 }
                 let waitAction = SKAction.wait(forDuration: 1.5)
                 let attackSequence = SKAction.sequence([spawnArrow, waitAction])
                 let repeatAttack = SKAction.repeatForever(attackSequence)
                 sprite.run(repeatAttack, withKey: "rangedAttack")
-            } else {
-                print("Ranged goblin is not within range. Current distance: \(distanceToTarget)")
-                
-                // Add a check action that continuously monitors distance
-                let checkRangeAction = SKAction.run { [weak self] in
-                    guard let self = self else { return }
-                    let currentDistance = self.sprite.position.distance(to: targetPosition)
-                    if currentDistance <= 400 && !self.sprite.hasActions() {
-                        self.startRangedAttack(scene: scene)
-                    }
-                }
-                let waitAction = SKAction.wait(forDuration: 0.5)  // Check every half second
-                let checkSequence = SKAction.sequence([checkRangeAction, waitAction])
-                sprite.run(SKAction.repeatForever(checkSequence), withKey: "checkRange")
             }
         }
         
@@ -380,41 +374,174 @@ public class Goblin {
         return .normal
     }
     
+    private func setupPathPoints(screenWidth: CGFloat, screenHeight: CGFloat) {
+        let startY: CGFloat = screenHeight + 50
+        let endY: CGFloat = 200  // Height where path straightens
+        let segmentHeight: CGFloat = (startY - endY) / 2
+        
+        pathPoints = [
+            CGPoint(x: screenWidth * 0.2, y: startY),              // Start
+            CGPoint(x: screenWidth * 0.8, y: startY - segmentHeight), // First curve
+            CGPoint(x: screenWidth * 0.2, y: startY - segmentHeight * 1.3), // New middle curve
+            CGPoint(x: screenWidth * 0.8, y: endY + segmentHeight * 0.5),  // Last curve
+            CGPoint(x: screenWidth * 0.5, y: endY)                 // Straighten point
+        ]
+    }
+    
+    private struct RangedGoblinConfig {
+        static let minPathDistance: CGFloat = 0.5 // 50% along the path
+        static let maxPathDistance: CGFloat = 0.7 // 70% along the path
+    }
+    
     private func moveGoblin(container: GoblinContainer, to targetPosition: CGPoint, in gameScene: GameScene) {
-        let distanceToTarget = container.sprite.position.distance(to: targetPosition)
-        let stopDistance: CGFloat = container.isRanged ? 400 : 0  // Ranged goblins stop at 400, melee at 0
-
-        if distanceToTarget > stopDistance {
-            // Calculate the actual stop position for ranged goblins
-            let finalPosition: CGPoint
-            if container.isRanged {
-                let direction = (targetPosition - container.sprite.position).normalized()
-                let stopPoint = targetPosition - (direction * stopDistance)
-                finalPosition = stopPoint
-            } else {
-                finalPosition = targetPosition
-            }
-
-            let moveDuration = TimeInterval((distanceToTarget - stopDistance) / goblinSpeed(for: container.type))
-            let moveAction = SKAction.move(to: finalPosition, duration: moveDuration)
-            
-            let startAttackAction = SKAction.run { [weak container] in
-                container?.startAttacking()
-            }
-            
-            let sequence = SKAction.sequence([moveAction, startAttackAction])
-            container.sprite.run(sequence)
-        } else {
-            container.startAttacking()
+        // Convert relative path points to absolute positions
+        let absolutePoints = GameConfig.goblinPathPoints.map { point in
+            CGPoint(x: point.x * gameScene.size.width, y: point.y * gameScene.size.height)
         }
+        
+        // Create move actions
+        var actions: [SKAction] = []
+        let speed = goblinSpeed(for: container.type)
+        
+        // Calculate total path length and segment lengths
+        var totalLength: CGFloat = 0
+        var segmentLengths: [CGFloat] = []
+        var currentPoint = container.sprite.position
+        
+        for point in absolutePoints {
+            let segmentLength = currentPoint.distance(to: point)
+            segmentLengths.append(segmentLength)
+            totalLength += segmentLength
+            currentPoint = point
+        }
+        
+        // For ranged goblins, calculate stop point
+        var stopAtSegment = -1
+        var stopAtDistance: CGFloat = 0
+        
+        if container.isRanged {
+            let minDistance = totalLength * RangedGoblinConfig.minPathDistance
+            let maxDistance = totalLength * RangedGoblinConfig.maxPathDistance
+            let randomStopDistance = CGFloat.random(in: minDistance...maxDistance)
+            
+            // Find which segment to stop at
+            var accumulatedDistance: CGFloat = 0
+            for (index, length) in segmentLengths.enumerated() {
+                if accumulatedDistance + length >= randomStopDistance {
+                    stopAtSegment = index
+                    stopAtDistance = randomStopDistance - accumulatedDistance
+                    break
+                }
+                accumulatedDistance += length
+            }
+        }
+        
+        // Start from current position
+        currentPoint = container.sprite.position
+        
+        // Create movement actions for each path segment
+        for (index, point) in absolutePoints.enumerated() {
+            if container.isRanged && index == stopAtSegment {
+                // Calculate partial movement for ranged goblin stop point
+                let direction = (point - currentPoint).normalized()
+                let stopPoint = currentPoint + direction * stopAtDistance
+                
+                let partialDistance = currentPoint.distance(to: stopPoint)
+                let partialDuration = TimeInterval(partialDistance / speed)
+                
+                let moveAction = SKAction.move(to: stopPoint, duration: partialDuration)
+                actions.append(moveAction)
+                
+                let startAttack = SKAction.run { [weak container] in
+                    container?.startAttacking()    // Changed to use startAttacking()
+                }
+                actions.append(startAttack)
+                break
+            } else {
+                let distance = currentPoint.distance(to: point)
+                let duration = TimeInterval(distance / speed)
+                
+                let moveAction = SKAction.move(to: point, duration: duration)
+                actions.append(moveAction)
+                
+                currentPoint = point
+            }
+        }
+        
+        // Modified attack action for melee goblins
+        if !container.isRanged {
+            let finalDistance = currentPoint.distance(to: targetPosition)
+            let finalDuration = TimeInterval(finalDistance / speed)
+            let finalMove = SKAction.move(to: targetPosition, duration: finalDuration)
+            actions.append(finalMove)
+            
+            let startAttack = SKAction.run { [weak container] in
+                container?.startAttacking()    // Changed to use startAttacking()
+            }
+            actions.append(startAttack)
+        }
+        
+        // Run the sequence with completion handler
+        let sequence = SKAction.sequence(actions)
+        container.sprite.run(sequence, withKey: "movementSequence")
+    }
+    
+    // Enhanced quadratic bezier point calculation
+    private func quadraticBezierPoint(t: CGFloat, start: CGPoint, control: CGPoint, end: CGPoint) -> CGPoint {
+        let t1 = 1.0 - t
+        let x = t1 * t1 * start.x + 2.0 * t1 * t * control.x + t * t * end.x
+        let y = t1 * t1 * start.y + 2.0 * t1 * t * control.y + t * t * end.y
+        return CGPoint(x: x, y: y)
+    }
+
+    // Enhanced curve points generation
+    private func addCurvePoints(start: CGPoint, end: CGPoint, control: CGPoint, count: Int) -> [CGPoint] {
+        var points: [CGPoint] = []
+        for i in 1...count {
+            let t = CGFloat(i) / CGFloat(count)
+            let point = quadraticBezierPoint(t: t, start: start, control: control, end: end)
+            points.append(point)
+        }
+        return points
+    }
+
+    // Enhanced point interpolation
+    private func interpolatePoints(start: CGPoint, end: CGPoint, count: Int) -> [CGPoint] {
+        var points: [CGPoint] = []
+        for i in 1...count {
+            let progress = CGFloat(i) / CGFloat(count)
+            
+            // Add slight curve to interpolation
+            let midPoint = CGPoint(
+                x: (start.x + end.x) / 2,
+                y: ((start.y + end.y) / 2) - 20 // Slight curve upward
+            )
+            
+            let x = quadraticBezierPoint(
+                t: progress,
+                start: start,
+                control: midPoint,
+                end: end
+            ).x
+            
+            let y = quadraticBezierPoint(
+                t: progress,
+                start: start,
+                control: midPoint,
+                end: end
+            ).y
+            
+            points.append(CGPoint(x: x, y: y))
+        }
+        return points
     }
     
     func goblinSpeed(for type: GoblinType) -> CGFloat {
         switch type {
         case .normal, .ranged:
-            return 100
+            return 125
         case .large:
-            return 50
+            return 65
         case .small:
             return 200
         // case .arrow:
@@ -425,11 +552,11 @@ public class Goblin {
     func goblinHealth(for type: GoblinType) -> CGFloat {
         switch type {
         case .normal, .ranged:
-            return 50
+            return 75 //3 default hits
         case .large:
-            return 125
+            return 175 // 7 default hits
         case .small:
-            return 25
+            return 25 //1 default hit
         // case .arrow:
         //     return 0
         }
@@ -468,7 +595,7 @@ public class Goblin {
         case .normal:
             return "normalGoblin"
         case .large:
-            return "Goblin1"
+            return "largeGoblin"
         case .ranged:
             return "rangedGoblin" // You'll need to add this asset
         // case .arrow:
@@ -532,28 +659,42 @@ public class Goblin {
 
     private func spawnArrow(from startPosition: CGPoint, to targetPosition: CGPoint) {
         guard let gameScene = scene as? GameScene else { return }
-
-        // Create the arrow sprite
+        
+        // Create arrow sprite
         let arrowSprite = SKSpriteNode(imageNamed: "Arrow")
         arrowSprite.size = CGSize(width: 25, height: 25)
         arrowSprite.position = startPosition
         arrowSprite.zPosition = 1
-
+        
+        // Calculate the angle between start position and target
+        let dx = targetPosition.x - startPosition.x
+        let dy = targetPosition.y - startPosition.y
+        let angle = atan2(dy, dx) + .pi / 2 // Add 90 degrees because arrow sprite points up
+        
+        // Set the arrow's rotation
+        arrowSprite.zRotation = angle
+        
         // Create arrow container
         let arrowContainer = ArrowContainer(sprite: arrowSprite, damage: 5)
         arrowContainers.append(arrowContainer)
-
+        
         // Calculate movement duration based on distance and speed
-        let moveDuration = TimeInterval(startPosition.distance(to: targetPosition) / arrowSpeed())
+        let distance = startPosition.distance(to: targetPosition)
+        let speed: CGFloat = 300 // Adjust arrow speed as needed
+        let moveDuration = TimeInterval(distance / speed)
 
+        SoundManager.shared.playSound("goblin_ranged_attack")
+        
         // Define the movement action
         let moveAction = SKAction.move(to: targetPosition, duration: moveDuration)
         let damageAction = SKAction.run { [weak self] in
+            // Play arrow hit sound when it hits the castle
+            SoundManager.shared.playSound("goblin_ranged_hit")
             gameScene.castleTakeDamage(damage: arrowContainer.damage)
             self?.removeArrow(container: arrowContainer)
         }
         let sequence = SKAction.sequence([moveAction, damageAction])
-
+        
         arrowSprite.run(sequence)
         gameScene.addChild(arrowSprite)
     }
@@ -627,6 +768,33 @@ public class Goblin {
     func removeTargetingOverlay() {
         scene?.childNode(withName: "targetAreaOverlay")?.removeFromParent()
     }
+
+    func resetState() {
+        // Clear all goblin containers
+        for container in goblinContainers {
+            container.sprite.removeFromParent()
+            container.healthBar.removeFromParent()
+            container.healthFill.removeFromParent()
+        }
+        goblinContainers.removeAll()
+        
+        // Clear shadow goblins
+        for shadow in shadowGoblins {
+            shadow.sprite.removeFromParent()
+            shadow.healthBar.removeFromParent()
+            shadow.healthFill.removeFromParent()
+        }
+        shadowGoblins.removeAll()
+        
+        // Clear arrows
+        for arrow in arrowContainers {
+            arrow.sprite.removeFromParent()
+        }
+        arrowContainers.removeAll()
+        
+        // Reset path points
+        pathPoints.removeAll()
+    }
 }
 
 // Add this extension to your Goblin.swift file
@@ -639,5 +807,36 @@ extension Goblin.GoblinContainer: Hashable {
     public func hash(into hasher: inout Hasher) {
         // Hash using object identity
         hasher.combine(ObjectIdentifier(self))
+    }
+}
+
+extension CGPath {
+    func length() -> CGFloat {
+        var length: CGFloat = 0
+        var previousPoint = CGPoint.zero
+        var isFirstPoint = true
+        
+        self.applyWithBlock { element in
+            let points = element.pointee.points
+            
+            switch element.pointee.type {
+            case .moveToPoint, .addLineToPoint:
+                if isFirstPoint {
+                    previousPoint = points[0]
+                    isFirstPoint = false
+                } else {
+                    length += previousPoint.distance(to: points[0])
+                    previousPoint = points[0]
+                }
+            case .addQuadCurveToPoint, .addCurveToPoint:
+                // Approximate curve length using end points
+                length += previousPoint.distance(to: points[0])
+                previousPoint = points[0]
+            default:
+                break
+            }
+        }
+        
+        return length
     }
 }

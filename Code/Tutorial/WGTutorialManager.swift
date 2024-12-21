@@ -9,6 +9,9 @@ class TutorialManager {
         case castleHealth
         case manaSystem
         case spellTypes
+        case spellSwapping
+        case specialAbilities
+        case goblinTypes
         case scoring
         case complete
     }
@@ -119,7 +122,7 @@ class TutorialManager {
         
         switch currentStep {
         case .welcome:
-            showMessage("Welcome to Wizards & Goblins!\nLet's learn the basics.")
+            showMessage("Welcome to Wizards & Goblins!\nLet's learn how to defend your castle!")
             
         case .castleHealth:
             highlightUIElement(node: gameScene.playerView.tutorialCastleHealthBar, 
@@ -133,14 +136,27 @@ class TutorialManager {
             
         case .spellTypes:
             highlightUIElement(node: gameScene.playerView.spellIcon, 
-                             description: "Tap the wizard to cycle through spell types.\nDifferent spells have different effects!")
+                             description: "Different spells have different effects!\nSome do direct damage, others slow or chain between enemies.")
+            
+        case .spellSwapping:
+            highlightUIElement(node: gameScene.playerView.spellIcon,
+                             description: "Swipe left or right on the spell icon to switch between your available spells!")
+            
+        case .specialAbilities:
+            if let specialButton = gameScene.playerView.tutorialSpecialButtons.first {
+                highlightUIElement(node: specialButton,
+                                 description: "Special abilities are powerful skills with cooldowns.\nTap the icons to use them when ready!")
+            }
+            
+        case .goblinTypes:
+            showMessage("Watch out for different goblin types!\nRanged goblins attack from afar,\nwhile larger goblins are tougher to defeat.")
             
         case .scoring:
             highlightUIElement(node: gameScene.playerView.tutorialScoreLabel, 
-                             description: "Earn points by defeating goblins.\nCollect coins to upgrade your wizards!")
+                             description: "Defeat goblins to earn points and coins.\nChain kills to build up your combo multiplier!")
             
         case .complete:
-            showMessage("You're ready to play!\nGood luck defending your castle!")
+            showMessage("You're ready to defend your castle!\nGood luck, wizard!")
         }
     }
     
@@ -151,22 +167,28 @@ class TutorialManager {
         guard let messageBox = messageBox else { return }
         let touchLocation = touch.location(in: messageBox.parent!)
         
-            switch currentStep {
-            case .welcome:
-                currentStep = .castleHealth
-            case .castleHealth:
-                currentStep = .manaSystem
-            case .manaSystem:
-                currentStep = .spellTypes
-            case .spellTypes:
-                currentStep = .scoring
-            case .scoring:
-                currentStep = .complete
-            case .complete:
-                endTutorial()
-                return
-            }
-            
+        switch currentStep {
+        case .welcome:
+            currentStep = .castleHealth
+        case .castleHealth:
+            currentStep = .manaSystem
+        case .manaSystem:
+            currentStep = .spellTypes
+        case .spellTypes:
+            currentStep = .spellSwapping
+        case .spellSwapping:
+            currentStep = .specialAbilities
+        case .specialAbilities:
+            currentStep = .goblinTypes
+        case .goblinTypes:
+            currentStep = .scoring
+        case .scoring:
+            currentStep = .complete
+        case .complete:
+            endTutorial()
+            return
+        }
+        
         transitionToNextStep()
     }
     
@@ -253,12 +275,6 @@ class TutorialManager {
         frame.zPosition = 1000
         scene.addChild(frame)
         
-        // Add pulsing animation
-        let scaleUp = SKAction.scale(to: 1.1, duration: 0.5)
-        let scaleDown = SKAction.scale(to: 1.0, duration: 0.5)
-        let pulse = SKAction.sequence([scaleUp, scaleDown])
-        frame.run(SKAction.repeatForever(pulse))
-        
         // Position message box near the highlighted element
         let messageBox = createMessageBox(text: description)
         let boxSize = messageBox.size
@@ -277,8 +293,8 @@ class TutorialManager {
         messageBox?.removeFromParent()
         
         // Create message box with rounded corners
-        let boxWidth: CGFloat = 300
-        let boxHeight: CGFloat = 150
+        let boxWidth: CGFloat = 350  // Increased from 300
+        let boxHeight: CGFloat = 170 // Increased from 150
         messageBox = SKSpriteNode(color: .white, size: CGSize(width: boxWidth, height: boxHeight))
         messageBox?.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
         messageBox?.zPosition = 1001
@@ -323,8 +339,8 @@ class TutorialManager {
     
     private func createMessageBox(text: String) -> SKSpriteNode {
         // Create message box with rounded corners
-        let boxWidth: CGFloat = 300
-        let boxHeight: CGFloat = 100
+        let boxWidth: CGFloat = 350  // Increased from 300
+        let boxHeight: CGFloat = 120 // Increased from 100
         let messageBox = SKSpriteNode(color: .white, size: CGSize(width: boxWidth, height: boxHeight))
         messageBox.alpha = 0.9
         messageBox.zPosition = 1001

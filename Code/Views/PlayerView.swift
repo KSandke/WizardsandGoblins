@@ -24,12 +24,17 @@ class PlayerView: SKNode {
     var tutorialCoinLabel: SKLabelNode { coinLabel }
     var tutorialChargeSegments: [SKShapeNode] { chargeSegments }
     var tutorialComboLabel: SKLabelNode { comboLabel }
+    var tutorialSpecialButtons: [SKSpriteNode] { specialButtons }
 
     var playerPosition: CGPoint { wizard.position }
     
     internal var spellIcon: SKSpriteNode!
     internal var inactiveSpellIconLeft: SKSpriteNode!
     internal var inactiveSpellIconRight: SKSpriteNode!
+    
+    var isInventoryOpen = false
+    private var inventoryButton: SKSpriteNode!
+    private var inventoryView: SKNode?
     
     // Add new properties for animation
     private var castingFrames: [SKTexture] = []
@@ -48,6 +53,13 @@ class PlayerView: SKNode {
     
     private var lastSpecialTapTime: TimeInterval = 0
     
+    // Add property for health label
+    private var castleHealthLabel: SKLabelNode!
+    
+    // Reference to the potion effect bar elements
+    private var potionEffectBar: SKShapeNode?
+    private var potionEffectLabel: SKLabelNode?
+    
     init(scene: SKScene, state: PlayerState) {
         self.parentScene = scene
         self.state = state
@@ -64,6 +76,18 @@ class PlayerView: SKNode {
         setupBindings()
         setupUI()
         setupSpecialButton()
+        
+        // Initialize the potion effect bar
+        setupPotionEffectBar(in: scene)
+        
+        // Observe the infinite mana status
+        state.onInfiniteManaStatusChanged = { [weak self] isActive in
+            self?.updatePotionEffectBar(isActive: isActive)
+        }
+
+        state.onHealthRestored = { [weak self] amount in
+            self?.displayHealthRestoration(in: scene, amount: amount)
+        }
     }
     
     // Add required initializer
@@ -104,9 +128,9 @@ class PlayerView: SKNode {
             self?.updateComboLabel(combo: combo)
         }
 
-        // Add binding for temporary spell changes
-        state.onTemporarySpellChanged = { [weak self] spell in
-            self?.updateSpellIcon()
+        // Add binding for special slots changes
+        state.onSpecialSlotsChanged = { [weak self] index in
+            self?.updateSpecialButton(at: index)
         }
     }
     
@@ -119,13 +143,19 @@ class PlayerView: SKNode {
         setupWaveLabel()
         setupSpellIcons()
         setupComboLabel()
-        setupInventoryButton()
     }
     
     private func setupCastle() {
         guard let scene = parentScene else { return }
         
-        castle.position = CGPoint(x: scene.size.width/2, y: 60)
+        // Add castle sprite overlay
+        let castleOverlay = SKSpriteNode(imageNamed: "castle")
+        castleOverlay.size = CGSize(width: castle.size.width, height: 900)
+        castleOverlay.position = CGPoint(x: scene.size.width/2, y: 60 + (900 - 150)/2)
+        castleOverlay.zPosition = 450  // Place above base castle but below health elements
+        scene.addChild(castleOverlay)
+        
+        castle.position = CGPoint(x: scene.size.width/2, y: 50)
         scene.addChild(castle)
         
         castleHealthBar.fillColor = .gray
@@ -137,8 +167,25 @@ class PlayerView: SKNode {
         castleHealthFill.strokeColor = .clear
         castleHealthFill.position = castleHealthBar.position
         scene.addChild(castleHealthFill)
-
-
+        
+        // Add health label
+        castleHealthLabel = SKLabelNode(text: "\(Int(state.castleHealth))/\(Int(state.maxCastleHealth))")
+        castleHealthLabel.fontSize = 14
+        castleHealthLabel.fontColor = .black
+        castleHealthLabel.position = CGPoint(x: castleHealthBar.position.x, y: castleHealthBar.position.y - 5)
+        castleHealthLabel.fontName = "AvenirNext-Bold"
+        castleHealthLabel.horizontalAlignmentMode = .center
+        castleHealthLabel.zPosition = 500 
+        
+        let shadowLabel = SKLabelNode(text: castleHealthLabel.text)
+        shadowLabel.fontSize = castleHealthLabel.fontSize
+        shadowLabel.fontColor = .black
+        shadowLabel.position = CGPoint(x: 1, y: -1)
+        shadowLabel.fontName = castleHealthLabel.fontName
+        shadowLabel.horizontalAlignmentMode = .center
+        castleHealthLabel.addChild(shadowLabel)
+        
+        scene.addChild(castleHealthLabel)
         
         updateCastleHealthBar(health: state.castleHealth)
     }
@@ -150,7 +197,8 @@ class PlayerView: SKNode {
         loadCastingAnimation()
         
         wizard.size = CGSize(width: 125, height: 125)
-        wizard.position = CGPoint(x: 80, y: 100)
+        wizard.position = CGPoint(x: 55, y: 160)
+        wizard.zPosition = 500
         scene.addChild(wizard)
     }
     
@@ -214,11 +262,13 @@ class PlayerView: SKNode {
         let totalWidth = scaledSegmentWidth + scaledSpacingWidth
         
         let startX = 20
+        let chargeY = pos.y - 110
         
         for i in 0..<state.maxSpellCharges {
             let segment = SKShapeNode(rectOf: CGSize(width: segmentWidth, height: segmentHeight))
             segment.fillColor = .blue
             segment.strokeColor = .black
+            segment.zPosition = 500
             
             // Calculate x position in steps
             let offset = CGFloat(i) * (segmentWidth + spacing)
@@ -227,7 +277,7 @@ class PlayerView: SKNode {
             
             segment.position = CGPoint(
                 x: xPosition,
-                y: pos.y - 50
+                y: chargeY
             )
             scene.addChild(segment)
             segments.append(segment)
@@ -349,6 +399,12 @@ class PlayerView: SKNode {
 
     private func updateCastleHealthBar(health: CGFloat) {
         castleHealthFill.xScale = health / state.maxCastleHealth
+        
+        // Update health label
+        castleHealthLabel.text = "\(Int(health))/\(Int(state.maxCastleHealth))"
+        if let shadowLabel = castleHealthLabel.children.first as? SKLabelNode {
+            shadowLabel.text = castleHealthLabel.text
+        }
     }
     
     private func updateScoreLabel(score: Int) {
@@ -397,7 +453,8 @@ class PlayerView: SKNode {
         // Active spell icon setup
         spellIcon = SKSpriteNode(imageNamed: state.getCurrentSpell().name)
         spellIcon.size = CGSize(width: 45, height: 45)
-        spellIcon.position = CGPoint(x: wizard.position.x + 130, y: wizard.position.y - 10)
+        // Move down and to the left under wizard
+        spellIcon.position = CGPoint(x: wizard.position.x, y: wizard.position.y - 70)
         spellIcon.name = "cycleSpell"
         
         let spellLabel = SKLabelNode(fontNamed: "HelveticaNeue")
@@ -419,11 +476,11 @@ class PlayerView: SKNode {
         let spacing: CGFloat = 40
         let baseX = spellIcon.position.x
         
-        // Setup left inactive spell
+        // Setup left inactive spell with adjusted y position
         inactiveSpellIconLeft = SKSpriteNode(imageNamed: "EmptySpell")
         inactiveSpellIconLeft.size = inactiveSize
         inactiveSpellIconLeft.alpha = 0.6
-        inactiveSpellIconLeft.position = CGPoint(x: baseX - spacing, y: wizard.position.y)
+        inactiveSpellIconLeft.position = CGPoint(x: baseX - spacing, y: wizard.position.y - 60)
         inactiveSpellIconLeft.name = "inactiveSpell_left"
         
         let leftBorder = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
@@ -433,11 +490,11 @@ class PlayerView: SKNode {
         leftBorder.name = "inactiveSpellBorder_left"
         leftBorder.alpha = 0.6
         
-        // Setup right inactive spell
+        // Setup right inactive spell with adjusted y position
         inactiveSpellIconRight = SKSpriteNode(imageNamed: "EmptySpell")
         inactiveSpellIconRight.size = inactiveSize
         inactiveSpellIconRight.alpha = 0.6
-        inactiveSpellIconRight.position = CGPoint(x: baseX + spacing, y: wizard.position.y)
+        inactiveSpellIconRight.position = CGPoint(x: baseX + spacing, y: wizard.position.y - 60)
         inactiveSpellIconRight.name = "inactiveSpell_right"
         
         let rightBorder = SKShapeNode(rectOf: CGSize(width: inactiveSize.width + 4, height: inactiveSize.height + 4))
@@ -454,6 +511,13 @@ class PlayerView: SKNode {
         scene.addChild(spellIcon)
         
         updateSpellIcon() // Initial update of all spell icons
+        
+        spellIcon.zPosition = 500
+        borderBox.zPosition = 500
+        inactiveSpellIconLeft.zPosition = 500
+        inactiveSpellIconRight.zPosition = 500
+        leftBorder.zPosition = 500
+        rightBorder.zPosition = 500
     }
 
     func handleSpellCycleTouch(_ touchedNode: SKNode) {
@@ -655,146 +719,6 @@ class PlayerView: SKNode {
         // Run the sequence
         worldNode.run(SKAction.sequence(actions))
     }
-    
-    private func setupInventoryButton() {
-        guard let scene = parentScene else { return }
-        
-        // Create inventory button
-        inventoryButton = SKSpriteNode(imageNamed: "inventory_icon") // Add this image to assets
-        inventoryButton.size = CGSize(width: 40, height: 40)
-        inventoryButton.position = CGPoint(x: scene.size.width - 50, y: 50)
-        inventoryButton.name = "inventoryButton"
-        scene.addChild(inventoryButton)
-    }
-    
-    func showInventoryDisplay() {
-        guard let scene = parentScene else { return }
-        
-        // Remove existing inventory display if any
-        inventoryDisplay?.removeFromParent()
-        
-        // Create inventory display container
-        let container = SKNode()
-        
-        // Create semi-transparent background
-        let background = SKShapeNode(rectOf: CGSize(width: scene.size.width * 0.8, height: scene.size.height * 0.8))
-        background.fillColor = .black.withAlphaComponent(0.8)
-        background.strokeColor = .white
-        background.position = CGPoint(x: scene.size.width/2, y: scene.size.height/2)
-        background.name = "inventoryBackground"  // Assign a name for debugging
-        container.addChild(background)
-        
-        // Add title
-        let title = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        title.text = "Spell Inventory"
-        title.fontSize = 32
-        title.fontColor = .white
-        title.position = CGPoint(x: scene.size.width/2, y: scene.size.height * 0.8)
-        title.name = "inventoryTitle"  // Assign a name for debugging
-        container.addChild(title)
-        
-        // Display spells in a grid
-        let spellSize: CGFloat = 60
-        let padding: CGFloat = 20
-        let spellsPerRow = 4
-        var row = 0
-        var col = 0
-        
-        // Calculate starting position
-        let startX = scene.size.width/2 - (spellSize + padding) * CGFloat(spellsPerRow-1)/2
-        let startY = scene.size.height * 0.6
-        
-        // Display consumable spells
-        for (spellName, count) in state.consumableSpells where count > 0 {
-            // Create the spell icon
-            let spellIcon = SKSpriteNode(imageNamed: spellName)
-            spellIcon.size = CGSize(width: spellSize, height: spellSize)
-            spellIcon.name = "inventorySpell_\(spellName)"
-            spellIcon.position = CGPoint(
-                x: startX + CGFloat(col) * (spellSize + padding),
-                y: startY - CGFloat(row) * (spellSize + padding)
-            )
-            
-            // Add count label
-            let countLabel = SKLabelNode(fontNamed: "HelveticaNeue")
-            countLabel.text = "x\(count)"
-            countLabel.fontSize = 16
-            countLabel.fontColor = .white
-            countLabel.position = CGPoint(x: spellSize/2 - 5, y: -spellSize/2 + 5)
-            countLabel.horizontalAlignmentMode = .right
-            spellIcon.addChild(countLabel)
-            
-            container.addChild(spellIcon)
-            
-            // Update grid position
-            col += 1
-            if col >= spellsPerRow {
-                col = 0
-                row += 1
-            }
-        }
-        
-        // Add close button
-        let closeButton = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
-        closeButton.text = "Close"
-        closeButton.fontSize = 24
-        closeButton.fontColor = .white
-        closeButton.name = "closeInventory"
-        closeButton.position = CGPoint(x: scene.size.width/2, y: scene.size.height * 0.25)
-        container.addChild(closeButton)
-        
-        container.zPosition = 1000
-        scene.addChild(container)
-        inventoryDisplay = container
-    }
-    
-    func hideInventoryDisplay() {
-        inventoryDisplay?.removeFromParent()
-        inventoryDisplay = nil
-    }
-    
-    func handleInventoryButton(_ touchedNode: SKNode) {
-        print("Handling inventory interaction: \(touchedNode.name ?? "unnamed node")")
-        
-        if touchedNode.name == "inventoryButton" {
-            showInventoryDisplay()
-        } else if touchedNode.name == "closeInventory" {
-            hideInventoryDisplay()
-        } else if let name = touchedNode.name,
-                  name.starts(with: "inventorySpell_") {
-            let spellName = String(name.dropFirst("inventorySpell_".count))
-            print("🎯 Inventory spell icon pressed: \(spellName)")  // Debug: Specific spell icon press
-            
-            // Add visual feedback
-            if let spellIcon = touchedNode as? SKSpriteNode {
-                // Flash effect
-                let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
-                let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
-                let flash = SKAction.sequence([scaleUp, scaleDown])
-                
-                // White flash overlay
-                let overlay = SKSpriteNode(color: .white, size: spellIcon.size)
-                overlay.alpha = 0.5
-                spellIcon.addChild(overlay)
-                
-                // Combine animations
-                let fadeOut = SKAction.fadeOut(withDuration: 0.2)
-                let remove = SKAction.removeFromParent()
-                overlay.run(SKAction.sequence([fadeOut, remove]))
-                spellIcon.run(flash)
-            }
-            
-            if state.useInventorySpell(spellName) {
-                print("✅ Successfully created temporary spell: \(spellName)")  // Debug: Success confirmation
-                hideInventoryDisplay()
-                
-                // Update the spell icons to show the new active spell
-                updateSpellIcon()
-            } else {
-                print("❌ Failed to use inventory spell: \(spellName)")
-            }
-        }
-    }
 
     private func setupSpecialButton() {
         guard let scene = parentScene else { return }
@@ -802,20 +726,27 @@ class PlayerView: SKNode {
         // Constants for button layout
         let buttonSize = CGSize(width: 60, height: 60)
         let verticalSpacing: CGFloat = 70
-        let baseX = scene.frame.maxX - 60
+        let baseX = scene.frame.maxX - 43
         let baseY = scene.frame.minY + 70
         
-        // Create three special buttons
-        for i in 0..<3 {
-            // Create button with default "empty" state
-            let button = SKSpriteNode(imageNamed: "EmptySpecial")
-            button.size = buttonSize
-            button.position = CGPoint(x: baseX, y: baseY + CGFloat(i) * verticalSpacing)
+        // Create four special buttons
+        for i in 0..<4 {
+            // Create border first
+            let border = SKShapeNode(rectOf: CGSize(width: buttonSize.width + 4, height: buttonSize.height + 4),
+                                    cornerRadius: 8)
+            border.strokeColor = .black
+            border.lineWidth = 2
+            border.position = CGPoint(x: baseX, y: baseY + CGFloat(i) * verticalSpacing)
+            scene.addChild(border)
+            
+            // Create button with transparent background
+            let button = SKSpriteNode(color: .clear, size: buttonSize)
+            button.position = border.position
             button.name = "specialButton\(i)"
             scene.addChild(button)
             specialButtons.append(button)
             
-            // Create cooldown overlay for each button
+            // Create cooldown overlay
             let cooldownOverlay = SKShapeNode(circleOfRadius: 30)
             cooldownOverlay.fillColor = SKColor.black.withAlphaComponent(0.5)
             cooldownOverlay.strokeColor = .clear
@@ -824,11 +755,12 @@ class PlayerView: SKNode {
             scene.addChild(cooldownOverlay)
             specialCooldownOverlays.append(cooldownOverlay)
             
-            // Update button if there's an active special for this slot
-            let specialSlots = state.getSpecialSlots()
-            if let currentSpecial = specialSlots[i] {
-                button.texture = SKTexture(imageNamed: currentSpecial.name)
-            }
+            // Update the button texture immediately
+            updateSpecialButton(at: i)
+            
+            border.zPosition = 500
+            button.zPosition = 500
+            cooldownOverlay.zPosition = 501  // Slightly above the button
         }
         
         let updateAction = SKAction.run { [weak self] in
@@ -909,10 +841,119 @@ class PlayerView: SKNode {
         if let currentSpecial = specialSlots[index] {
             print("🔄 Updating Special Button \(index): \(currentSpecial.name)")
             specialButtons[index].texture = SKTexture(imageNamed: currentSpecial.name)
+            
+            // Add a scale animation for feedback
+            let scaleUp = SKAction.scale(to: 1.2, duration: 0.1)
+            let scaleDown = SKAction.scale(to: 1.0, duration: 0.1)
+            specialButtons[index].run(SKAction.sequence([scaleUp, scaleDown]))
         } else {
             print("🔄 Updating Special Button \(index): Empty")
-            specialButtons[index].texture = SKTexture(imageNamed: "EmptySpecial")
+            specialButtons[index].texture = nil
         }
         updateSpecialCooldown(at: index)
+    }
+
+    // Add methods to setup and update the potion effect bar
+    func setupPotionEffectBar(in scene: SKScene) {
+        // Match combo timer bar dimensions
+        let barWidth: CGFloat = 80
+        let barHeight: CGFloat = 4
+        
+        potionEffectBar = SKShapeNode(rectOf: CGSize(width: barWidth, height: barHeight))
+        potionEffectBar?.fillColor = .blue
+        potionEffectBar?.strokeColor = .clear
+        // Position below combo timer
+        potionEffectBar?.position = CGPoint(x: comboTimerBar.position.x, y: comboTimerBar.position.y - 30)
+        potionEffectBar?.isHidden = true
+        scene.addChild(potionEffectBar!)
+
+        // Create label as separate node
+        potionEffectLabel = SKLabelNode(text: "Infinite Mana")
+        potionEffectLabel?.fontSize = 12
+        potionEffectLabel?.fontColor = .blue
+        potionEffectLabel?.position = CGPoint(x: comboTimerBar.position.x - 40, y: potionEffectBar!.position.y - 16)
+        potionEffectLabel?.fontName = "AvenirNext-Bold"
+        potionEffectLabel?.horizontalAlignmentMode = .left
+        potionEffectLabel?.isHidden = true
+        
+        // Add shadow effect
+        let shadowLabel = SKLabelNode(text: potionEffectLabel?.text)
+        shadowLabel.fontSize = potionEffectLabel?.fontSize ?? 12
+        shadowLabel.fontColor = .black
+        shadowLabel.position = CGPoint(x: 2, y: -2)
+        shadowLabel.fontName = potionEffectLabel?.fontName
+        shadowLabel.horizontalAlignmentMode = .left
+        potionEffectLabel?.addChild(shadowLabel)
+        
+        scene.addChild(potionEffectLabel!)
+    }
+
+    func updatePotionEffectBar(isActive: Bool) {
+        guard let potionEffectBar = potionEffectBar,
+              let potionEffectLabel = potionEffectLabel else { return }
+        
+        potionEffectBar.isHidden = !isActive
+        potionEffectLabel.isHidden = !isActive
+        
+        if isActive {
+            // Start countdown animation for bar only
+            let duration = GameConfig.manaPotionDuration
+            let scaleAction = SKAction.scaleX(to: 0, duration: duration)
+            let hideAction = SKAction.run { [weak self] in
+                self?.potionEffectBar?.isHidden = true
+                self?.potionEffectLabel?.isHidden = true
+            }
+            potionEffectBar.xScale = 1.0
+            potionEffectBar.run(SKAction.sequence([scaleAction, hideAction]))
+        } else {
+            potionEffectBar.removeAllActions()
+            potionEffectBar.xScale = 1.0
+        }
+    }
+
+    func displayHealthRestoration(in scene: SKScene, amount: CGFloat) {
+        let healingLabel = SKLabelNode(fontNamed: "HelveticaNeue-Bold")
+        healingLabel.text = "+\(Int(amount))"
+        healingLabel.fontSize = 24
+        healingLabel.fontColor = .red
+        healingLabel.position = CGPoint(x: playerPosition.x, y: playerPosition.y + 50)
+        healingLabel.zPosition = 10
+        scene.addChild(healingLabel)
+
+        let moveUp = SKAction.moveBy(x: 0, y: 30, duration: 1.0)
+        let fadeOut = SKAction.fadeOut(withDuration: 1.0)
+        let group = SKAction.group([moveUp, fadeOut])
+        let remove = SKAction.removeFromParent()
+        healingLabel.run(SKAction.sequence([group, remove]))
+    }
+
+    func resetView() {
+        // Reset UI elements
+        updateCastleHealthBar(health: state.maxCastleHealth)
+        updateScoreLabel(score: 0)
+        updateCoinsLabel(coins: GameConfig.initialCoins)
+        updateCharges(charges: GameConfig.initialSpellCharges)
+        updateComboLabel(combo: 0)
+        
+        // Reset spell icons
+        updateSpellIcon()
+        
+        // Reset special buttons
+        for i in 0..<specialButtons.count {
+            updateSpecialButton(at: i)
+        }
+        
+        // Reset potion effect bar if exists
+        resetPotionEffectBar()
+        
+        // Reset any animations
+        wizard.removeAllActions()
+        isAnimatingCast = false
+        wizard.texture = SKTexture(imageNamed: "Wizard")
+    }
+
+    private func resetPotionEffectBar() {
+        potionEffectBar?.xScale = 0
+        potionEffectLabel?.text = ""
     }
 }

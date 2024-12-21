@@ -91,7 +91,7 @@ class PlayerState: SpellCaster {
     var onComboChanged: ((Int) -> Void)?
     
     // New properties for specials
-    private var specialSlots: [Special?] = [nil, nil, nil]
+    private var specialSlots: [Special?] = [nil, nil, nil, nil]
     private var selectedSpecialIndex: Int = 0
     var currentSpecial: Special? {
         get { specialSlots[selectedSpecialIndex] }
@@ -109,6 +109,17 @@ class PlayerState: SpellCaster {
         return selectedSpecialIndex
     }
     
+    // Add the new callback
+    var onSpecialSlotsChanged: ((Int) -> Void)?
+    
+    // Infinite mana properties
+    private var infiniteManaActive = false
+    private var infiniteManaTimer: Timer?
+
+    // Callbacks
+    var onInfiniteManaStatusChanged: ((Bool) -> Void)?
+    var onHealthRestored: ((CGFloat) -> Void)?
+    
     // Constructor
     init(initialPosition: CGPoint = .zero) {
         self.playerPosition = initialPosition
@@ -125,7 +136,7 @@ class PlayerState: SpellCaster {
 
         ]
         
-        specialSlots = [nil, nil, nil]
+        specialSlots = [nil, nil, nil, nil]
     }
     
     // Callbacks for binding
@@ -176,16 +187,51 @@ class PlayerState: SpellCaster {
         score = 0
         coins = 0
         spellPowerMultiplier = GameConfig.defaultSpellPowerMultiplier  // Reset spell power
-        spellCharges = maxSpellCharges
         currentCombo = 0
         highestCombo = 0
+
+
+        // Reset spells
+        spellCharges = GameConfig.initialSpellCharges
+        maxSpellCharges = GameConfig.initialSpellCharges
+        currentSpell = FireballSpell()
+        availableSpells = [FireballSpell()]
+        
+        // Reset specials
+        specialSlots = Array(repeating: nil, count: GameConfig.maxSpecialSlots)
+        selectedSpecialIndex = 0
+        
+        // Clear timers
         comboTimer?.invalidate()
         comboTimer = nil
+        infiniteManaTimer?.invalidate()
+        infiniteManaTimer = nil
+        infiniteManaActive = false
+        
+        // Notify listeners of changes
+        onCastleHealthChanged?(castleHealth)
+        onCoinsChanged?(coins)
+        onScoreChanged?(score)
+        onComboChanged?(currentCombo)
+        onSpellChanged?(currentSpell)
+        onSpecialChanged?(nil, selectedSpecialIndex)
+        onPlayerChargesChanged?(spellCharges)
+        onMaxSpellChargesChanged?(maxSpellCharges)
+        onInfiniteManaStatusChanged?(false)
+        
+        // Reset infinite mana
+        deactivateInfiniteMana()
+        
+        // Additional resets if needed
     }
     
     // Simplify spell usage to single wizard
     func useSpell(cost: Int) -> Bool {
-        // Use the provided cost (which should be the spell's manaCost)
+        if infiniteManaActive {
+            // Spell cost is waived during infinite mana
+            return true
+        }
+        
         if spellCharges >= cost {
             spellCharges -= cost
             return true
@@ -306,10 +352,12 @@ class PlayerState: SpellCaster {
             // Found an empty slot, add the special there
             specialSlots[emptyIndex] = special
             onSpecialChanged?(special, emptyIndex)
+            onSpecialSlotsChanged?(emptyIndex)
         } else {
             // replace this with the new special selection screen
             specialSlots[selectedSpecialIndex] = special
             onSpecialChanged?(special, selectedSpecialIndex)
+            onSpecialSlotsChanged?(selectedSpecialIndex)
         }
     }
     
@@ -317,12 +365,14 @@ class PlayerState: SpellCaster {
         guard index >= 0 && index < specialSlots.count else { return }
         specialSlots[index] = special
         onSpecialChanged?(special, index)
+        onSpecialSlotsChanged?(index)
     }
     
     func removeSpecial(at index: Int) {
         guard index >= 0 && index < specialSlots.count else { return }
         specialSlots[index] = nil
         onSpecialChanged?(nil, index)
+        onSpecialSlotsChanged?(index)
     }
     
     func getSpecialSlots() -> [Special?] {
@@ -377,5 +427,33 @@ class PlayerState: SpellCaster {
         let previousIndex = (currentIndex - 1 + availableSpells.count) % availableSpells.count
         return availableSpells[previousIndex]
     }
+
+    // Add methods to activate and deactivate infinite mana
+    func activateInfiniteMana(duration: TimeInterval) {
+        // Play infinite mana activation sound
+        SoundManager.shared.playSound("infinite_mana_effect")
+        infiniteManaActive = true
+        onInfiniteManaStatusChanged?(true)
+        infiniteManaTimer?.invalidate()
+        infiniteManaTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
+            self?.deactivateInfiniteMana()
+        }
+    }
+
+    private func deactivateInfiniteMana() {
+        infiniteManaActive = false
+        onInfiniteManaStatusChanged?(false)
+        infiniteManaTimer?.invalidate()
+        infiniteManaTimer = nil
+    }
+
+    func isInfiniteManaActive() -> Bool {
+        return infiniteManaActive
+    }
+    
+    func restoreHealth(amount: CGFloat) {
+        castleHealth = min(maxCastleHealth, castleHealth + amount)
+    }
+
 
 }
