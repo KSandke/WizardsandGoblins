@@ -187,11 +187,37 @@ class PlayerState: SpellCaster {
         score = 0
         coins = 0
         spellPowerMultiplier = GameConfig.defaultSpellPowerMultiplier  // Reset spell power
-        spellCharges = maxSpellCharges
         currentCombo = 0
         highestCombo = 0
+
+
+        // Reset spells
+        spellCharges = GameConfig.initialSpellCharges
+        maxSpellCharges = GameConfig.initialSpellCharges
+        currentSpell = FireballSpell()
+        availableSpells = [FireballSpell()]
+        
+        // Reset specials
+        specialSlots = Array(repeating: nil, count: GameConfig.maxSpecialSlots)
+        selectedSpecialIndex = 0
+        
+        // Clear timers
         comboTimer?.invalidate()
         comboTimer = nil
+        infiniteManaTimer?.invalidate()
+        infiniteManaTimer = nil
+        infiniteManaActive = false
+        
+        // Notify listeners of changes
+        onCastleHealthChanged?(castleHealth)
+        onCoinsChanged?(coins)
+        onScoreChanged?(score)
+        onComboChanged?(currentCombo)
+        onSpellChanged?(currentSpell)
+        onSpecialChanged?(nil, selectedSpecialIndex)
+        onPlayerChargesChanged?(spellCharges)
+        onMaxSpellChargesChanged?(maxSpellCharges)
+        onInfiniteManaStatusChanged?(false)
         
         // Reset infinite mana
         deactivateInfiniteMana()
@@ -415,4 +441,6 @@ class PlayerState: SpellCaster {
     func restoreHealth(amount: CGFloat) {
         castleHealth = min(maxCastleHealth, castleHealth + amount)
     }
+
+
 }

@@ -21,22 +21,22 @@ class SoundManager {
     }
     
     func playSound(_ name: String) {
-        print("Attempting to play sound: \(name)")
+        //print("Attempting to play sound: \(name)")
         guard let url = Bundle.main.url(forResource: name, withExtension: "mp3") else {
             print("❌ Could not find sound file: \(name).mp3")
-            print("Bundle path: \(Bundle.main.bundlePath)")
+            //print("Bundle path: \(Bundle.main.bundlePath)")
             return
         }
         
         do {
-            print("Playing sound: \(name)")
+            //print("Playing sound: \(name)")
             let player = try AVAudioPlayer(contentsOf: url)
             player.enableRate = true
             player.rate = Float.random(in: 0.9...1.1)
             player.play()
             audioPlayers[name] = player
         } catch {
-            print("Failed to play sound: \(error)")
+            //print("Failed to play sound: \(error)")
         }
     }
     
@@ -59,7 +59,7 @@ class SoundManager {
     }
     
     func stopSound(_ name: String) {
-        print("Attempting to stop sound: \(name)")
+        //print("Attempting to stop sound: \(name)")
         if let player = audioPlayers[name] {
             player.stop()
             audioPlayers.removeValue(forKey: name)

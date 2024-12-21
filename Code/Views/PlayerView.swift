@@ -926,4 +926,34 @@ class PlayerView: SKNode {
         let remove = SKAction.removeFromParent()
         healingLabel.run(SKAction.sequence([group, remove]))
     }
+
+    func resetView() {
+        // Reset UI elements
+        updateCastleHealthBar(health: state.maxCastleHealth)
+        updateScoreLabel(score: 0)
+        updateCoinsLabel(coins: GameConfig.initialCoins)
+        updateCharges(charges: GameConfig.initialSpellCharges)
+        updateComboLabel(combo: 0)
+        
+        // Reset spell icons
+        updateSpellIcon()
+        
+        // Reset special buttons
+        for i in 0..<specialButtons.count {
+            updateSpecialButton(at: i)
+        }
+        
+        // Reset potion effect bar if exists
+        resetPotionEffectBar()
+        
+        // Reset any animations
+        wizard.removeAllActions()
+        isAnimatingCast = false
+        wizard.texture = SKTexture(imageNamed: "Wizard")
+    }
+
+    private func resetPotionEffectBar() {
+        potionEffectBar?.xScale = 0
+        potionEffectLabel?.text = ""
+    }
 }

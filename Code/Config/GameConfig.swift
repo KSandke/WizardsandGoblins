@@ -63,4 +63,12 @@ struct GameConfig {
         CGPoint(x: 0.5, y: 0.3),
         CGPoint(x: 0.5, y: 0.2)
     ]
+
+    static let initialSpellCharges: Int = 5
+
+    // Initial game state
+    static let initialCoins: Int = 0
+    static let initialScore: Int = 0
+    static let initialWave: Int = 1
+    static let maxSpecialSlots: Int = 4  // Maximum number of special ability slots
 }

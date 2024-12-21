@@ -539,9 +539,9 @@ public class Goblin {
     func goblinSpeed(for type: GoblinType) -> CGFloat {
         switch type {
         case .normal, .ranged:
-            return 100
+            return 125
         case .large:
-            return 50
+            return 65
         case .small:
             return 200
         // case .arrow:
@@ -552,11 +552,11 @@ public class Goblin {
     func goblinHealth(for type: GoblinType) -> CGFloat {
         switch type {
         case .normal, .ranged:
-            return 50
+            return 75 //3 default hits
         case .large:
-            return 125
+            return 175 // 7 default hits
         case .small:
-            return 25
+            return 25 //1 default hit
         // case .arrow:
         //     return 0
         }
@@ -767,6 +767,33 @@ public class Goblin {
 
     func removeTargetingOverlay() {
         scene?.childNode(withName: "targetAreaOverlay")?.removeFromParent()
+    }
+
+    func resetState() {
+        // Clear all goblin containers
+        for container in goblinContainers {
+            container.sprite.removeFromParent()
+            container.healthBar.removeFromParent()
+            container.healthFill.removeFromParent()
+        }
+        goblinContainers.removeAll()
+        
+        // Clear shadow goblins
+        for shadow in shadowGoblins {
+            shadow.sprite.removeFromParent()
+            shadow.healthBar.removeFromParent()
+            shadow.healthFill.removeFromParent()
+        }
+        shadowGoblins.removeAll()
+        
+        // Clear arrows
+        for arrow in arrowContainers {
+            arrow.sprite.removeFromParent()
+        }
+        arrowContainers.removeAll()
+        
+        // Reset path points
+        pathPoints.removeAll()
     }
 }
 

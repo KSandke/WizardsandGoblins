@@ -155,8 +155,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             guard let self = self else { return }
 
             let currentTime = Date().timeIntervalSince1970
-            if currentTime - self.lastKillTime >= 30.0 {
-                // More than 30 seconds have passed since last kill
+            if currentTime - self.lastKillTime >= 120.0 {
+                // More than 120 seconds have passed since last kill
                 self.noKillTimer?.invalidate()
                 self.noKillTimer = nil
 
@@ -341,6 +341,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Stop all wave-related processes
         endWave()
         removeAllActions()
+        
         isGameOver = true
 
         // Stop the round music
@@ -724,7 +725,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         startNextWave()
     }
 
-    func restartGame() {
+    func restartGame() {/*
         // Reset the game over flag
         isGameOver = false
 
@@ -735,9 +736,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Reset properties
         playerState.reset()
 
+        // Reset goblin manager
+        goblinManager.resetState()
+        
+        // Reset shop state
+        ShopView.resetShopState()
+        
+        // Reset player view
+        playerView.resetView()
+        
+
         // Reset wave and goblin counters
         currentWave = 1
         remainingGoblins = GameConfig.defaultMaxGoblinsPerWave
+
+        //
+        isPaused = false
+        isGameOver = false
 
         // Reset spawning properties
         isSpawningEnabled = false
@@ -763,12 +778,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         // Start the first wave
         startWave()
+        */
+        // Instead of resetting the current scene, request a new scene creation
+        if let view = self.view {
+            // Create a new GameScene
+            let newScene = GameScene(size: self.size)
+            newScene.scaleMode = self.scaleMode
+            
+            // Present the new scene with a transition
+            let transition = SKTransition.fade(withDuration: 0.5)
+            view.presentScene(newScene, transition: transition)
+        }
     }
 
     func goToMainMenu() {
-        let mainMenuScene = WGMainMenu(size: self.size)
-        mainMenuScene.scaleMode = SKSceneScaleMode.aspectFill
-        view?.presentScene(mainMenuScene, transition: SKTransition.fade(withDuration: 0.5))
+        // Remove all nodes and actions
+        removeAllChildren()
+        removeAllActions()
+        
+        // Stop any ongoing sounds
+        SoundManager.shared.stopSound("round_music_1")
+        SoundManager.shared.stopSound("round_music_2")
+        
+        // Post notification to dismiss the GameView and return to MainMenuView
+        NotificationCenter.default.post(name: NSNotification.Name("ReturnToMainMenu"), object: nil)
     }
 
     func startNextWave() {

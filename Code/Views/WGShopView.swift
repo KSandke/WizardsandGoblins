@@ -96,6 +96,10 @@ struct ShopItem {
         self.rarity = rarity
         self.maxLevel = maxLevel
     }
+    
+    static func resetPurchaseCounts() {
+        purchaseCounts.removeAll()
+    }
 }
 
 class ShopView: SKNode {
@@ -1118,5 +1122,14 @@ class ShopView: SKNode {
         // Update reset message
         let resetText = "Shop resets in:\n\(wavesUntilReset) wave\(wavesUntilReset != 1 ? "s" : "")"
         resetTimerLabel.text = resetText
+    }
+    
+    static func resetShopState() {
+        // Reset special offer tracking
+        lastSpecialRefreshWave = 0
+        currentSpecialOffer = nil
+        
+        // Reset shop item purchase counts
+        ShopItem.resetPurchaseCounts()
     }
 } 
