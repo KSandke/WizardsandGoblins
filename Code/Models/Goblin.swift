@@ -539,11 +539,11 @@ public class Goblin {
     func goblinSpeed(for type: GoblinType) -> CGFloat {
         switch type {
         case .normal, .ranged:
-            return 125
+            return 111
         case .large:
             return 65
         case .small:
-            return 200
+            return 150
         // case .arrow:
         //     return 300
         }
@@ -551,7 +551,9 @@ public class Goblin {
     
     func goblinHealth(for type: GoblinType) -> CGFloat {
         switch type {
-        case .normal, .ranged:
+        case .ranged:
+            return 50
+        case .normal:
             return 75 //3 default hits
         case .large:
             return 175 // 7 default hits
@@ -565,13 +567,13 @@ public class Goblin {
     func goblinDamage(for type: GoblinType) -> CGFloat {
         switch type {
         case .normal:
-            return 10
+            return 5
         case .large:
-            return 20
+            return 15
         case .small:
-            return 5
+            return 3
         case .ranged:
-            return 5
+            return 3
         // case .arrow:
         //     return 5
         }
@@ -711,13 +713,13 @@ public class Goblin {
     func goblinGoldValue(for type: GoblinType) -> Int {
         switch type {
         case .normal:
-            return 5
-        case .large:
-            return 15
-        case .small:
             return 3
-        case .ranged:
+        case .large:
             return 10
+        case .small:
+            return 2
+        case .ranged:
+            return 2
         }
     }
 
