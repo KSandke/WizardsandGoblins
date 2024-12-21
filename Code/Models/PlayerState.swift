@@ -239,21 +239,8 @@ class PlayerState: SpellCaster {
         return false
     }
     
-    // Update getCurrentSpell to NOT consume temporarySpell
+    // Simplify to get current spell
     func getCurrentSpell() -> Spell {
-        return currentSpell
-    }
-    
-    // Add new method to get spell for casting (consumes temporarySpell)
-    func getSpellForCasting() -> Spell {
-        if let temp = temporarySpell {
-            print("Using temporary spell: \(temp.name)")  // Debug log
-            // Clear the temporary spell after getting it
-            temporarySpell = nil
-            // Notify UI that temporary spell is consumed
-            onTemporarySpellChanged?(nil)
-            return temp
-        }
         return currentSpell
     }
     

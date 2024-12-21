@@ -43,10 +43,13 @@ class Spell {
         if !playerState.useSpell(cost: manaCost) {
             return false
         }
+        
+        // Pass the playerState to performCast
+        return performCast(from: casterPosition, to: targetPosition, by: playerState, in: scene)
     }
 
     // Move casting logic to separate method
-    private func performCast(from casterPosition: CGPoint, to targetPosition: CGPoint, in scene: SKScene) -> Bool {
+    private func performCast(from casterPosition: CGPoint, to targetPosition: CGPoint, by playerState: PlayerState, in scene: SKScene) -> Bool {
         let spellNode = SKSpriteNode(imageNamed: name)
         spellNode.size = CGSize(width: 50, height: 50)
         spellNode.position = casterPosition
